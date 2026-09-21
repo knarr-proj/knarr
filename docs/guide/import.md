@@ -7,7 +7,6 @@ This is not a value. To load **data** (values.yaml), use [`!read`](read.md).
 ## Syntax
 
 ```yaml
----
 !import helpers/workers.knarr
 ```
 
@@ -23,31 +22,23 @@ This is not a value. To load **data** (values.yaml), use [`!read`](read.md).
 `app.knarr`:
 
 ```yaml
----
 !bind
 $Values: !read values.yaml
----
 !import workers.knarr
----
 !emit
-apiVersion: v1
 kind: Service
-metadata:
-  name: !ref $Values.name
+name: !ref $Values.name
 ```
 
 `workers.knarr`:
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.workers
 $as: $Worker
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $Worker.name
+  name: !ref $Worker.name
 ```
 
 `$Values` is visible in the imported file (same graph).
@@ -55,9 +46,7 @@ $yield:
 ### Share a typedef
 
 ```yaml
----
 !import types.knarr
----
 !bind
 $Values: !$ValuesType
   name: api
@@ -74,23 +63,18 @@ Imported files may `!import` further files. Import cycles are errors.
 <tr><td>
 
 ```yaml
----
 !emit
-metadata:
-  labels: !import labels.yaml
+labels: !import labels.yaml
 # !import is a document splice, not a field
 ```
 
 </td><td>
 
 ```yaml
----
 !bind
 $Labels: !read labels.yaml
----
 !emit
-metadata:
-  labels: !ref $Labels
+labels: !ref $Labels
 # load a YAML tree with !read, then !ref
 ```
 
@@ -98,7 +82,6 @@ metadata:
 <tr><td>
 
 ```yaml
----
 !bind
 $Values: !import values.yaml
 # !import splices program documents, not a data tree
@@ -107,7 +90,6 @@ $Values: !import values.yaml
 </td><td>
 
 ```yaml
----
 !bind
 $Values: !read values.yaml
 # data files use !read
@@ -117,25 +99,20 @@ $Values: !read values.yaml
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  template: !import worker.knarr
+template: !import worker.knarr
 # named snippets with $as scope are not v1
 ```
 
 </td><td>
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.workers
 $as: $W
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $W.name
+  name: !ref $W.name
 # loop scope stays in this file; !import only splices documents
 ```
 
@@ -162,11 +139,9 @@ labels:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-metadata:
-  labels:
-    app: !ref $Values.name
+labels:
+  app: !ref $Values.name
 ```
 
 </td></tr>
@@ -182,7 +157,6 @@ Named `define` / `include` is not v1. Emit the mapping, or `!read` data and `!re
 
 ```gotemplate
 {{ define "mychart.worker" }}
-apiVersion: v1
 kind: Pod
 {{ end }}
 {{ include "mychart.worker" . }}
@@ -192,7 +166,6 @@ kind: Pod
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !import workers.knarr
 # workers.knarr emits:
 # kind: Pod
@@ -218,7 +191,6 @@ name: api
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Values: !read values.yaml
 ```
@@ -243,13 +215,10 @@ labels:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Labels: !read labels.yaml
----
 !emit
-metadata:
-  labels: !ref $Labels
+labels: !ref $Labels
 ```
 
 </td></tr>

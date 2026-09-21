@@ -19,17 +19,12 @@ $Csv: !join
 ### comma-separated hosts
 
 ```yaml
----
 !bind
 $HostList: !join
   $sep: ","
   $over: !ref $Values.hosts
----
 !emit
-apiVersion: v1
-kind: ConfigMap
-data:
-  hosts: !ref $HostList
+hosts: !ref $HostList
 ```
 
 ### Kubernetes DNS names with dots
@@ -61,27 +56,22 @@ $Pull: !join
 <tr><td>
 
 ```yaml
----
 !emit
-data:
-  hosts: !join
-    $sep: ","
-    $over: !ref $Values.hosts
+hosts: !join
+  $sep: ","
+  $over: !ref $Values.hosts
 # !join is bind-only
 ```
 
 </td><td>
 
 ```yaml
----
 !bind
 $HostList: !join
   $sep: ","
   $over: !ref $Values.hosts
----
 !emit
-data:
-  hosts: !ref $HostList
+hosts: !ref $HostList
 # join in bind, then !ref
 ```
 
@@ -89,7 +79,6 @@ data:
 <tr><td>
 
 ```yaml
----
 !bind
 $HostList: !join
   over: !ref $Values.hosts
@@ -100,7 +89,6 @@ $HostList: !join
 </td><td>
 
 ```yaml
----
 !bind
 $HostList: !join
   $sep: ","
@@ -112,7 +100,6 @@ $HostList: !join
 <tr><td>
 
 ```yaml
----
 !bind
 $Ports: !join
   $sep: ","
@@ -123,7 +110,6 @@ $Ports: !join
 </td><td>
 
 ```yaml
----
 !bind
 $StrPorts: !foreach
   $over: !ref $Values.ports
@@ -139,7 +125,6 @@ $Ports: !join
 <tr><td>
 
 ```yaml
----
 !bind
 $Name: !format
   - "%s-%s"
@@ -151,7 +136,6 @@ $Name: !format
 </td><td>
 
 ```yaml
----
 !bind
 $Name: !join
   $sep: "-"
@@ -184,15 +168,12 @@ hosts: {{ join "," .Values.hosts }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $HostList: !join
   $sep: ","
   $over: !ref $Values.hosts
----
 !emit
-data:
-  hosts: !ref $HostList
+hosts: !ref $HostList
 ```
 
 </td></tr>
@@ -214,7 +195,6 @@ name: {{ .Values.name }}.svc.cluster.local
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Name: !join
   $sep: "."
@@ -244,7 +224,6 @@ pull: {{ join "," .Values.pullSecrets }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Pull: !join
   $sep: ","

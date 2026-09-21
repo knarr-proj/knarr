@@ -16,14 +16,11 @@ One tag, one scalar path. Does **not** wrap `!empty` / `!and` / `!or` (those hav
 ### Invert a flag
 
 ```yaml
----
 !emit
 $when: !not $Values.service.enabled
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: no-svc
+  name: no-svc
 $else: ""
 ```
 
@@ -48,7 +45,6 @@ $filter: !not $Worker.disabled
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !not !ref $On
 $then:
@@ -60,14 +56,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !not $Values.service.enabled
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 # !not takes a path scalar
 ```
@@ -76,7 +69,6 @@ $else: ""
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !not !empty $Values?.tls
 $then:
@@ -88,14 +80,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !not-empty $Values?.tls
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: tls
+  name: tls
 $else: ""
 # use !not-empty or !expr
 ```
@@ -125,14 +114,11 @@ kind: Service
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !not $Values.service.enabled
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
@@ -157,14 +143,11 @@ kind: Deployment
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !expr "!($Values?.debug ?? false)"
 $then:
-  apiVersion: apps/v1
   kind: Deployment
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
@@ -192,16 +175,13 @@ env:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  containers:
-    - env: !foreach
-        $over: !ref $Values.workers
-        $as: $Worker
-        $filter: !not $Worker.disabled
-        $yield:
-          name: !ref $Worker.name
+env: !foreach
+  $over: !ref $Values.workers
+  $as: $Worker
+  $filter: !not $Worker.disabled
+  $yield:
+    name: !ref $Worker.name
 ```
 
 </td></tr>

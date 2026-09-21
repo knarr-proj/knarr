@@ -17,8 +17,7 @@ Not a bool: `$when: !len` is an error. Use [`!not-empty`](not-empty.md).
 ### replicas = number of workers
 
 ```yaml
-spec:
-  replicas: !len $Values.workers
+replicas: !len $Values.workers
 ```
 
 ### Last list element
@@ -35,10 +34,8 @@ Empty list → index error (no `[-1]`).
 
 ```yaml
 $N?: !len $Values?.workers
----
 !emit
-spec:
-  replicas?: !ref $N?
+replicas?: !ref $N?
 ```
 
 ### Labels count in an annotation
@@ -57,7 +54,6 @@ $Ann: !format
 <tr><td>
 
 ```yaml
----
 !bind
 $n: !expr "len($Values.workers)"
 # no len() in !expr
@@ -66,7 +62,6 @@ $n: !expr "len($Values.workers)"
 </td><td>
 
 ```yaml
----
 !bind
 $n: !len $Values.workers
 # length is the !len tag
@@ -76,7 +71,6 @@ $n: !len $Values.workers
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !len $Values.workers
 $then:
@@ -88,14 +82,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !not-empty $Values?.workers
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: workers
+  name: workers
 $else: ""
 # $when needs a bool: !not-empty, or !len then !expr "$N > 0"
 ```
@@ -104,7 +95,6 @@ $else: ""
 <tr><td>
 
 ```yaml
----
 !bind
 $N: !len $Values.label
 # "ж" is 2 bytes, not 1 rune
@@ -113,7 +103,6 @@ $N: !len $Values.label
 </td><td>
 
 ```yaml
----
 !bind
 $N: !len $Values.label
 # !len of a string is UTF-8 byte length
@@ -123,7 +112,6 @@ $N: !len $Values.label
 <tr><td>
 
 ```yaml
----
 !bind
 $N: !len $Values?.workers
 # omit !len without ?: on the key is an error
@@ -132,7 +120,6 @@ $N: !len $Values?.workers
 </td><td>
 
 ```yaml
----
 !bind
 $N?: !len $Values?.workers
 # pair omit: $N?: with ?.
@@ -161,10 +148,8 @@ replicas: {{ len .Values.workers }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas: !len $Values.workers
+replicas: !len $Values.workers
 ```
 
 </td></tr>
@@ -186,14 +171,11 @@ image: {{ last .Values.workers }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $N: !len $Values.workers
 $I: !expr "$N - 1"
----
 !emit
-spec:
-  image: !expr "$Values.workers[$I].image"
+image: !expr "$Values.workers[$I].image"
 ```
 
 </td></tr>
@@ -217,14 +199,11 @@ kind: ConfigMap
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !not-empty $Values?.workers
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: workers
+  name: workers
 $else: ""
 ```
 
@@ -247,7 +226,6 @@ ann: {{ printf "%d-labels" (len .Values.labels) }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $N: !len $Values.labels
 $Ann: !format

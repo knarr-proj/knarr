@@ -5,7 +5,6 @@ A **check document**. It never emits a manifest. Run after all binds, before emi
 ## Syntax
 
 ```yaml
----
 !validation
 $rules:
   - !not-empty $Values?.name
@@ -28,7 +27,6 @@ Use [`!not-empty`](not-empty.md) for “required string”, not `!empty`.
 ### Required name
 
 ```yaml
----
 !validation
 $rules:
   - !not-empty $Values?.name
@@ -40,7 +38,6 @@ $fail: "set Values.name"
 Rules are **must-true**. When the flag should be absent:
 
 ```yaml
----
 !validation
 $rules:
   - !expr "!($Values?.legacy ?? false)"
@@ -50,12 +47,10 @@ $fail: "remove Values.legacy"
 ### Warning, still render
 
 ```yaml
----
 !bind
 $Msg: !format
   - "using default image for %s"
   - !ref $Values.name
----
 !validation
 $rules:
   - !expr "$Values?.image"
@@ -75,7 +70,6 @@ Multiple `!validation` documents run in file order. `$warning` documents can all
 <tr><td>
 
 ```yaml
----
 !validation
 $rules:
   - !expr "required($Values.name)"
@@ -86,7 +80,6 @@ $fail: "set name"
 </td><td>
 
 ```yaml
----
 !validation
 $rules:
   - !not-empty $Values?.name
@@ -98,7 +91,6 @@ $fail: "set name"
 <tr><td>
 
 ```yaml
----
 !validation
 $rules:
   - !not-empty $Values?.name
@@ -110,7 +102,6 @@ $warning: "missing name"
 </td><td>
 
 ```yaml
----
 !validation
 $rules:
   - !not-empty $Values?.name
@@ -122,7 +113,6 @@ $fail: "set name"
 <tr><td>
 
 ```yaml
----
 !validation
 $rules:
   - !empty $Values?.name
@@ -133,7 +123,6 @@ $fail: "set name"
 </td><td>
 
 ```yaml
----
 !validation
 $rules:
   - !not-empty $Values?.name
@@ -164,7 +153,6 @@ name: {{ required "set name" .Values.name }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !validation
 $rules:
   - !not-empty $Values?.name
@@ -193,7 +181,6 @@ legacy: {{ .Values.legacy }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !validation
 $rules:
   - !expr "!($Values?.legacy ?? false)"
@@ -222,7 +209,6 @@ image: {{ .Values.image }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !validation
 $rules:
   - !expr "$Values?.image"

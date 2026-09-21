@@ -20,17 +20,12 @@ $Cpu: !float $Values.cpuStr
 ### CPU limit 0.5
 
 ```yaml
----
 !bind
 $Values:
   cpu: 0.5
----
 !emit
-spec:
-  containers:
-    - resources:
-        limits:
-          cpu: !ref $Values.cpu
+resources:
+    cpu: !ref $Values.cpu
 ```
 
 ### String values to float for `%f`
@@ -65,7 +60,6 @@ cpu: "500m"
 <tr><td>
 
 ```yaml
----
 !bind
 $Ok: !expr "0.1 + 0.2 == 0.3"
 # IEEE float64; 0.1 + 0.2 is not 0.3
@@ -74,7 +68,6 @@ $Ok: !expr "0.1 + 0.2 == 0.3"
 </td><td>
 
 ```yaml
----
 !bind
 $Sum: !expr "0.1 + 0.2"
 # same rounding as Go float64; do not compare with == 0.3
@@ -84,7 +77,6 @@ $Sum: !expr "0.1 + 0.2"
 <tr><td>
 
 ```yaml
----
 !bind
 $Cpu: !int $Values.cpu
 # cpu 0.5 cannot truncate; !int of a float is an error
@@ -93,7 +85,6 @@ $Cpu: !int $Values.cpu
 </td><td>
 
 ```yaml
----
 !bind
 $Cpu: !float $Values.cpu
 # keep the float, or use !float
@@ -103,7 +94,6 @@ $Cpu: !float $Values.cpu
 <tr><td>
 
 ```yaml
----
 !bind
 $Cpu: !expr "float64($Values.cpuStr)"
 # no float64() in !expr
@@ -112,7 +102,6 @@ $Cpu: !expr "float64($Values.cpuStr)"
 </td><td>
 
 ```yaml
----
 !bind
 $Cpu: !float $Values.cpuStr
 # coerce with !float
@@ -122,7 +111,6 @@ $Cpu: !float $Values.cpuStr
 <tr><td>
 
 ```yaml
----
 !bind
 $Cpu: !float "500m"
 # millicores are not a float
@@ -131,11 +119,8 @@ $Cpu: !float "500m"
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  limits:
-    cpu: "500m"
+cpu: "500m"
 # leave Quantity as a quoted string
 ```
 
@@ -163,11 +148,8 @@ cpu: {{ .Values.cpu }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  limits:
-    cpu: !ref $Values.cpu
+cpu: !ref $Values.cpu
 ```
 
 </td></tr>
@@ -189,7 +171,6 @@ cpu: {{ float64 .Values.cpuStr }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Cpu: !float $Values.cpuStr
 ```
@@ -213,7 +194,6 @@ limit: {{ add .Values.replicas 0.5 }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Limit: !expr "$Values.replicas + 0.5"
 ```
@@ -237,11 +217,8 @@ cpu: 500m
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  limits:
-    cpu: "500m"
+cpu: "500m"
 ```
 
 </td></tr>

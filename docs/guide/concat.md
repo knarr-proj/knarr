@@ -20,17 +20,12 @@ $Args: !concat
 ### Container args
 
 ```yaml
----
 !bind
 $Args: !concat
   - ["--verbose", "--alsologtostderr"]
   - !ref $Values.extraArgs
----
 !emit
-spec:
-  containers:
-    - name: app
-      args: !ref $Args
+args: !ref $Args
 ```
 
 ### Default extra list
@@ -56,29 +51,22 @@ $Ports: !concat
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  containers:
-    - args: !concat
-        - ["--verbose"]
-        - !ref $Values.extraArgs
+args: !concat
+  - ["--verbose"]
+  - !ref $Values.extraArgs
 # !concat is bind-only
 ```
 
 </td><td>
 
 ```yaml
----
 !bind
 $Args: !concat
   - ["--verbose"]
   - !ref $Values.extraArgs
----
 !emit
-spec:
-  containers:
-    - args: !ref $Args
+args: !ref $Args
 # concat in bind, then !ref
 ```
 
@@ -86,29 +74,22 @@ spec:
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  containers:
-    - args:
-        - --verbose
-        - !ref $Values.extraArgs
+args:
+    - --verbose
+    - !ref $Values.extraArgs
 # a list child nests a list, it does not splice
 ```
 
 </td><td>
 
 ```yaml
----
 !bind
 $Args: !concat
   - ["--verbose"]
   - !ref $Values.extraArgs
----
 !emit
-spec:
-  containers:
-    - args: !ref $Args
+args: !ref $Args
 # splice sequences with !concat
 ```
 
@@ -116,7 +97,6 @@ spec:
 <tr><td>
 
 ```yaml
----
 !bind
 $Args: !expr "$Fixed + $Extra"
 # + never concatenates lists
@@ -125,7 +105,6 @@ $Args: !expr "$Fixed + $Extra"
 </td><td>
 
 ```yaml
----
 !bind
 $Args: !concat
   - !ref $Fixed
@@ -156,16 +135,12 @@ args: {{ concat (list "--verbose") .Values.extraArgs }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Args: !concat
   - ["--verbose"]
   - !ref $Values.extraArgs
----
 !emit
-spec:
-  containers:
-    - args: !ref $Args
+args: !ref $Args
 ```
 
 </td></tr>
@@ -187,11 +162,12 @@ ports: {{ concat .Values.fixedPorts .Values.dynamicPorts }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Ports: !concat
   - !ref $Values.fixedPorts
   - !ref $Values.dynamicPorts
+!emit
+ports: !ref $Ports
 ```
 
 </td></tr>
@@ -217,7 +193,6 @@ args:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Args: !concat
   - ["--verbose"]

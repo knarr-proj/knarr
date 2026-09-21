@@ -5,14 +5,11 @@ Document-level condition. On **`!emit`**, `$when` requires `$then` and `$else`. 
 ## Syntax (`!emit`)
 
 ```yaml
----
 !emit
 $when: <bool>
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
@@ -25,16 +22,13 @@ No other keys next to `$when`. `when:` without `$` is an error.
 ## Syntax (`!emit-foreach`)
 
 ```yaml
----
 !emit-foreach
 $when: !expr "$Values.deployWorkers ?? false"
 $over: !ref $Values.workers
 $as: $Worker
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $Worker.name
+  name: !ref $Worker.name
 ```
 
 False → **zero** documents; `$over` is not evaluated. `$as` is not visible in `$when`.
@@ -52,10 +46,8 @@ $when: !ref $Values.service.enabled
 ```yaml
 $when: !not-empty $Values?.sidecars
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: sidecars
+  name: sidecars
 $else: ""
 ```
 
@@ -74,26 +66,22 @@ $when: !and
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas:
-    $when: !expr "$Values.ha"
-    $then: 3
-    $else: 1
+replicas:
+  $when: !expr "$Values.ha"
+  $then: 3
+  $else: 1
 # $when is not allowed on a field
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas: !match
-    $if: !ref $Values.ha
-    $then: 3
-    $else: 1
+replicas: !match
+  $if: !ref $Values.ha
+  $then: 3
+  $else: 1
 # field-level if is !match
 ```
 
@@ -101,7 +89,6 @@ spec:
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !len $Values.workers
 $then:
@@ -113,14 +100,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !not-empty $Values?.workers
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: workers
+  name: workers
 $else: ""
 # $when needs a bool: !not-empty, or !expr after !len
 ```
@@ -129,7 +113,6 @@ $else: ""
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !ref $Values?.enabled
 $then:
@@ -141,14 +124,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !expr "$Values?.enabled ?? false"
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 # missing enabled becomes false
 ```
@@ -171,7 +151,6 @@ $else: ""
 
 ```gotemplate
 {{- if .Values.service.enabled }}
-apiVersion: v1
 kind: Service
 {{- end }}
 ```
@@ -180,14 +159,11 @@ kind: Service
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !ref $Values.service.enabled
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
@@ -204,7 +180,6 @@ Helm `if` with no else just skips; knarr `$when` requires `$then` and `$else`.
 
 ```gotemplate
 {{- if .Values.sidecars }}
-apiVersion: v1
 kind: ConfigMap
 {{- end }}
 ```
@@ -213,14 +188,11 @@ kind: ConfigMap
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !not-empty $Values?.sidecars
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: sidecars
+  name: sidecars
 $else: ""
 ```
 
@@ -237,7 +209,6 @@ Helm `if .Values.sidecars` is a truthiness test (empty list is false); knarr `$w
 
 ```gotemplate
 {{- if and .Values.service.enabled (gt .Values.replicas 1) }}
-apiVersion: v1
 kind: Service
 {{- end }}
 ```
@@ -246,16 +217,13 @@ kind: Service
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !and
   - !ref $Values.service.enabled
   - !expr "$Values.replicas > 1"
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
@@ -273,10 +241,8 @@ Helm `and` / `gt` live in `if`; knarr `$when` is a bool from `!and` + `!expr`.
 ```gotemplate
 {{- if .Values.deployWorkers }}
 {{- range .Values.workers }}
-apiVersion: v1
 kind: Pod
-metadata:
-  name: {{ .name }}
+name: {{ .name }}
 {{- end }}
 {{- end }}
 ```
@@ -285,16 +251,13 @@ metadata:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit-foreach
 $when: !expr "$Values.deployWorkers ?? false"
 $over: !ref $Values.workers
 $as: $Worker
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $Worker.name
+  name: !ref $Worker.name
 ```
 
 </td></tr>

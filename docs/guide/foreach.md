@@ -88,30 +88,24 @@ $yield?: !ref $S?.container
 <tr><td>
 
 ```yaml
----
 !foreach
 $over: !ref $Values.workers
 $as: $W
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $W.name
+  name: !ref $W.name
 # !foreach is not a root document for many Pods
 ```
 
 </td><td>
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.workers
 $as: $W
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $W.name
+  name: !ref $W.name
 # one document per item is !emit-foreach
 ```
 
@@ -119,28 +113,24 @@ $yield:
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  containers: !foreach
-    $over: !ref $Values?.workers
-    $as: $W
-    $yield:
-      name: !ref $W.name
+containers: !foreach
+  $over: !ref $Values?.workers
+  $as: $W
+  $yield:
+    name: !ref $W.name
 # omit $over is an error
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  containers: !foreach
-    $over: !expr "$Values?.workers ?? []"
-    $as: $W
-    $yield:
-      name: !ref $W.name
+containers: !foreach
+  $over: !expr "$Values?.workers ?? []"
+  $as: $W
+  $yield:
+    name: !ref $W.name
 # missing list becomes []
 ```
 
@@ -148,33 +138,29 @@ spec:
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  env: !foreach
-    $over: !ref $Values.env
-    $as: $E
-    $yield: !match
-      $if: !ref $E.plain
-      $then: !ref $E.name
-      $else:
-        name: !ref $E.name
-        value: !ref $E.value
+env: !foreach
+  $over: !ref $Values.env
+  $as: $E
+  $yield: !match
+    $if: !ref $E.plain
+    $then: !ref $E.name
+    $else:
+      name: !ref $E.name
+      value: !ref $E.value
 # one loop cannot mix string and mapping $yield
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  env: !foreach
-    $over: !ref $Values.env
-    $as: $E
-    $yield:
-      name: !ref $E.name
-      value: !ref $E.value
+env: !foreach
+  $over: !ref $Values.env
+  $as: $E
+  $yield:
+    name: !ref $E.name
+    value: !ref $E.value
 # one YAML sort per loop
 ```
 
@@ -205,16 +191,13 @@ env:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  containers:
-    - env: !foreach
-        $over: !ref $Values.env
-        $as: $E
-        $yield:
-          name: !ref $E.name
-          value: !ref $E.value
+env: !foreach
+  $over: !ref $Values.env
+  $as: $E
+  $yield:
+    name: !ref $E.name
+    value: !ref $E.value
 ```
 
 </td></tr>
@@ -239,15 +222,12 @@ ports:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  containers:
-    - ports: !foreach
-        $over: !ref $Values.ports
-        $as: $P
-        $yield:
-          containerPort: !ref $P
+ports: !foreach
+  $over: !ref $Values.ports
+  $as: $P
+  $yield:
+    containerPort: !ref $P
 ```
 
 </td></tr>
@@ -273,17 +253,14 @@ env:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  containers:
-    - env: !foreach
-        $over: !ref $Values.labels
-        $as: $V
-        $key: $K
-        $yield:
-          name: !ref $K
-          value: !ref $V
+env: !foreach
+  $over: !ref $Values.labels
+  $as: $V
+  $key: $K
+  $yield:
+    name: !ref $K
+    value: !ref $V
 ```
 
 </td></tr>
@@ -311,17 +288,14 @@ env:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  containers:
-    - env: !foreach
-        $over: !ref $Values.env
-        $as: $E
-        $filter: !ref $E.enabled
-        $yield:
-          name: !ref $E.name
-          value: !ref $E.value
+env: !foreach
+  $over: !ref $Values.env
+  $as: $E
+  $filter: !ref $E.enabled
+  $yield:
+    name: !ref $E.name
+    value: !ref $E.value
 ```
 
 </td></tr>

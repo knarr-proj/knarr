@@ -5,8 +5,7 @@ Serialize a knarr node to a JSON **string**. Canon is Go `encoding/json.Marshal`
 ## Syntax
 
 ```yaml
-data:
-  config.json: !to-json-str $Values.config
+config.json: !to-json-str $Values.config
 ```
 
 Tagged scalar `RefScalar`. Omit path → omit.
@@ -16,24 +15,15 @@ Tagged scalar `RefScalar`. Omit path → omit.
 ### ConfigMap JSON
 
 ```yaml
----
 !emit
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app
-data:
-  runtime.json: !to-json-str $Values.runtime
+runtime.json: !to-json-str $Values.runtime
 ```
 
 ### Annotation + checksum
 
 ```yaml
-metadata:
-  annotations:
-    checksum/config: !sha256-json $Values.config
-data:
-  config.json: !to-json-str $Values.config
+checksum/config: !sha256-json $Values.config
+config.json: !to-json-str $Values.config
 ```
 
 ### `&` in a note
@@ -51,7 +41,6 @@ JSON of knarr float matches Go `float64` marshal (`1.0` as float may print `1`).
 <tr><td>
 
 ```yaml
----
 !bind
 $Json: !expr "toJson($Values.config)"
 # no toJson() in !expr
@@ -60,10 +49,8 @@ $Json: !expr "toJson($Values.config)"
 </td><td>
 
 ```yaml
----
 !emit
-data:
-  config.json: !to-json-str $Values.config
+config.json: !to-json-str $Values.config
 # JSON text is the !to-json-str tag
 ```
 
@@ -71,20 +58,16 @@ data:
 <tr><td>
 
 ```yaml
----
 !emit
-data:
-  config.json: !to-json-str $Values.config
+config.json: !to-json-str $Values.config
 # pretty JSON or first-seen key order would break checksums
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-data:
-  config.json: !to-json-str $Values.config
+config.json: !to-json-str $Values.config
 # canon is compact, sorted keys, HTML-escape — same as Go json.Marshal
 ```
 
@@ -92,7 +75,6 @@ data:
 <tr><td>
 
 ```yaml
----
 !bind
 $Yaml: !to-yaml-str $Values.config
 # !to-yaml-str is not v1
@@ -101,10 +83,8 @@ $Yaml: !to-yaml-str $Values.config
 </td><td>
 
 ```yaml
----
 !emit
-data:
-  config: !ref $Values.config
+config: !ref $Values.config
 # emit the mapping as YAML, or use !to-json-str for JSON text
 ```
 
@@ -131,10 +111,8 @@ config.json: {{ toJson .Values.config }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-data:
-  config.json: !to-json-str $Values.config
+config.json: !to-json-str $Values.config
 ```
 
 </td></tr>
@@ -157,13 +135,9 @@ config.json: {{ toJson .Values.config }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-metadata:
-  annotations:
-    checksum/config: !sha256-json $Values.config
-data:
-  config.json: !to-json-str $Values.config
+checksum/config: !sha256-json $Values.config
+config.json: !to-json-str $Values.config
 ```
 
 </td></tr>
@@ -185,11 +159,9 @@ note.json: {{ toJson (dict "note" "a&b") }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-data:
-  note.json: !to-json-str
-    note: a&b
+note.json: !to-json-str
+  note: a&b
 ```
 
 </td></tr>

@@ -13,21 +13,17 @@ $when: !not-empty $Values?.sidecars
 ### Emit when sidecars exist
 
 ```yaml
----
 !emit
 $when: !not-empty $Values?.sidecars
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: sidecars
+  name: sidecars
 $else: ""
 ```
 
 ### Required values.name
 
 ```yaml
----
 !validation
 $rules:
   - !not-empty $Values?.name
@@ -45,8 +41,7 @@ $filter: !not-empty $W?.ports
 ```yaml
 $when: !not-empty $Values?.nodeSelector
 $then:
-  spec:
-    nodeSelector: !ref $Values.nodeSelector
+  nodeSelector: !ref $Values.nodeSelector
 $else: ""
 ```
 
@@ -59,7 +54,6 @@ For a **field** omit, `nodeSelector?: !ref $Values?.nodeSelector` is simpler.
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !len $Values.workers
 $then:
@@ -71,14 +65,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !not-empty $Values?.workers
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: workers
+  name: workers
 $else: ""
 # $when needs a bool — !not-empty
 ```
@@ -87,7 +78,6 @@ $else: ""
 <tr><td>
 
 ```yaml
----
 !validation
 $rules:
   - !empty $Values?.name
@@ -98,7 +88,6 @@ $fail: "set name"
 </td><td>
 
 ```yaml
----
 !validation
 $rules:
   - !not-empty $Values?.name
@@ -131,14 +120,11 @@ kind: ConfigMap
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !not-empty $Values?.sidecars
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: sidecars
+  name: sidecars
 $else: ""
 ```
 
@@ -161,7 +147,6 @@ name: {{ required "set name" .Values.name }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !validation
 $rules:
   - !not-empty $Values?.name
@@ -192,16 +177,13 @@ ports:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  containers:
-    - ports: !foreach
-        $over: !ref $Values.workers
-        $as: $W
-        $filter: !not-empty $W?.ports
-        $yield:
-          name: !ref $W.name
+ports: !foreach
+  $over: !ref $Values.workers
+  $as: $W
+  $filter: !not-empty $W?.ports
+  $yield:
+    name: !ref $W.name
 ```
 
 </td></tr>
@@ -226,10 +208,8 @@ nodeSelector:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  nodeSelector?: !ref $Values?.nodeSelector
+nodeSelector?: !ref $Values?.nodeSelector
 ```
 
 </td></tr>

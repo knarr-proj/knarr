@@ -18,15 +18,12 @@ $Extra: !from-json-str $Values.extraJson
 ### Extra overlay from a string value
 
 ```yaml
----
 !bind
 $Values:
   extraJson: '{"replicas":3}'
 $Extra: !from-json-str $Values.extraJson
----
 !emit
-spec:
-  replicas: !ref $Extra.replicas
+replicas: !ref $Extra.replicas
 ```
 
 ### Read JSON file as YAML
@@ -44,7 +41,6 @@ JSON `\u0026` becomes `&` in the string node.
 <tr><td>
 
 ```yaml
----
 !bind
 $Extra: !expr "fromJson($Values.extraJson)"
 # no fromJson() in !expr
@@ -53,13 +49,10 @@ $Extra: !expr "fromJson($Values.extraJson)"
 </td><td>
 
 ```yaml
----
 !bind
 $Extra: !from-json-str $Values.extraJson
----
 !emit
-spec:
-  replicas: !ref $Extra.replicas
+replicas: !ref $Extra.replicas
 # parse a JSON string with !from-json-str
 ```
 
@@ -67,7 +60,6 @@ spec:
 <tr><td>
 
 ```yaml
----
 !bind
 $N: !from-json-str '{"n":1}'
 # do not expect n to stay float64
@@ -76,7 +68,6 @@ $N: !from-json-str '{"n":1}'
 </td><td>
 
 ```yaml
----
 !bind
 $N: !from-json-str '{"n":1}'
 # bare JSON 1 becomes int (same as Go encoding/json)
@@ -86,7 +77,6 @@ $N: !from-json-str '{"n":1}'
 <tr><td>
 
 ```yaml
----
 !bind
 $X: !from-json-str '{"n":null}'
 # knarr has no null; JSON null is an error
@@ -95,7 +85,6 @@ $X: !from-json-str '{"n":null}'
 </td><td>
 
 ```yaml
----
 !bind
 $X: !from-json-str '{"n":0}'
 # use a real value; omit the key if it should be absent
@@ -124,15 +113,12 @@ replicas: {{ ( .Values.extraJson | fromJson ).replicas }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Values:
   extraJson: '{"replicas":3}'
 $Extra: !from-json-str $Values.extraJson
----
 !emit
-spec:
-  replicas: !ref $Extra.replicas
+replicas: !ref $Extra.replicas
 ```
 
 </td></tr>
@@ -154,7 +140,6 @@ extra: {{ .Files.Get "x.json" | fromJson }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Extra: !read x.json
 ```
@@ -178,7 +163,6 @@ n: {{ fromJson "{"n":1}" }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $N: !from-json-str '{"n":1}'
 ```

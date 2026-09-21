@@ -23,11 +23,10 @@ name: !pick
 ### Resource name
 
 ```yaml
-metadata:
-  name: !pick
-    - !ref $Values?.fullnameOverride
-    - !ref $Values?.name
-    - knarr-app
+name: !pick
+  - !ref $Values?.fullnameOverride
+  - !ref $Values?.name
+  - knarr-app
 ```
 
 ### Image
@@ -58,24 +57,20 @@ If `port` is `0`, you get `0` — not 8080. Zero is a value.
 <tr><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !pick
-    - ""
-    - app
+name: !pick
+  - ""
+  - app
 # "" is present, so the name is "" — not app
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !pick
-    - !ref $Values?.fullnameOverride
-    - app
+name: !pick
+  - !ref $Values?.fullnameOverride
+  - app
 # only omit falls through; "", 0, and false win. Skip "" with !match if needed
 ```
 
@@ -83,23 +78,19 @@ metadata:
 <tr><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !expr "$Values?.fullname ?? $Values?.name ?? 'app'"
+name: !expr "$Values?.fullname ?? $Values?.name ?? 'app'"
 # ?? in !expr is binary only
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !pick
-    - !ref $Values?.fullname
-    - !ref $Values?.name
-    - app
+name: !pick
+  - !ref $Values?.fullname
+  - !ref $Values?.name
+  - app
 # n-way omit default is !pick
 ```
 
@@ -107,25 +98,21 @@ metadata:
 <tr><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !pick
-    - !ref $Values?.fullname
-    - !ref $Values?.name
+name: !pick
+  - !ref $Values?.fullname
+  - !ref $Values?.name
 # the last child must exist (not omit)
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !pick
-    - !ref $Values?.fullname
-    - !ref $Values?.name
-    - app
+name: !pick
+  - !ref $Values?.fullname
+  - !ref $Values?.name
+  - app
 # last is a concrete fallback
 ```
 
@@ -152,13 +139,11 @@ name: {{ coalesce .Values.fullnameOverride .Values.name "app" }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !pick
-    - !ref $Values?.fullnameOverride
-    - !ref $Values?.name
-    - app
+name: !pick
+  - !ref $Values?.fullnameOverride
+  - !ref $Values?.name
+  - app
 ```
 
 </td></tr>
@@ -180,13 +165,11 @@ image: {{ .Values.image.full | default .Values.image.repository | default "ghcr.
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  image: !pick
-    - !ref $Values?.image.full
-    - !ref $Values?.image.repository
-    - ghcr.io/acme/app:latest
+image: !pick
+  - !ref $Values?.image.full
+  - !ref $Values?.image.repository
+  - ghcr.io/acme/app:latest
 ```
 
 </td></tr>
@@ -208,13 +191,10 @@ containerPort: {{ .Values.port | default 8080 }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  ports:
-    - containerPort: !pick
-        - !ref $Values?.port
-        - 8080
+containerPort: !pick
+  - !ref $Values?.port
+  - 8080
 ```
 
 </td></tr>

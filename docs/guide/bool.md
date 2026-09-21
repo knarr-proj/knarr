@@ -17,17 +17,13 @@ enabled?: !bool $Values?.enabled
 ### Flag from string values
 
 ```yaml
----
 !bind
 $HA: !bool $Values.ha
----
 !emit
 $when: !ref $HA
 $then:
-  apiVersion: policy/v1
   kind: PodDisruptionBudget
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
@@ -50,18 +46,15 @@ Already a bool — `!ref $Values.service.enabled` is enough; `!bool` is redundan
 ### Ingress TLS from a string flag
 
 ```yaml
----
 !bind
 $TlsOn: !bool $Values.ingress.tls
----
 !emit
-spec:
-  tls?: !match
-    $if: !ref $TlsOn
-    $then:
-      - hosts:
-          - !ref $Values.ingress.host
-        secretName: !ref $Values.ingress.secretName
+tls?: !match
+  $if: !ref $TlsOn
+  $then:
+    - hosts:
+        - !ref $Values.ingress.host
+      secretName: !ref $Values.ingress.secretName
 ```
 
 ## Common mistakes
@@ -71,7 +64,6 @@ spec:
 <tr><td>
 
 ```yaml
----
 !bind
 $HA: !bool "yes"
 # !bool does not accept yes / on / TRUE
@@ -80,7 +72,6 @@ $HA: !bool "yes"
 </td><td>
 
 ```yaml
----
 !bind
 $HA: !bool "true"
 # only a bool or lowercase true / false
@@ -90,7 +81,6 @@ $HA: !bool "true"
 <tr><td>
 
 ```yaml
----
 !bind
 $On: !bool 1
 # int is an error; 1 is not true
@@ -99,7 +89,6 @@ $On: !bool 1
 </td><td>
 
 ```yaml
----
 !bind
 $On: !bool "true"
 # use a real bool or the strings "true" / "false"
@@ -109,7 +98,6 @@ $On: !bool "true"
 <tr><td>
 
 ```yaml
----
 !bind
 $On: !expr "bool($Values.ha)"
 # no bool() in !expr
@@ -118,7 +106,6 @@ $On: !expr "bool($Values.ha)"
 </td><td>
 
 ```yaml
----
 !bind
 $On: !bool $Values.ha
 # coerce with !bool
@@ -149,17 +136,13 @@ kind: PodDisruptionBudget
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $HA: !bool $Values.ha
----
 !emit
 $when: !ref $HA
 $then:
-  apiVersion: policy/v1
   kind: PodDisruptionBudget
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
@@ -182,10 +165,8 @@ enabled: {{ .Values.service.enabled }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  enabled: !ref $Values.service.enabled
+enabled: !ref $Values.service.enabled
 ```
 
 </td></tr>
@@ -209,7 +190,6 @@ kind: Ingress
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $TlsOn: !bool $Values.ingress.tls
 ```

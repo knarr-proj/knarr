@@ -19,30 +19,25 @@ replicas: !str $Values.replicas
 ### Label from replica count
 
 ```yaml
-metadata:
-  labels:
-    replicas: !str $Values.replicas
+replicas: !str $Values.replicas
 ```
 
 ### Annotation from bool
 
 ```yaml
-annotations:
-  ha: !str $Values.ha
+ha: !str $Values.ha
 ```
 
 ### Float CPU as text
 
 ```yaml
-annotations:
-  cpu: !str $Values.cpu
+cpu: !str $Values.cpu
 ```
 
 ### Indexed Job name
 
 ```yaml
-metadata:
-  name: !str $I
+name: !str $I
 ```
 
 Job names and labels must be strings. Loop indexes from [`!range`](range.md) are ints.
@@ -50,9 +45,7 @@ Job names and labels must be strings. Loop indexes from [`!range`](range.md) are
 ### Service port as annotation
 
 ```yaml
-metadata:
-  annotations:
-    prometheus.io/port: !str $Values.port
+prometheus.io/port: !str $Values.port
 ```
 
 ## Common mistakes
@@ -62,22 +55,16 @@ metadata:
 <tr><td>
 
 ```yaml
----
 !emit
-metadata:
-  labels:
-    replicas: !expr "string($Values.replicas)"
+replicas: !expr "string($Values.replicas)"
 # no string() in !expr
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-metadata:
-  labels:
-    replicas: !str $Values.replicas
+replicas: !str $Values.replicas
 # stringify with !str
 ```
 
@@ -85,7 +72,6 @@ metadata:
 <tr><td>
 
 ```yaml
----
 !bind
 $S: !str $Values.config
 # !str of a mapping is an error
@@ -94,10 +80,8 @@ $S: !str $Values.config
 </td><td>
 
 ```yaml
----
 !emit
-data:
-  config.json: !to-json-str $Values.config
+config.json: !to-json-str $Values.config
 # JSON text is !to-json-str; or emit the mapping as YAML
 ```
 
@@ -105,7 +89,6 @@ data:
 <tr><td>
 
 ```yaml
----
 !bind
 $Name: !format
   - "%s"
@@ -116,7 +99,6 @@ $Name: !format
 </td><td>
 
 ```yaml
----
 !bind
 $Name: !format
   - "%d"
@@ -147,11 +129,8 @@ replicas: {{ .Values.replicas | toString | quote }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-metadata:
-  labels:
-    replicas: !str $Values.replicas
+replicas: !str $Values.replicas
 ```
 
 </td></tr>
@@ -173,11 +152,8 @@ ha: {{ .Values.ha | toString }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-metadata:
-  annotations:
-    ha: !str $Values.ha
+ha: !str $Values.ha
 ```
 
 </td></tr>
@@ -193,8 +169,7 @@ Same behavior.
 
 ```gotemplate
 {{- range until .Values.completions }}
-metadata:
-  name: {{ . }}
+name: {{ . }}
 {{- end }}
 ```
 
@@ -202,13 +177,11 @@ metadata:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Idx
 $as: $I
 $yield:
-  metadata:
-    name: !str $I
+  name: !str $I
 ```
 
 </td></tr>
@@ -230,11 +203,8 @@ prometheus.io/port: {{ .Values.port | quote }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-metadata:
-  annotations:
-    prometheus.io/port: !str $Values.port
+prometheus.io/port: !str $Values.port
 ```
 
 </td></tr>

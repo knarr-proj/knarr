@@ -5,14 +5,12 @@ Schema mode for **`!$Type`** only. It does **not** change missing `!ref` without
 ## Syntax
 
 ```yaml
----
 !policy strict
 ```
 
 or
 
 ```yaml
----
 !policy soft
 ```
 
@@ -36,14 +34,11 @@ Wrong scalar types are **always** an error, even in `soft`.
 ### Strict chart values
 
 ```yaml
----
 !policy strict
----
 !typedef
 $ValuesType:
   name: string
   replicas: { type: int, default: 1 }
----
 !bind
 $Values: !$ValuesType
   name: api
@@ -54,13 +49,10 @@ $Values: !$ValuesType
 ### Soft extras for unknown keys
 
 ```yaml
----
 !policy soft
----
 !typedef
 $ValuesType:
   name: string
----
 !bind
 $Values: !$ValuesType
   name: api
@@ -76,22 +68,17 @@ $Values: !$ValuesType
 <tr><td>
 
 ```yaml
----
 !policy soft
----
 !emit
-spec:
-  image: !ref $Values.image
+image: !ref $Values.image
 # missing image still errors; soft does not change !ref
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  image?: !ref $Values?.image
+image?: !ref $Values?.image
 # missing path needs ?.; policy applies only to !$Type
 ```
 
@@ -99,11 +86,9 @@ spec:
 <tr><td>
 
 ```yaml
----
 !bind
 $Values:
   name: api
----
 !policy strict
 # !policy must be the first document
 ```
@@ -111,9 +96,7 @@ $Values:
 </td><td>
 
 ```yaml
----
 !policy strict
----
 !typedef
 $ValuesType:
   name: string
@@ -124,9 +107,7 @@ $ValuesType:
 <tr><td>
 
 ```yaml
----
 !policy strict
----
 !bind
 $Values:
   name: api
@@ -136,13 +117,10 @@ $Values:
 </td><td>
 
 ```yaml
----
 !policy strict
----
 !typedef
 $ValuesType:
   name: string
----
 !bind
 $Values: !$ValuesType
   name: api
@@ -171,9 +149,7 @@ $Values: !$ValuesType
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !policy strict
----
 !typedef
 $ValuesType:
   name: string
@@ -198,10 +174,8 @@ name: {{ required "name" .Values.name }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !ref $Values.name
+name: !ref $Values.name
 ```
 
 </td></tr>
@@ -225,9 +199,7 @@ extra: true
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !policy soft
----
 !bind
 $Values: !$ValuesType
   name: api

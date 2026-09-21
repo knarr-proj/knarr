@@ -16,35 +16,24 @@ Tagged scalar, same `RefScalar` as `!ref`. Not a mapping `$of`.
 ### Secret
 
 ```yaml
----
 !emit
-apiVersion: v1
-kind: Secret
-metadata:
-  name: db
-type: Opaque
-data:
-  password: !b64enc $Values.password
-  username: !b64enc $Values.user
+password: !b64enc $Values.password
+username: !b64enc $Values.user
 ```
 
 ### Optional token
 
 ```yaml
----
 !bind
 $Tok?: !b64enc $Values?.token
----
 !emit
-data:
-  token?: !ref $Tok?
+token?: !ref $Tok?
 ```
 
 ### ConfigMap of a certificate
 
 ```yaml
-data:
-  tls.crt: !b64enc $Values.certPem
+tls.crt: !b64enc $Values.certPem
 ```
 
 ## Common mistakes
@@ -54,7 +43,6 @@ data:
 <tr><td>
 
 ```yaml
----
 !bind
 $Tok: !expr "b64enc($Values.token)"
 # no b64enc() in !expr
@@ -63,10 +51,8 @@ $Tok: !expr "b64enc($Values.token)"
 </td><td>
 
 ```yaml
----
 !emit
-data:
-  token: !b64enc $Values.token
+token: !b64enc $Values.token
 # encode with !b64enc
 ```
 
@@ -74,23 +60,18 @@ data:
 <tr><td>
 
 ```yaml
----
 !emit
-data:
-  config: !b64enc $Values.config
+config: !b64enc $Values.config
 # encoding a mapping is an error
 ```
 
 </td><td>
 
 ```yaml
----
 !bind
 $Json: !to-json-str $Values.config
----
 !emit
-data:
-  config: !b64enc $Json
+config: !b64enc $Json
 # encode a string; JSON bytes via !to-json-str first
 ```
 
@@ -98,7 +79,6 @@ data:
 <tr><td>
 
 ```yaml
----
 !bind
 $Tok: !b64enc $Values?.token
 # omit $of without ?: on the key is an error
@@ -107,13 +87,10 @@ $Tok: !b64enc $Values?.token
 </td><td>
 
 ```yaml
----
 !bind
 $Tok?: !b64enc $Values?.token
----
 !emit
-data:
-  token?: !ref $Tok?
+token?: !ref $Tok?
 # pair omit markers
 ```
 
@@ -132,19 +109,15 @@ data:
 <tr><th>Helm</th><td>
 
 ```gotemplate
-data:
-  password: {{ .Values.password | b64enc }}
+password: {{ .Values.password | b64enc }}
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-data:
-  password: !b64enc $Values.password
-  username: !b64enc $Values.user
+password: !b64enc $Values.password
 ```
 
 </td></tr>
@@ -166,13 +139,10 @@ token: {{ .Values.token | b64enc }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Tok?: !b64enc $Values?.token
----
 !emit
-data:
-  token?: !ref $Tok?
+token?: !ref $Tok?
 ```
 
 </td></tr>
@@ -194,10 +164,8 @@ tls.crt: {{ .Values.certPem | b64enc }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-data:
-  tls.crt: !b64enc $Values.certPem
+tls.crt: !b64enc $Values.certPem
 ```
 
 </td></tr>

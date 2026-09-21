@@ -7,25 +7,19 @@ An **emit document** is exactly one YAML document on stdout (unless `$when` is f
 **Unconditional** — the mapping *is* the manifest. No `$when`:
 
 ```yaml
----
 !emit
-apiVersion: v1
 kind: ConfigMap
-metadata:
-  name: !ref $Values.name
+name: !ref $Values.name
 ```
 
 **Conditional** — only `$when`, `$then`, `$else` (no other keys):
 
 ```yaml
----
 !emit
 $when: !expr "$Values.service.enabled"
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
@@ -41,7 +35,6 @@ Several `!emit` documents print in **source order**.
 ### Deployment
 
 ```yaml
----
 !emit
 apiVersion: apps/v1
 kind: Deployment
@@ -67,51 +60,34 @@ spec:
 ### Optional Service
 
 ```yaml
----
 !emit
 $when: !ref $Values.service.enabled
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
-  spec:
-    selector:
-      app: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
 ### Else branch is a different kind
 
 ```yaml
----
 !emit
 $when: !expr "$Values.useJob"
 $then:
-  apiVersion: batch/v1
   kind: Job
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else:
-  apiVersion: apps/v1
   kind: Deployment
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 ```
 
 ### Optional field inside an emitted spec
 
 ```yaml
----
 !emit
-apiVersion: apps/v1
 kind: Deployment
-metadata:
-  name: !ref $Values.name
-spec:
-  template:
-    spec:
-      affinity?: !ref $Values?.affinity
+name: !ref $Values.name
+affinity?: !ref $Values?.affinity
 ```
 
 ## Common mistakes
@@ -121,10 +97,8 @@ spec:
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !ref $On
-apiVersion: v1
 kind: Service
 # $when cannot mix with a raw manifest
 ```
@@ -132,14 +106,11 @@ kind: Service
 </td><td>
 
 ```yaml
----
 !emit
 $when: !ref $On
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 # exclusive shapes: raw manifest, or $when + $then + $else
 ```
@@ -148,11 +119,9 @@ $else: ""
 <tr><td>
 
 ```yaml
----
 !emit
 when: !ref $On
 $then:
-  apiVersion: v1
   kind: Service
 $else: ""
 # the key is $when, not when
@@ -161,14 +130,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !ref $On
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 # $when is the document gate
 ```
@@ -177,27 +143,22 @@ $else: ""
 <tr><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !format
-    - "%s-svc"
-    - !ref $Values.name
+name: !format
+  - "%s-svc"
+  - !ref $Values.name
 # !format is bind-only
 ```
 
 </td><td>
 
 ```yaml
----
 !bind
 $Name: !format
   - "%s-svc"
   - !ref $Values.name
----
 !emit
-metadata:
-  name: !ref $Name
+name: !ref $Name
 # format in bind, then !ref in the manifest
 ```
 
@@ -205,11 +166,9 @@ metadata:
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !ref $On
 $then:
-  apiVersion: v1
   kind: Service
 $else: null
 # knarr has no null
@@ -218,14 +177,11 @@ $else: null
 </td><td>
 
 ```yaml
----
 !emit
 $when: !ref $On
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 # $else: "" skips the document
 ```
@@ -248,22 +204,17 @@ Each `!emit` is one output document (one file under `templates/`).
 
 ```gotemplate
 # templates/deploy.yaml
-apiVersion: apps/v1
 kind: Deployment
-metadata:
-  name: {{ .Values.name }}
+name: {{ .Values.name }}
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-apiVersion: apps/v1
 kind: Deployment
-metadata:
-  name: !ref $Values.name
+name: !ref $Values.name
 ```
 
 </td></tr>
@@ -279,10 +230,8 @@ Same behavior.
 
 ```gotemplate
 {{- if .Values.service.enabled }}
-apiVersion: v1
 kind: Service
-metadata:
-  name: {{ .Values.name }}
+name: {{ .Values.name }}
 {{- end }}
 ```
 
@@ -290,14 +239,11 @@ metadata:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !ref $Values.service.enabled
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
@@ -324,19 +270,12 @@ kind: Deployment
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !expr "$Values.useJob"
 $then:
-  apiVersion: batch/v1
   kind: Job
-  metadata:
-    name: !ref $Values.name
 $else:
-  apiVersion: apps/v1
   kind: Deployment
-  metadata:
-    name: !ref $Values.name
 ```
 
 </td></tr>
@@ -359,10 +298,8 @@ affinity:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  affinity?: !ref $Values?.affinity
+affinity?: !ref $Values?.affinity
 ```
 
 </td></tr>

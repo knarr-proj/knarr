@@ -20,8 +20,7 @@ Optional mapping: every child is `?:` iff the parent is. Empty optional `{}` →
 ### Optional affinity
 
 ```yaml
-spec:
-  affinity?: !ref $Values?.affinity
+affinity?: !ref $Values?.affinity
 ```
 
 ### Default host, key always present
@@ -35,14 +34,11 @@ Do **not** put `?:` on `host` here — `??` already filled the value.
 ### Optional bind
 
 ```yaml
----
 !bind
 $Tls?: !ref $Values?.tls
----
 !emit
-spec:
-  tls?: !ref $Tls?
-  cert?: !ref $Tls?.cert
+tls?: !ref $Tls?
+cert?: !ref $Tls?.cert
 ```
 
 `$Tls` without `?` is an error.
@@ -82,20 +78,16 @@ env?: !foreach
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  affinity?: !ref $Values.affinity
+affinity?: !ref $Values.affinity
 # ?: on the key does not make the path optional; missing affinity still errors
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  affinity?: !ref $Values?.affinity
+affinity?: !ref $Values?.affinity
 # both ?: on the key and ?. on the path omit the key
 ```
 
@@ -103,20 +95,16 @@ spec:
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  affinity: !ref $Values?.affinity
+affinity: !ref $Values?.affinity
 # omit on a required key is an error
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  affinity?: !ref $Values?.affinity
+affinity?: !ref $Values?.affinity
 # required key must get a value; optional key uses ?:
 ```
 
@@ -124,28 +112,24 @@ spec:
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  env: !foreach
-    $over?: !ref $Values?.env
-    $as: $E
-    $yield:
-      name: !ref $E.name
+env: !foreach
+  $over?: !ref $Values?.env
+  $as: $E
+  $yield:
+    name: !ref $E.name
 # $over?: is not allowed
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  env: !foreach
-    $over: !expr "$Values?.env ?? []"
-    $as: $E
-    $yield:
-      name: !ref $E.name
+env: !foreach
+  $over: !expr "$Values?.env ?? []"
+  $as: $E
+  $yield:
+    name: !ref $E.name
 # fill omit with [] so $over is a list
 ```
 
@@ -153,23 +137,19 @@ spec:
 <tr><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !expr "$Values?.fullname ?? $Values?.name ?? 'app'"
+name: !expr "$Values?.fullname ?? $Values?.name ?? 'app'"
 # ?? in !expr is binary only
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !pick
-    - !ref $Values?.fullname
-    - !ref $Values?.name
-    - app
+name: !pick
+  - !ref $Values?.fullname
+  - !ref $Values?.name
+  - app
 # n-way omit default is !pick
 ```
 
@@ -177,20 +157,16 @@ metadata:
 <tr><td>
 
 ```yaml
----
 !emit
-spec?:
-  replicas: !ref $Values.replicas
+replicas: !ref $Values.replicas
 # parent ?: requires every child ?: as well
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec?:
-  replicas?: !ref $Values?.replicas
+replicas?: !ref $Values?.replicas
 # every child of an optional mapping is ?:
 ```
 
@@ -221,10 +197,8 @@ affinity:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  affinity?: !ref $Values?.affinity
+affinity?: !ref $Values?.affinity
 ```
 
 </td></tr>
@@ -246,10 +220,8 @@ host: {{ .Values.tls.host | default "localhost" }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  host: !expr "$Values.tls?.host ?? 'localhost'"
+host: !expr "$Values.tls?.host ?? 'localhost'"
 ```
 
 </td></tr>
@@ -271,10 +243,8 @@ cert: {{ dig "tls" "cert" "" .Values }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  cert?: !ref $Values?.tls?.cert
+cert?: !ref $Values?.tls?.cert
 ```
 
 </td></tr>
@@ -296,13 +266,11 @@ name: {{ coalesce .Values.fullnameOverride .Values.name "app" }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !pick
-    - !ref $Values?.fullnameOverride
-    - !ref $Values?.name
-    - app
+name: !pick
+  - !ref $Values?.fullnameOverride
+  - !ref $Values?.name
+  - app
 ```
 
 </td></tr>
@@ -318,8 +286,7 @@ metadata:
 
 ```gotemplate
 {{- if .Values.tls }}
-spec:
-  tls: ...
+tls: ...
 {{- end }}
 ```
 
@@ -327,13 +294,10 @@ spec:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Tls?: !ref $Values?.tls
----
 !emit
-spec:
-  tls?: !ref $Tls?
+tls?: !ref $Tls?
 ```
 
 </td></tr>

@@ -19,20 +19,15 @@ containerPort: !int $Values.port
 ### containerPort from string values
 
 ```yaml
----
 !bind
 $Port: !int $Values.port
----
 !emit
-spec:
-  ports:
-    - containerPort: !ref $Port
+containerPort: !ref $Port
 ```
 
 ### `%d` needs int
 
 ```yaml
----
 !bind
 $Port: !int $Values.port
 $Name: !format
@@ -54,25 +49,18 @@ $Port?: !int $Values?.port
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  ports:
-    - containerPort: !expr "int($Values.port)"
+containerPort: !expr "int($Values.port)"
 # no int() in !expr
 ```
 
 </td><td>
 
 ```yaml
----
 !bind
 $Port: !int $Values.port
----
 !emit
-spec:
-  ports:
-    - containerPort: !ref $Port
+containerPort: !ref $Port
 # coerce with !int in bind, then !ref
 ```
 
@@ -80,25 +68,18 @@ spec:
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  ports:
-    - containerPort: !!int $Values.port
+containerPort: !!int $Values.port
 # YAML core !!int is rejected
 ```
 
 </td><td>
 
 ```yaml
----
 !bind
 $Port: !int $Values.port
----
 !emit
-spec:
-  ports:
-    - containerPort: !ref $Port
+containerPort: !ref $Port
 # one knarr tag on a path
 ```
 
@@ -106,7 +87,6 @@ spec:
 <tr><td>
 
 ```yaml
----
 !bind
 $Port: !int !expr "$Values.port"
 # two tags on one node is an error
@@ -115,7 +95,6 @@ $Port: !int !expr "$Values.port"
 </td><td>
 
 ```yaml
----
 !bind
 $Port: !int $Values.port
 # !int takes a path (or a string/int scalar)
@@ -125,7 +104,6 @@ $Port: !int $Values.port
 <tr><td>
 
 ```yaml
----
 !bind
 $N: !expr "$Values.replicas + \"1\""
 # + does not coerce a string
@@ -134,7 +112,6 @@ $N: !expr "$Values.replicas + \"1\""
 </td><td>
 
 ```yaml
----
 !bind
 $One: !int "1"
 $N: !expr "$Values.replicas + $One"
@@ -164,14 +141,10 @@ containerPort: {{ int .Values.port }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Port: !int $Values.port
----
 !emit
-spec:
-  ports:
-    - containerPort: !ref $Port
+containerPort: !ref $Port
 ```
 
 </td></tr>
@@ -193,7 +166,6 @@ port: {{ atoi .Values.port }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Port: !int $Values.port
 ```
@@ -217,7 +189,6 @@ name: {{ printf "%s-%d" .Values.env (int .Values.port) }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Port: !int $Values.port
 $Name: !format
@@ -245,7 +216,6 @@ n: {{ int 1.9 }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $N: !int 1
 # !int 1.9 is an error

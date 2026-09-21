@@ -5,15 +5,12 @@ Declare a **schema** once, apply it to a bind (or to each `!foreach` element via
 ## Syntax
 
 ```yaml
----
 !typedef
 $ValuesType:
   name: string
   replicas: { type: int, default: 1 }
   image: string
-  ports:
-    - containerPort: int
----
+  containerPort: int
 !bind
 $Values: !$ValuesType
   name: api
@@ -40,7 +37,6 @@ Instance omits `replicas`; schema supplies `1`.
 ### Nested object
 
 ```yaml
----
 !typedef
 $ValuesType:
   name: string
@@ -74,7 +70,6 @@ Inside `!typedef`, a type body may be `!read types.yaml` (plain YAML schema, not
 <tr><td>
 
 ```yaml
----
 !bind
 $Values:
   $type: !ref $ValuesType
@@ -84,7 +79,6 @@ $Values:
 </td><td>
 
 ```yaml
----
 !bind
 $Values: !$ValuesType
   name: api
@@ -95,7 +89,6 @@ $Values: !$ValuesType
 <tr><td>
 
 ```yaml
----
 !bind
 $Values: !ValuesType
   name: api
@@ -105,7 +98,6 @@ $Values: !ValuesType
 </td><td>
 
 ```yaml
----
 !bind
 $Values: !$ValuesType
   name: api
@@ -116,7 +108,6 @@ $Values: !$ValuesType
 <tr><td>
 
 ```yaml
----
 !bind
 $Values: !$ValuesType !read values.yaml
 # two tags on one node is an error
@@ -125,7 +116,6 @@ $Values: !$ValuesType !read values.yaml
 </td><td>
 
 ```yaml
----
 !bind
 $Values: !$ValuesType
   name: api
@@ -156,11 +146,9 @@ replicas: 1
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !typedef
 $ValuesType:
   replicas: { type: int, default: 1 }
----
 !bind
 $Values: !$ValuesType
   name: api
@@ -187,7 +175,6 @@ resources:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !typedef
 $ValuesType:
   resources:
@@ -219,7 +206,6 @@ containers:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Containers: !foreach
   $over: !ref $Values.sidecars

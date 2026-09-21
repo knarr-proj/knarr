@@ -60,7 +60,6 @@ $when: !and
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !and []
 $then:
@@ -72,16 +71,13 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !and
   - !ref $Values.service.enabled
   - !expr "$Values.replicas > 1"
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 # !and needs at least one bool child
 ```
@@ -90,7 +86,6 @@ $else: ""
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !and
   - !ref $Values?.enabled
@@ -103,14 +98,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !expr "$Values?.enabled ?? false"
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 # use ?? false, or a required path
 ```
@@ -119,7 +111,6 @@ $else: ""
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !expr "and($Values.service.enabled, $Values.tls)"
 $then:
@@ -131,14 +122,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !expr "$Values.service.enabled && $Values.tls"
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 # short-circuit bools use &&
 ```
@@ -168,16 +156,13 @@ kind: Service
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !and
   - !ref $Values.service.enabled
   - !expr "$Values.replicas > 1"
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
@@ -205,18 +190,15 @@ env:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  containers:
-    - env: !foreach
-        $over: !ref $Values.workers
-        $as: $W
-        $filter: !and
-          - !not-empty $W?.ports
-          - !ref $W.enabled
-        $yield:
-          name: !ref $W.name
+env: !foreach
+  $over: !ref $Values.workers
+  $as: $W
+  $filter: !and
+    - !not-empty $W?.ports
+    - !ref $W.enabled
+  $yield:
+    name: !ref $W.name
 ```
 
 </td></tr>
@@ -238,7 +220,6 @@ name: {{ and .Values.name .Values.image }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !validation
 $rules:
   - !and
@@ -267,14 +248,11 @@ kind: Service
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !expr "$Values.service.enabled && $Values.tls"
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 

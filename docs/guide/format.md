@@ -28,10 +28,8 @@ $FullName: !format
   - "%s-%s"
   - !ref $Values.env
   - !ref $Values.name
----
 !emit
-metadata:
-  name: !ref $FullName
+name: !ref $FullName
 ```
 
 ### Host:port
@@ -80,27 +78,22 @@ Operand must be **float**.
 <tr><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !format
-    - "%s-svc"
-    - !ref $Values.name
+name: !format
+  - "%s-svc"
+  - !ref $Values.name
 # !format is bind-only
 ```
 
 </td><td>
 
 ```yaml
----
 !bind
 $Name: !format
   - "%s-svc"
   - !ref $Values.name
----
 !emit
-metadata:
-  name: !ref $Name
+name: !ref $Name
 # format in bind, then !ref
 ```
 
@@ -108,7 +101,6 @@ metadata:
 <tr><td>
 
 ```yaml
----
 !bind
 $Name: !expr "printf('%s-svc', $Values.name)"
 # no printf() in !expr; no !printf tag
@@ -117,7 +109,6 @@ $Name: !expr "printf('%s-svc', $Values.name)"
 </td><td>
 
 ```yaml
----
 !bind
 $Name: !format
   - "%s-svc"
@@ -129,7 +120,6 @@ $Name: !format
 <tr><td>
 
 ```yaml
----
 !bind
 $Name: !format
   - "%s"
@@ -140,7 +130,6 @@ $Name: !format
 </td><td>
 
 ```yaml
----
 !bind
 $Name: !format
   - "%d"
@@ -152,7 +141,6 @@ $Name: !format
 <tr><td>
 
 ```yaml
----
 !bind
 $Name: !format
   - "%s-%s"
@@ -164,7 +152,6 @@ $Name: !format
 </td><td>
 
 ```yaml
----
 !bind
 $Name: !format
   - "%s-%s"
@@ -197,16 +184,13 @@ name: {{ printf "%s-%s" .Values.env .Values.name }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $FullName: !format
   - "%s-%s"
   - !ref $Values.env
   - !ref $Values.name
----
 !emit
-metadata:
-  name: !ref $FullName
+name: !ref $FullName
 ```
 
 </td></tr>
@@ -228,7 +212,6 @@ addr: {{ printf "%s:%d" .Values.host .Values.port }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Addr: !format
   - "%s:%d"
@@ -255,7 +238,6 @@ ann: {{ printf "app=%q" .Values.name }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Ann: !format
   - "app=%q"
@@ -281,7 +263,6 @@ name: {{ printf "w-%04d" $i }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $WorkerId: !format
   - "w-%04d"

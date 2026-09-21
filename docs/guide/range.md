@@ -44,26 +44,16 @@ $Idx: !range
 ### Indexed Jobs / ordinals
 
 ```yaml
----
 !bind
 $Idx: !range
   $from: 0
   $until: !ref $Values.completions
----
 !emit-foreach
 $over: !ref $Idx
 $as: $I
 $yield:
-  apiVersion: batch/v1
   kind: Job
-  metadata:
-    name: !str $I
-  spec:
-    template:
-      spec:
-        containers:
-          - name: worker
-            image: ghcr.io/acme/job:1
+  name: !str $I
 ```
 
 `!format` cannot sit in `$yield`. Prefixed names (`w-0`) belong in **values**, or a dedicated `$Name: !format` per static index.
@@ -84,7 +74,6 @@ $Idx: !range
 <tr><td>
 
 ```yaml
----
 !bind
 $Idx: !range
   $to: 3
@@ -95,7 +84,6 @@ $Idx: !range
 </td><td>
 
 ```yaml
----
 !bind
 $Idx: !range
   $until: 3
@@ -106,33 +94,28 @@ $Idx: !range
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  env: !foreach
-    $over: !range
-      $until: 3
-    $as: $I
-    $yield:
-      name: !str $I
+env: !foreach
+  $over: !range
+    $until: 3
+  $as: $I
+  $yield:
+    name: !str $I
 # !range cannot be $over directly
 ```
 
 </td><td>
 
 ```yaml
----
 !bind
 $Idx: !range
   $until: 3
----
 !emit
-spec:
-  env: !foreach
-    $over: !ref $Idx
-    $as: $I
-    $yield:
-      name: !str $I
+env: !foreach
+  $over: !ref $Idx
+  $as: $I
+  $yield:
+    name: !str $I
 # bind !range, then $over: !ref
 ```
 
@@ -140,7 +123,6 @@ spec:
 <tr><td>
 
 ```yaml
----
 !bind
 $Idx: !range
   $until: !ref $Values.cpu
@@ -150,7 +132,6 @@ $Idx: !range
 </td><td>
 
 ```yaml
----
 !bind
 $N: !int $Values.completions
 $Idx: !range
@@ -184,7 +165,6 @@ idx:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Idx: !range
   $until: 3
@@ -212,7 +192,6 @@ idx:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Idx: !range
   $from: 0
@@ -233,10 +212,8 @@ Helm `untilStep` end is exclusive (`0,1,2`); knarr `$to` is inclusive (`$until` 
 
 ```gotemplate
 {{- range until .Values.completions }}
-apiVersion: batch/v1
 kind: Job
-metadata:
-  name: {{ . }}
+name: {{ . }}
 {{- end }}
 ```
 
@@ -244,19 +221,15 @@ metadata:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Idx: !range
   $until: !ref $Values.completions
----
 !emit-foreach
 $over: !ref $Idx
 $as: $I
 $yield:
-  apiVersion: batch/v1
   kind: Job
-  metadata:
-    name: !str $I
+  name: !str $I
 ```
 
 </td></tr>

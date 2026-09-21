@@ -17,19 +17,8 @@ Tagged scalar. Mapping/seq allowed (hashed as JSON). Omit → omit.
 ### Roll pods when config changes
 
 ```yaml
----
 !emit
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api
-  annotations:
-    checksum/config: !sha256-json $Values.config
-spec:
-  template:
-    metadata:
-      annotations:
-        checksum/config: !sha256-json $Values.config
+checksum/config: !sha256-json $Values.config
 ```
 
 ### Same via two binds
@@ -55,7 +44,6 @@ checksum/secret: !sha256-json $Values.secretData
 <tr><td>
 
 ```yaml
----
 !bind
 $Yaml: !to-json-str $Values.config
 $Sum: !sha256
@@ -66,11 +54,8 @@ $Sum: !sha256
 </td><td>
 
 ```yaml
----
 !emit
-metadata:
-  annotations:
-    checksum/config: !sha256-json $Values.config
+checksum/config: !sha256-json $Values.config
 # JSON checksum is !sha256-json; YAML hash is v2
 ```
 
@@ -78,7 +63,6 @@ metadata:
 <tr><td>
 
 ```yaml
----
 !bind
 $Pretty: !expr $Values.config
 $Sum: !sha256
@@ -89,11 +73,8 @@ $Sum: !sha256
 </td><td>
 
 ```yaml
----
 !emit
-metadata:
-  annotations:
-    checksum/config: !sha256-json $Values.config
+checksum/config: !sha256-json $Values.config
 # frozen Go JSON canon: sorted keys, HTML-escape
 ```
 
@@ -120,11 +101,8 @@ checksum/config: {{ toJson .Values.config | sha256sum }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-metadata:
-  annotations:
-    checksum/config: !sha256-json $Values.config
+checksum/config: !sha256-json $Values.config
 ```
 
 </td></tr>
@@ -146,7 +124,6 @@ checksum/config: {{ toJson .Values.config | sha256sum }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Json: !to-json-str $Values.config
 $Sum: !sha256
@@ -172,11 +149,8 @@ checksum/secret: {{ toJson .Values.secretData | sha256sum }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-metadata:
-  annotations:
-    checksum/secret: !sha256-json $Values.secretData
+checksum/secret: !sha256-json $Values.secretData
 ```
 
 </td></tr>

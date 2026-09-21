@@ -22,7 +22,6 @@ $config: !read config/app.yaml
 ### Chart values
 
 ```yaml
----
 !bind
 $Values: !read values.yaml
 ```
@@ -30,17 +29,10 @@ $Values: !read values.yaml
 ### ConfigMap from a file
 
 ```yaml
----
 !bind
 $AppCfg: !read files/app.yaml
----
 !emit
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app-config
-data:
-  app.yaml: !to-json-str $AppCfg
+app.yaml: !to-json-str $AppCfg
 ```
 
 (If you need the YAML text as a string, that is v2 `!to-yaml-str`; for JSON checksums use [`!to-json-str`](to-json-str.md).)
@@ -64,7 +56,6 @@ inside `!bind`, then `!ref` on the Deployment.
 <tr><td>
 
 ```yaml
----
 !bind
 $Probe: !read probes/http.knarr
 # the read file must be plain YAML data, not knarr tags
@@ -73,13 +64,10 @@ $Probe: !read probes/http.knarr
 </td><td>
 
 ```yaml
----
 !bind
 $Probe: !read probes/http.yaml
----
 !emit
-spec:
-  livenessProbe: !ref $Probe
+livenessProbe: !ref $Probe
 # data files use !read; program files use !import
 ```
 
@@ -87,7 +75,6 @@ spec:
 <tr><td>
 
 ```yaml
----
 !bind
 $All: !read many.yaml
 # multi-document YAML is an error
@@ -96,7 +83,6 @@ $All: !read many.yaml
 </td><td>
 
 ```yaml
----
 !bind
 $A: !read a.yaml
 $B: !read b.yaml
@@ -107,7 +93,6 @@ $B: !read b.yaml
 <tr><td>
 
 ```yaml
----
 !bind
 $Values: !import values.yaml
 # !import splices knarr documents, not a value
@@ -116,7 +101,6 @@ $Values: !import values.yaml
 </td><td>
 
 ```yaml
----
 !bind
 $Values: !read values.yaml
 # load a YAML tree with !read
@@ -145,7 +129,6 @@ values: {{ .Files.Get "values.yaml" | fromYaml }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Values: !read values.yaml
 ```
@@ -169,7 +152,6 @@ app.yaml: {{ .Files.Get "files/app.yaml" }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $AppCfg: !read files/app.yaml
 ```
@@ -193,13 +175,10 @@ livenessProbe: {{ .Files.Get "probes/http.yaml" | fromYaml }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Probe: !read probes/http.yaml
----
 !emit
-spec:
-  livenessProbe: !ref $Probe
+livenessProbe: !ref $Probe
 ```
 
 </td></tr>
@@ -221,7 +200,6 @@ extra: {{ .Files.Get "overrides.json" | fromJson }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Extra: !read overrides.json
 ```

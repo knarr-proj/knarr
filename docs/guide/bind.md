@@ -5,7 +5,6 @@ A **bind document** names values. It never appears in stdout. All `$Name` keys f
 ## Syntax
 
 ```yaml
----
 !bind
 $Name: <value>
 $Other?: <omit-capable value>
@@ -25,7 +24,6 @@ Optional bind (`$Name?:`) requires an omit-capable value (`?.` / `$Other?`). Els
 ### Chart values
 
 ```yaml
----
 !bind
 $Values:
   name: api
@@ -36,22 +34,18 @@ $Values:
 ### Derived name for a Deployment
 
 ```yaml
----
 !bind
 $FullName: !format
   - "%s-%s"
   - !ref $Values.env
   - !ref $Values.name
----
 !emit
-metadata:
-  name: !ref $FullName
+name: !ref $FullName
 ```
 
 ### Load `values.yaml`
 
 ```yaml
----
 !bind
 $Values: !read values.yaml
 ```
@@ -59,22 +53,17 @@ $Values: !read values.yaml
 ### Optional TLS block
 
 ```yaml
----
 !bind
 $Tls?: !ref $Values?.tls
----
 !emit
-spec:
-  tls?: !ref $Tls?
+tls?: !ref $Tls?
 ```
 
 ### Several binds
 
 ```yaml
----
 !bind
 $Values: !read values.yaml
----
 !bind
 $Port: !int $Values.port
 ```
@@ -96,7 +85,6 @@ replicas: 2
 </td><td>
 
 ```yaml
----
 !bind
 $Values:
   name: api
@@ -116,7 +104,6 @@ $Values: !bind
 </td><td>
 
 ```yaml
----
 !bind
 $Values:
   name: api
@@ -127,7 +114,6 @@ $Values:
 <tr><td>
 
 ```yaml
----
 !bind
 $Release:
   name: prod
@@ -137,7 +123,6 @@ $Release:
 </td><td>
 
 ```yaml
----
 !bind
 $Rel: prod
 # use $Rel / $Instance; $Release / $Chart / $Capabilities are reserved
@@ -147,26 +132,20 @@ $Rel: prod
 <tr><td>
 
 ```yaml
----
 !bind
 $Tls?: !ref $Values?.tls
----
 !emit
-spec:
-  host: !ref $Tls.host
+host: !ref $Tls.host
 # optional bind is $Tls?, not $Tls
 ```
 
 </td><td>
 
 ```yaml
----
 !bind
 $Tls?: !ref $Values?.tls
----
 !emit
-spec:
-  host?: !ref $Tls?.host
+host?: !ref $Tls?.host
 # pair $Tls? / ?. with ?: on the output key
 ```
 
@@ -197,7 +176,6 @@ name: api
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Values:
   name: api
@@ -227,14 +205,11 @@ replicas: {{ .Values.replicas }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Values:
   replicas: 3
----
 !emit
-spec:
-  replicas: !ref $Values.replicas
+replicas: !ref $Values.replicas
 ```
 
 </td></tr>
@@ -250,21 +225,17 @@ Missing `.Values.replicas` is empty in Helm; knarr `!ref` without `?.` is an err
 
 ```gotemplate
 {{- $tls := .Values.tls -}}
-spec:
-  tls: {{ toYaml $tls | nindent 4 }}
+tls: {{ toYaml $tls | nindent 4 }}
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Tls?: !ref $Values?.tls
----
 !emit
-spec:
-  tls?: !ref $Tls?
+tls?: !ref $Tls?
 ```
 
 </td></tr>
@@ -279,21 +250,17 @@ Helm assigns even when `.Values.tls` is nil; knarr `$Tls?:` is omit and must be 
 <tr><th>Helm</th><td>
 
 ```gotemplate
-metadata:
-  name: {{ .Release.Name }}
+name: {{ .Release.Name }}
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Rel: prod
----
 !emit
-metadata:
-  name: !ref $Rel
+name: !ref $Rel
 ```
 
 </td></tr>

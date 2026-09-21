@@ -7,16 +7,13 @@ Short recipes. Each links to the full construct page.
 `!format` cannot sit in `!emit`. Bind first, then `!ref`.
 
 ```yaml
----
 !bind
 $FullName: !format
   - "%s-%s"
   - !ref $Values.env
   - !ref $Values.name
----
 !emit
-metadata:
-  name: !ref $FullName
+name: !ref $FullName
 ```
 
 Details: [`!format`](guide/format.md).
@@ -42,14 +39,12 @@ host: !expr "$Values.tls?.host ?? 'localhost'"
 Document-level `if`:
 
 ```yaml
----
 !emit
 $when: !expr "$Values.service.enabled"
 $then:
   apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
@@ -82,8 +77,7 @@ Quotes are YAML, required because of `[`. Details: [`!ref`](guide/ref.md).
 ## Secret data
 
 ```yaml
-data:
-  password: !b64enc $Values.password
+password: !b64enc $Values.password
 ```
 
 Details: [`!b64enc`](guide/b64enc.md). Decode: [`!b64dec`](guide/b64dec.md).
@@ -91,11 +85,8 @@ Details: [`!b64enc`](guide/b64enc.md). Decode: [`!b64dec`](guide/b64dec.md).
 ## ConfigMap checksum
 
 ```yaml
-metadata:
-  annotations:
-    checksum/config: !sha256-json $Values.config
-data:
-  config.json: !to-json-str $Values.config
+checksum/config: !sha256-json $Values.config
+config.json: !to-json-str $Values.config
 ```
 
 Canon is Go `json.Marshal` (sorted keys, HTML-escape). Details: [`!sha256-json`](guide/sha256-json.md), [`!to-json-str`](guide/to-json-str.md).
@@ -103,16 +94,12 @@ Canon is Go `json.Marshal` (sorted keys, HTML-escape). Details: [`!sha256-json`]
 ## Concatenate container args
 
 ```yaml
----
 !bind
 $Args: !concat
   - [ "--verbose" ]
   - !ref $Values.extraArgs
----
 !emit
-spec:
-  containers:
-    - args: !ref $Args
+args: !ref $Args
 ```
 
 `+` does not concatenate lists. Details: [`!concat`](guide/concat.md).
@@ -120,14 +107,10 @@ spec:
 ## Integer from a string in values
 
 ```yaml
----
 !bind
 $Port: !int $Values.port
----
 !emit
-spec:
-  ports:
-    - containerPort: !ref $Port
+containerPort: !ref $Port
 ```
 
 There is no `int()` inside `!expr`. Details: [`!int`](guide/int.md).
@@ -155,7 +138,6 @@ Omit yield → no element (foreach) / no document (emit-foreach). Details: [`!fo
 ## Fail the render if a value is missing
 
 ```yaml
----
 !validation
 $rules:
   - !not-empty $Values?.name
@@ -167,7 +149,6 @@ Details: [`!validation`](guide/validation.md), [`!not-empty`](guide/not-empty.md
 ## Load values.yaml
 
 ```yaml
----
 !bind
 $Values: !read values.yaml
 ```

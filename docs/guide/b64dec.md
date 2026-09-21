@@ -13,17 +13,10 @@ $Pem: !b64dec $Values.certB64
 ### Decode into a ConfigMap (plain)
 
 ```yaml
----
 !bind
 $Ca: !b64dec $Values.caB64
----
 !emit
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ca
-data:
-  ca.crt: !ref $Ca
+ca.crt: !ref $Ca
 ```
 
 ### Round-trip check in bind
@@ -46,7 +39,6 @@ token?: !b64dec $Values?.tokenB64
 <tr><td>
 
 ```yaml
----
 !bind
 $Raw: !expr "b64dec($Values.wrapped)"
 # no b64dec() in !expr
@@ -55,7 +47,6 @@ $Raw: !expr "b64dec($Values.wrapped)"
 </td><td>
 
 ```yaml
----
 !bind
 $Raw: !b64dec $Values.wrapped
 # decode with !b64dec
@@ -65,20 +56,16 @@ $Raw: !b64dec $Values.wrapped
 <tr><td>
 
 ```yaml
----
 !emit
-data:
-  token: !b64dec $Values.tokenUrlB64
+token: !b64dec $Values.tokenUrlB64
 # URL-safe alphabet (- _) or missing padding fails the render
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-data:
-  token: !b64dec $Values.tokenB64
+token: !b64dec $Values.tokenB64
 # RFC 4648 standard alphabet (+ /) with padding
 ```
 
@@ -104,13 +91,10 @@ ca.crt: {{ .Values.caB64 | b64dec }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Ca: !b64dec $Values.caB64
----
 !emit
-data:
-  ca.crt: !ref $Ca
+ca.crt: !ref $Ca
 ```
 
 </td></tr>
@@ -132,10 +116,8 @@ token: {{ .Values.tokenB64 | b64dec }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-data:
-  token?: !b64dec $Values?.tokenB64
+token?: !b64dec $Values?.tokenB64
 ```
 
 </td></tr>
@@ -157,7 +139,6 @@ token: {{ b64enc (b64dec .Values.wrapped) }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Raw: !b64dec $Values.wrapped
 $Again: !b64enc $Raw

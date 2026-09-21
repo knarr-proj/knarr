@@ -22,14 +22,11 @@ Tagged scalar `RefScalar`. Result is bool — not omit (so `$Name?: !empty` is a
 ### Skip TLS Secret if no tls
 
 ```yaml
----
 !emit
 $when: !empty $Values?.tls
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: no-tls
+  name: no-tls
 $else: ""
 ```
 
@@ -38,7 +35,6 @@ Usually you want the opposite: [`!not-empty`](not-empty.md) to emit when TLS exi
 ### Validation: field must be empty
 
 ```yaml
----
 !validation
 $rules:
   - !empty $Values?.deprecated
@@ -58,7 +54,6 @@ $filter: !empty $E?.optionalNote
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !expr "empty($Values.tls)"
 $then:
@@ -70,14 +65,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !empty $Values?.tls
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: no-tls
+  name: no-tls
 $else: ""
 # emptiness is the !empty tag
 ```
@@ -86,7 +78,6 @@ $else: ""
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !nempty $Values?.sidecars
 $then:
@@ -98,14 +89,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !not-empty $Values?.sidecars
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: sidecars
+  name: sidecars
 $else: ""
 # use !not-empty
 ```
@@ -114,7 +102,6 @@ $else: ""
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !not !empty $Values?.tls
 $then:
@@ -126,14 +113,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !not-empty $Values?.tls
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: tls
+  name: tls
 $else: ""
 # use !not-empty or !expr
 ```
@@ -142,7 +126,6 @@ $else: ""
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !empty $Values.tls
 $then:
@@ -154,14 +137,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !empty $Values?.tls
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: no-tls
+  name: no-tls
 $else: ""
 # ?. turns a missing path into omit, which !empty treats as true
 ```
@@ -191,14 +171,11 @@ kind: ConfigMap
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !empty $Values?.tls
 $then:
-  apiVersion: v1
   kind: ConfigMap
-  metadata:
-    name: no-tls
+  name: no-tls
 $else: ""
 ```
 
@@ -224,7 +201,6 @@ deprecated: {{ .Values.deprecated }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !validation
 $rules:
   - !empty $Values?.deprecated
@@ -255,16 +231,13 @@ env:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  containers:
-    - env: !foreach
-        $over: !ref $Values.env
-        $as: $E
-        $filter: !empty $E?.optionalNote
-        $yield:
-          name: !ref $E.name
+env: !foreach
+  $over: !ref $Values.env
+  $as: $E
+  $filter: !empty $E?.optionalNote
+  $yield:
+    name: !ref $E.name
 ```
 
 </td></tr>

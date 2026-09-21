@@ -26,8 +26,7 @@ Tagged scalar, `RefScalar`:
 ### Deployment name
 
 ```yaml
-metadata:
-  name: !ref $Values.name
+name: !ref $Values.name
 ```
 
 ### Nested database host
@@ -70,20 +69,16 @@ A missing step with `?.` is omit, not an error. `??` fills a default and keeps t
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas: !ref $Values.replicas + 1
+replicas: !ref $Values.replicas + 1
 # !ref is a path; operators belong in !expr
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas: !expr "$Values.replicas + 1"
+replicas: !expr "$Values.replicas + 1"
 # arithmetic is !expr
 ```
 
@@ -91,20 +86,16 @@ spec:
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  image: !ref $Values.images[$Worker.name]
+image: !ref $Values.images[$Worker.name]
 # dynamic index is not a !ref path
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  image: !expr "$Values.images[$Worker.name]"
+image: !expr "$Values.images[$Worker.name]"
 # computed index is !expr
 ```
 
@@ -112,20 +103,16 @@ spec:
 <tr><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !ref $Workers[0].name
+name: !ref $Workers[0].name
 # unquoted [ is two YAML tokens
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !ref "$Workers[0].name"
+name: !ref "$Workers[0].name"
 # quote the path when it contains [
 ```
 
@@ -133,20 +120,16 @@ metadata:
 <tr><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !path $Values.name
+name: !path $Values.name
 # !path was removed
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !ref $Values.name
+name: !ref $Values.name
 # use !ref / !expr
 ```
 
@@ -173,10 +156,8 @@ name: {{ .Values.name }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !ref $Values.name
+name: !ref $Values.name
 ```
 
 </td></tr>
@@ -198,10 +179,8 @@ host: {{ .Values.env.database.host }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  host: !ref $Values.env.database.host
+host: !ref $Values.env.database.host
 ```
 
 </td></tr>
@@ -223,10 +202,8 @@ cert: {{ dig "tls" "cert" "" .Values }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  cert?: !ref $Values?.tls?.cert
+cert?: !ref $Values?.tls?.cert
 ```
 
 </td></tr>
@@ -248,10 +225,8 @@ host: {{ dig "env" "database" "host" "localhost" .Values }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  host: !expr "$Values?.env?.database?.host ?? 'localhost'"
+host: !expr "$Values?.env?.database?.host ?? 'localhost'"
 ```
 
 </td></tr>
@@ -273,10 +248,8 @@ tag: {{ dig "image" "tag" "latest" .Values }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  tag: !expr "$Values?.image?.tag ?? 'latest'"
+tag: !expr "$Values?.image?.tag ?? 'latest'"
 ```
 
 </td></tr>
@@ -298,10 +271,8 @@ secretName: {{ dig "server" "tls" "secretName" "" .Values.config }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  secretName?: !ref $Values.config?.server?.tls?.secretName
+secretName?: !ref $Values.config?.server?.tls?.secretName
 ```
 
 </td></tr>
@@ -323,10 +294,8 @@ name: {{ index .Values.workers 0 "name" }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-metadata:
-  name: !ref "$Workers[0].name"
+name: !ref "$Workers[0].name"
 ```
 
 </td></tr>
@@ -348,11 +317,8 @@ app: {{ index .Values.labels "app.kubernetes.io/name" }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-metadata:
-  labels:
-    app: !ref "$Values.labels['app.kubernetes.io/name']"
+app: !ref "$Values.labels['app.kubernetes.io/name']"
 ```
 
 </td></tr>
@@ -377,10 +343,8 @@ livenessProbe:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  livenessProbe?: !ref $Values?.livenessProbe
+livenessProbe?: !ref $Values?.livenessProbe
 ```
 
 </td></tr>

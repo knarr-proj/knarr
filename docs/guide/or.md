@@ -45,7 +45,6 @@ $when: !expr "$Values?.ingress.enabled ?? false || $Values?.mesh.enabled ?? fals
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !expr "or($Values.ingress.enabled, $Values.mesh.enabled)"
 $then:
@@ -57,14 +56,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !expr "$Values.ingress.enabled || $Values.mesh.enabled"
 $then:
-  apiVersion: networking.k8s.io/v1
   kind: Ingress
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 # short-circuit bools use ||
 ```
@@ -73,7 +69,6 @@ $else: ""
 <tr><td>
 
 ```yaml
----
 !emit
 $when: !not !or
   - !ref $Values.ingress.enabled
@@ -87,14 +82,11 @@ $else: ""
 </td><td>
 
 ```yaml
----
 !emit
 $when: !expr "!($Values.ingress.enabled || $Values.mesh.enabled)"
 $then:
-  apiVersion: networking.k8s.io/v1
   kind: Ingress
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 # rewrite with !expr, or !and + !not
 ```
@@ -124,16 +116,13 @@ kind: Ingress
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !or
   - !ref $Values.ingress.enabled
   - !ref $Values.mesh.enabled
 $then:
-  apiVersion: networking.k8s.io/v1
   kind: Ingress
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
@@ -156,10 +145,8 @@ host: {{ or .Values.host "localhost" }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  host: !expr "$Values?.host ?? 'localhost'"
+host: !expr "$Values?.host ?? 'localhost'"
 ```
 
 </td></tr>
@@ -183,14 +170,11 @@ kind: Ingress
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
 $when: !expr "$Values?.ingress.enabled ?? false || $Values?.mesh.enabled ?? false"
 $then:
-  apiVersion: networking.k8s.io/v1
   kind: Ingress
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 

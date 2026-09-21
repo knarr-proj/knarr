@@ -20,7 +20,6 @@ $Cfg: !merge
 ### Default probe + user overlay
 
 ```yaml
----
 !bind
 $UserProbe: !expr "$Values?.livenessProbe ?? {}"
 $Probe: !merge
@@ -39,11 +38,8 @@ $Res: !merge
       cpu: "100m"
       memory: "128Mi"
   - !ref $Values.resources
----
 !emit
-spec:
-  containers:
-    - resources: !ref $Res
+resources: !ref $Res
 ```
 
 User `limits:` is added; user `requests.cpu` replaces the default cpu only at that leaf; nested maps merge.
@@ -70,29 +66,24 @@ Use [`!concat`](concat.md) for lists.
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  resources: !merge
-    - requests:
-        cpu: "100m"
-    - !ref $Values.resources
+resources: !merge
+  - requests:
+      cpu: "100m"
+  - !ref $Values.resources
 # !merge is bind-only
 ```
 
 </td><td>
 
 ```yaml
----
 !bind
 $Res: !merge
   - requests:
       cpu: "100m"
   - !ref $Values.resources
----
 !emit
-spec:
-  resources: !ref $Res
+resources: !ref $Res
 # merge in bind, then !ref
 ```
 
@@ -100,7 +91,6 @@ spec:
 <tr><td>
 
 ```yaml
----
 !bind
 $Args: !merge
   - args: ["--a"]
@@ -111,7 +101,6 @@ $Args: !merge
 </td><td>
 
 ```yaml
----
 !bind
 $Args: !concat
   - ["--a"]
@@ -123,7 +112,6 @@ $Args: !concat
 <tr><td>
 
 ```yaml
----
 !bind
 $Res?: !merge
   - requests:
@@ -135,7 +123,6 @@ $Res?: !merge
 </td><td>
 
 ```yaml
----
 !bind
 $User: !expr "$Values?.resources ?? {}"
 $Res: !merge
@@ -168,7 +155,6 @@ resources: {{ merge .Values.resources (dict "requests" (dict "cpu" "100m")) }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Res: !merge
   - requests:
@@ -196,7 +182,6 @@ livenessProbe: {{ merge .Values.livenessProbe (dict "timeoutSeconds" 1) }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $UserProbe: !expr "$Values?.livenessProbe ?? {}"
 $Probe: !merge
@@ -226,7 +211,6 @@ args: {{ merge (dict "args" (list "--a")) (dict "args" (list "--b")) }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $M: !merge
   - args: ["--a"]

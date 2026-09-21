@@ -18,21 +18,18 @@ $Parts: !split
 ### CSV hosts → list
 
 ```yaml
----
 !bind
 $Hosts: !split
   $sep: ","
   $of: !ref $Values.hostCsv
----
 !emit
-spec:
-  hostAliases: !foreach
-    $over: !ref $Hosts
-    $as: $H
-    $yield:
-      ip: "127.0.0.1"
-      hostnames:
-        - !ref $H
+hostAliases: !foreach
+  $over: !ref $Hosts
+  $as: $H
+  $yield:
+    ip: "127.0.0.1"
+    hostnames:
+      - !ref $H
 ```
 
 ### Image repo / tag
@@ -60,7 +57,6 @@ $Lines: !split
 <tr><td>
 
 ```yaml
----
 !bind
 $Hosts: !split
   $sep: ""
@@ -71,7 +67,6 @@ $Hosts: !split
 </td><td>
 
 ```yaml
----
 !bind
 $Hosts: !split
   $sep: ","
@@ -83,7 +78,6 @@ $Hosts: !split
 <tr><td>
 
 ```yaml
----
 !bind
 $Hosts: !expr "split(',', $Values.hostCsv)"
 # no split() in !expr
@@ -92,7 +86,6 @@ $Hosts: !expr "split(',', $Values.hostCsv)"
 </td><td>
 
 ```yaml
----
 !bind
 $Hosts: !split
   $sep: ","
@@ -123,7 +116,6 @@ hosts: {{ splitList "," .Values.hostCsv }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Hosts: !split
   $sep: ","
@@ -149,7 +141,6 @@ bits: {{ split ":" .Values.image }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Bits: !split
   $sep: ":"
@@ -175,7 +166,6 @@ lines: {{ splitList "\n" .Values.allowlist }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Lines: !split
   $sep: "\n"

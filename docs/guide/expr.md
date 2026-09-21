@@ -29,8 +29,7 @@ $ShowSvc: !expr "$Values.service.enabled && $Values.replicas > 1"
 ### replicas + 1
 
 ```yaml
-spec:
-  replicas: !expr "$Values.replicas + 1"
+replicas: !expr "$Values.replicas + 1"
 ```
 
 ### Default list of ports
@@ -68,7 +67,6 @@ Result is float. `0.1 + 0.2` is IEEE, not decimal `0.3`.
 <tr><td>
 
 ```yaml
----
 !bind
 $n: !expr "len($Values.workers)"
 # no len() in !expr
@@ -77,7 +75,6 @@ $n: !expr "len($Values.workers)"
 </td><td>
 
 ```yaml
----
 !bind
 $n: !len $Values.workers
 # length is the !len tag
@@ -87,7 +84,6 @@ $n: !len $Values.workers
 <tr><td>
 
 ```yaml
----
 !bind
 $name: !expr "$Values.name + '-svc'"
 # + is not string concat
@@ -96,7 +92,6 @@ $name: !expr "$Values.name + '-svc'"
 </td><td>
 
 ```yaml
----
 !bind
 $Name: !format
   - "%s-svc"
@@ -108,7 +103,6 @@ $Name: !format
 <tr><td>
 
 ```yaml
----
 !bind
 $x: !expr "$On ? 1 : 0"
 # no ternary in !expr
@@ -117,13 +111,11 @@ $x: !expr "$On ? 1 : 0"
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas: !match
-    $if: !ref $On
-    $then: 1
-    $else: 0
+replicas: !match
+  $if: !ref $On
+  $then: 1
+  $else: 0
 # branch on a value with !match
 ```
 
@@ -131,7 +123,6 @@ spec:
 <tr><td>
 
 ```yaml
----
 !bind
 $bad: !expr "{app: $Values.name}"
 # unquoted key app: is not valid in !expr
@@ -140,7 +131,6 @@ $bad: !expr "{app: $Values.name}"
 </td><td>
 
 ```yaml
----
 !bind
 $Labels: !expr "{'app': $Values.name}"
 # object keys in !expr are quoted
@@ -150,20 +140,16 @@ $Labels: !expr "{'app': $Values.name}"
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas: !expr "Values.replicas"
+replicas: !expr "Values.replicas"
 # identifiers in !expr need $
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas: !expr "$Values.replicas"
+replicas: !expr "$Values.replicas"
 # $Values.replicas is the path
 ```
 
@@ -186,7 +172,6 @@ spec:
 
 ```gotemplate
 {{- if and .Values.service.enabled (gt .Values.replicas 1) }}
-apiVersion: v1
 kind: Service
 {{- end }}
 ```
@@ -195,17 +180,13 @@ kind: Service
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $ShowSvc: !expr "$Values.service.enabled && $Values.replicas > 1"
----
 !emit
 $when: !ref $ShowSvc
 $then:
-  apiVersion: v1
   kind: Service
-  metadata:
-    name: !ref $Values.name
+  name: !ref $Values.name
 $else: ""
 ```
 
@@ -228,10 +209,8 @@ replicas: {{ add .Values.replicas 1 }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas: !expr "$Values.replicas + 1"
+replicas: !expr "$Values.replicas + 1"
 ```
 
 </td></tr>
@@ -253,7 +232,6 @@ ports: {{ .Values.ports | default (list 80 443) }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Ports: !expr "$Values?.ports ?? [80, 443]"
 ```
@@ -277,10 +255,8 @@ image: {{ index .Values.images .name }}
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  image: !expr "$Values.images[$Worker.name]"
+image: !expr "$Values.images[$Worker.name]"
 ```
 
 </td></tr>
@@ -302,7 +278,6 @@ name: {{ .Values.name }}-svc
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !bind
 $Name: !format
   - "%s-svc"

@@ -7,7 +7,6 @@ For lists **inside** one mapping (env, ports, extra hosts), use [`!foreach`](for
 ## Syntax
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.workers
 $as: $Worker
@@ -15,10 +14,8 @@ $filter: !expr "$Worker.enabled"    # optional
 $key: $Kind                       # optional; only if $over is a mapping
 $when: !expr "$Values.deployWorkers ?? false"  # optional gate
 $yield:
-  apiVersion: apps/v1
   kind: Deployment
-  metadata:
-    name: !ref $Worker.name
+  name: !ref $Worker.name
 ```
 
 | Key | Meaning |
@@ -37,64 +34,36 @@ There is no `$index`. `$yield` on `!emit-foreach` must be a **mapping**.
 ### One Deployment per worker
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.workers
 $as: $Worker
 $yield:
-  apiVersion: apps/v1
   kind: Deployment
-  metadata:
-    name: !ref $Worker.name
-  spec:
-    replicas: 1
-    selector:
-      matchLabels:
-        app: !ref $Worker.name
-    template:
-      metadata:
-        labels:
-          app: !ref $Worker.name
-      spec:
-        containers:
-          - name: app
-            image: !ref $Worker.image
+  name: !ref $Worker.name
 ```
 
 ### Filter disabled workers
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.workers
 $as: $Worker
 $filter: !ref $Worker.enabled
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $Worker.name
+  name: !ref $Worker.name
 ```
 
 ### Range a map of component images
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.images
 $as: $Image
 $key: $Comp
 $yield:
-  apiVersion: apps/v1
   kind: Deployment
-  metadata:
-    name: !ref $Comp
-  spec:
-    template:
-      spec:
-        containers:
-          - name: app
-            image: !ref $Image
+  name: !ref $Comp
 ```
 
 Key order follows the source mapping.
@@ -102,16 +71,13 @@ Key order follows the source mapping.
 ### Gate the whole pack
 
 ```yaml
----
 !emit-foreach
 $when: !expr "$Values.deployWorkers ?? false"
 $over: !ref $Values.workers
 $as: $Worker
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $Worker.name
+  name: !ref $Worker.name
 ```
 
 ## Common mistakes
@@ -121,30 +87,24 @@ $yield:
 <tr><td>
 
 ```yaml
----
 !foreach
 $over: !ref $Values.workers
 $as: $W
 $yield:
-  apiVersion: apps/v1
   kind: Deployment
-  metadata:
-    name: !ref $W.name
+  name: !ref $W.name
 # !foreach fills a sequence field; it is not a root document
 ```
 
 </td><td>
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.workers
 $as: $W
 $yield:
-  apiVersion: apps/v1
   kind: Deployment
-  metadata:
-    name: !ref $W.name
+  name: !ref $W.name
 # one document per item is !emit-foreach
 ```
 
@@ -152,29 +112,24 @@ $yield:
 <tr><td>
 
 ```yaml
----
 !emit-foreach
 $items: !ref $Values.workers
 $as: $W
 $yield:
   kind: Pod
-  metadata:
-    name: !ref $W.name
+  name: !ref $W.name
 # $items was removed
 ```
 
 </td><td>
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.workers
 $as: $W
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $W.name
+  name: !ref $W.name
 # use $over / $as / $yield
 ```
 
@@ -182,29 +137,24 @@ $yield:
 <tr><td>
 
 ```yaml
----
 !emit-foreach
 $over?: !ref $Values?.workers
 $as: $W
 $yield:
   kind: Pod
-  metadata:
-    name: !ref $W.name
+  name: !ref $W.name
 # $over?: is not allowed
 ```
 
 </td><td>
 
 ```yaml
----
 !emit-foreach
 $over: !expr "$Values?.workers ?? []"
 $as: $W
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $W.name
+  name: !ref $W.name
 # missing list becomes [] so the loop runs over nothing
 ```
 
@@ -212,31 +162,26 @@ $yield:
 <tr><td>
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.workers
 $as: $W
 $when: !ref $W.enabled
 $yield:
   kind: Pod
-  metadata:
-    name: !ref $W.name
+  name: !ref $W.name
 # document $when cannot see $as
 ```
 
 </td><td>
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.workers
 $as: $W
 $filter: !ref $W.enabled
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $W.name
+  name: !ref $W.name
 # per-item gate is $filter; $when only gates the whole pack
 ```
 
@@ -257,11 +202,8 @@ $yield:
 
 ```gotemplate
 {{- range .Values.workers }}
-apiVersion: v1
 kind: Pod
-metadata:
-  name: {{ .name }}
----
+name: {{ .name }}
 {{- end }}
 ```
 
@@ -269,15 +211,12 @@ metadata:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.workers
 $as: $Worker
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $Worker.name
+  name: !ref $Worker.name
 ```
 
 </td></tr>
@@ -294,10 +233,8 @@ Helm prints `---` between items; knarr emits one document per item.
 ```gotemplate
 {{- range .Values.workers }}
 {{- if .enabled }}
-apiVersion: v1
 kind: Pod
-metadata:
-  name: {{ .name }}
+name: {{ .name }}
 {{- end }}
 {{- end }}
 ```
@@ -306,16 +243,13 @@ metadata:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.workers
 $as: $Worker
 $filter: !ref $Worker.enabled
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $Worker.name
+  name: !ref $Worker.name
 ```
 
 </td></tr>
@@ -331,10 +265,8 @@ Same behavior.
 
 ```gotemplate
 {{- range $comp, $image := .Values.images }}
-apiVersion: apps/v1
 kind: Deployment
-metadata:
-  name: {{ $comp }}
+name: {{ $comp }}
 {{- end }}
 ```
 
@@ -342,16 +274,13 @@ metadata:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit-foreach
 $over: !ref $Values.images
 $as: $Image
 $key: $Comp
 $yield:
-  apiVersion: apps/v1
   kind: Deployment
-  metadata:
-    name: !ref $Comp
+  name: !ref $Comp
 ```
 
 </td></tr>
@@ -368,10 +297,8 @@ Same behavior.
 ```gotemplate
 {{- if .Values.deployWorkers }}
 {{- range .Values.workers }}
-apiVersion: v1
 kind: Pod
-metadata:
-  name: {{ .name }}
+name: {{ .name }}
 {{- end }}
 {{- end }}
 ```
@@ -380,16 +307,13 @@ metadata:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit-foreach
 $when: !expr "$Values.deployWorkers ?? false"
 $over: !ref $Values.workers
 $as: $Worker
 $yield:
-  apiVersion: v1
   kind: Pod
-  metadata:
-    name: !ref $Worker.name
+  name: !ref $Worker.name
 ```
 
 </td></tr>

@@ -25,26 +25,24 @@ replicas: !match
 ### replicas fallback
 
 ```yaml
-spec:
-  replicas: !match
-    $if: !expr "$Values.replicas > 0"
-    $then: !ref $Values.replicas
-    $else: 1
+replicas: !match
+  $if: !expr "$Values.replicas > 0"
+  $then: !ref $Values.replicas
+  $else: 1
 ```
 
 ### topologySpread only when HA
 
 ```yaml
-spec:
-  topologySpreadConstraints?: !match
-    $if: !expr "$Values.replicas > 1"
-    $then:
-      - maxSkew: 1
-        topologyKey: kubernetes.io/hostname
-        whenUnsatisfiable: ScheduleAnyway
-        labelSelector:
-          matchLabels:
-            app: !ref $Values.name
+topologySpreadConstraints?: !match
+  $if: !expr "$Values.replicas > 1"
+  $then:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: !ref $Values.name
 ```
 
 No `$else` + `?:` → key absent when replicas ≤ 1.
@@ -52,14 +50,13 @@ No `$else` + `?:` → key absent when replicas ≤ 1.
 ### Else-if (Ingress vs ClusterIP)
 
 ```yaml
-spec:
-  type: !match
-    $if: !ref $Values.ingress.enabled
-    $then: ClusterIP
-    $else: !match
-      $if: !ref $Values.loadBalancer
-      $then: LoadBalancer
-      $else: ClusterIP
+type: !match
+  $if: !ref $Values.ingress.enabled
+  $then: ClusterIP
+  $else: !match
+    $if: !ref $Values.loadBalancer
+    $then: LoadBalancer
+    $else: ClusterIP
 ```
 
 ### Inside `$yield`
@@ -73,23 +70,19 @@ spec:
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas !if: !expr "$Values.ha"
+replicas !if: !expr "$Values.ha"
 # tags belong on the value, not on the key
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas: !match
-    $if: !ref $Values.ha
-    $then: 3
-    $else: 1
+replicas: !match
+  $if: !ref $Values.ha
+  $then: 3
+  $else: 1
 # tag the value !match
 ```
 
@@ -97,30 +90,26 @@ spec:
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  type: !match
-    - $if: !ref $Values.ingress.enabled
-      $then: ClusterIP
-    - $if: !ref $Values.loadBalancer
-      $then: LoadBalancer
+type: !match
+  - $if: !ref $Values.ingress.enabled
+    $then: ClusterIP
+  - $if: !ref $Values.loadBalancer
+    $then: LoadBalancer
 # !match is not a list of $if entries
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  type: !match
-    $if: !ref $Values.ingress.enabled
-    $then: ClusterIP
-    $else: !match
-      $if: !ref $Values.loadBalancer
-      $then: LoadBalancer
-      $else: ClusterIP
+type: !match
+  $if: !ref $Values.ingress.enabled
+  $then: ClusterIP
+  $else: !match
+    $if: !ref $Values.loadBalancer
+    $then: LoadBalancer
+    $else: ClusterIP
 # nest $else: !match
 ```
 
@@ -128,26 +117,22 @@ spec:
 <tr><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas: !match
-    $when: !expr "$Values.replicas > 0"
-    $then: !ref $Values.replicas
-    $else: 1
+replicas: !match
+  $when: !expr "$Values.replicas > 0"
+  $then: !ref $Values.replicas
+  $else: 1
 # !match uses $if, not $when
 ```
 
 </td><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas: !match
-    $if: !expr "$Values.replicas > 0"
-    $then: !ref $Values.replicas
-    $else: 1
+replicas: !match
+  $if: !expr "$Values.replicas > 0"
+  $then: !ref $Values.replicas
+  $else: 1
 # $when is for !emit / !emit-foreach
 ```
 
@@ -175,13 +160,11 @@ replicas: {{ if gt .Values.replicas 0 }}{{ .Values.replicas }}{{ else }}1{{ end 
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  replicas: !match
-    $if: !expr "$Values.replicas > 0"
-    $then: !ref $Values.replicas
-    $else: 1
+replicas: !match
+  $if: !expr "$Values.replicas > 0"
+  $then: !ref $Values.replicas
+  $else: 1
 ```
 
 </td></tr>
@@ -206,14 +189,12 @@ topologySpreadConstraints:
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  topologySpreadConstraints?: !match
-    $if: !expr "$Values.replicas > 1"
-    $then:
-      - maxSkew: 1
-        topologyKey: kubernetes.io/hostname
+topologySpreadConstraints?: !match
+  $if: !expr "$Values.replicas > 1"
+  $then:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
 ```
 
 </td></tr>
@@ -235,16 +216,14 @@ type: {{ if .Values.ingress.enabled }}ClusterIP{{ else if .Values.loadBalancer }
 <tr><th>Knarr</th><td>
 
 ```yaml
----
 !emit
-spec:
-  type: !match
-    $if: !ref $Values.ingress.enabled
-    $then: ClusterIP
-    $else: !match
-      $if: !ref $Values.loadBalancer
-      $then: LoadBalancer
-      $else: ClusterIP
+type: !match
+  $if: !ref $Values.ingress.enabled
+  $then: ClusterIP
+  $else: !match
+    $if: !ref $Values.loadBalancer
+    $then: LoadBalancer
+    $else: ClusterIP
 ```
 
 </td></tr>
