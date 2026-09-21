@@ -49,33 +49,100 @@ $Port?: !int $Values?.port
 
 ## Common mistakes
 
-**Wrong — function or YAML core tag**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
-port: !expr "int($Values.port)"
-port: !!int $Values.port
-port: !int !expr "$Values.port"
+---
+!emit
+spec:
+  ports:
+    - containerPort: !expr "int($Values.port)"
+# no int() in !expr
 ```
 
-**Right — one tag on a path**
+</td><td>
 
 ```yaml
+---
+!bind
 $Port: !int $Values.port
-containerPort: !ref $Port
+---
+!emit
+spec:
+  ports:
+    - containerPort: !ref $Port
+# coerce with !int in bind, then !ref
 ```
 
-**Wrong — adding a string**
+</td></tr>
+<tr><td>
 
 ```yaml
+---
+!emit
+spec:
+  ports:
+    - containerPort: !!int $Values.port
+# YAML core !!int is rejected
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Port: !int $Values.port
+---
+!emit
+spec:
+  ports:
+    - containerPort: !ref $Port
+# one knarr tag on a path
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Port: !int !expr "$Values.port"
+# two tags on one node is an error
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Port: !int $Values.port
+# !int takes a path (or a string/int scalar)
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
 $N: !expr "$Values.replicas + \"1\""
+# + does not coerce a string
 ```
 
-**Right**
+</td><td>
 
 ```yaml
+---
+!bind
 $One: !int "1"
 $N: !expr "$Values.replicas + $One"
+# !int the string, then add
 ```
+
+</td></tr>
+</table>
 
 ## See also
 

@@ -69,25 +69,78 @@ Imported files may `!import` further files. Import cycles are errors.
 
 ## Common mistakes
 
-**Wrong — import as a field**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
-labels: !import labels.yaml
+---
+!emit
+metadata:
+  labels: !import labels.yaml
+# !import is a document splice, not a field
 ```
 
-**Right — `!import` is a document.** For a YAML object of labels, `!read` into a bind, then `!ref`.
-
-**Wrong — import a values.yaml (no knarr tags)**
-
-**Right**
+</td><td>
 
 ```yaml
+---
+!bind
+$Labels: !read labels.yaml
+---
+!emit
+metadata:
+  labels: !ref $Labels
+# load a YAML tree with !read, then !ref
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Values: !import values.yaml
+# !import splices program documents, not a data tree
+```
+
+</td><td>
+
+```yaml
+---
+!bind
 $Values: !read values.yaml
+# data files use !read
 ```
 
-**Wrong — import as a snippet in a field with loop scope**
+</td></tr>
+<tr><td>
 
-Document splice only. Named fragments with `$as` scope are not in v1.
+```yaml
+---
+!emit
+spec:
+  template: !import worker.knarr
+# named snippets with $as scope are not v1
+```
+
+</td><td>
+
+```yaml
+---
+!emit-foreach
+$over: !ref $Values.workers
+$as: $W
+$yield:
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: !ref $W.name
+# loop scope stays in this file; !import only splices documents
+```
+
+</td></tr>
+</table>
 
 ## See also
 

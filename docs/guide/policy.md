@@ -71,17 +71,86 @@ $Values: !$ValuesType
 
 ## Common mistakes
 
-**Wrong — using policy to allow `!ref $Values.image` when `image` is missing**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-Missing paths without `?.` always fail. Soft only applies to **schema** fields on `!$Type`.
+```yaml
+---
+!policy soft
+---
+!emit
+spec:
+  image: !ref $Values.image
+# missing image still errors; soft does not change !ref
+```
 
-**Wrong — `!policy` not first**
+</td><td>
 
-**Right — first document** (after `!import` flatten).
+```yaml
+---
+!emit
+spec:
+  image?: !ref $Values?.image
+# missing path needs ?.; policy applies only to !$Type
+```
 
-**Wrong — policy without any `!$Type`**
+</td></tr>
+<tr><td>
 
-Either drop `!policy` or type a bind.
+```yaml
+---
+!bind
+$Values:
+  name: api
+---
+!policy strict
+# !policy must be the first document
+```
+
+</td><td>
+
+```yaml
+---
+!policy strict
+---
+!typedef
+$ValuesType:
+  name: string
+# first document (after !import flatten)
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!policy strict
+---
+!bind
+$Values:
+  name: api
+# policy without !$Type does nothing useful
+```
+
+</td><td>
+
+```yaml
+---
+!policy strict
+---
+!typedef
+$ValuesType:
+  name: string
+---
+!bind
+$Values: !$ValuesType
+  name: api
+# either drop !policy or type a bind
+```
+
+</td></tr>
+</table>
 
 ## See also
 

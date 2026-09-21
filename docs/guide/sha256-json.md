@@ -50,13 +50,55 @@ checksum/secret: !sha256-json $Values.secretData
 
 ## Common mistakes
 
-**Wrong — hashing YAML text**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-Would not match JSON checksums. YAML hash is v2.
+```yaml
+---
+!bind
+$Yaml: !to-json-str $Values.config
+$Sum: !sha256
+  $of: !ref $Values.config
+# hashing a mapping (or YAML text) does not match toJson checksums
+```
 
-**Wrong — unsorted pretty JSON**
+</td><td>
 
-The tag uses the frozen Go JSON canon (sorted keys, HTML-escape).
+```yaml
+---
+!emit
+metadata:
+  annotations:
+    checksum/config: !sha256-json $Values.config
+# JSON checksum is !sha256-json; YAML hash is v2
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Pretty: !expr $Values.config
+$Sum: !sha256
+  $of: !ref $Pretty
+# unsorted pretty JSON will not match Helm toJson | sha256sum
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+metadata:
+  annotations:
+    checksum/config: !sha256-json $Values.config
+# frozen Go JSON canon: sorted keys, HTML-escape
+```
+
+</td></tr>
+</table>
 
 ## See also
 

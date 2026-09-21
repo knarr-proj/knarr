@@ -39,15 +39,70 @@ JSON `\u0026` becomes `&` in the string node.
 
 ## Common mistakes
 
-**Wrong — `fromJson()` in `!expr`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-**Wrong — expecting JSON `1` to stay float**
+```yaml
+---
+!bind
+$Extra: !expr "fromJson($Values.extraJson)"
+# no fromJson() in !expr
+```
 
-Bare `1` becomes int (same as Go `encoding/json`).
+</td><td>
 
-**Wrong — `null` in JSON**
+```yaml
+---
+!bind
+$Extra: !from-json-str $Values.extraJson
+---
+!emit
+spec:
+  replicas: !ref $Extra.replicas
+# parse a JSON string with !from-json-str
+```
 
-knarr has no null.
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$N: !from-json-str '{"n":1}'
+# do not expect n to stay float64
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$N: !from-json-str '{"n":1}'
+# bare JSON 1 becomes int (same as Go encoding/json)
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$X: !from-json-str '{"n":null}'
+# knarr has no null; JSON null is an error
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$X: !from-json-str '{"n":0}'
+# use a real value; omit the key if it should be absent
+```
+
+</td></tr>
+</table>
 
 ## See also
 

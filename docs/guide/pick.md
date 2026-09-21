@@ -53,21 +53,84 @@ If `port` is `0`, you get `0` — not 8080. Zero is a value.
 
 ## Common mistakes
 
-**Wrong — treating `""` as missing**
-
-Zero, `false`, and `""` are values and win.
-
-**Wrong — n-ary `??`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
-!expr "$A ?? $B ?? 'x'"
+---
+!emit
+metadata:
+  name: !pick
+    - ""
+    - app
+# "" is present, so the name is "" — not app
 ```
 
-**Right — `!pick`.**
+</td><td>
 
-**Wrong — all children optional**
+```yaml
+---
+!emit
+metadata:
+  name: !pick
+    - !ref $Values?.fullnameOverride
+    - app
+# only omit falls through; "", 0, and false win. Skip "" with !match if needed
+```
 
-The last must exist.
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+metadata:
+  name: !expr "$Values?.fullname ?? $Values?.name ?? 'app'"
+# ?? in !expr is binary only
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+metadata:
+  name: !pick
+    - !ref $Values?.fullname
+    - !ref $Values?.name
+    - app
+# n-way omit default is !pick
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+metadata:
+  name: !pick
+    - !ref $Values?.fullname
+    - !ref $Values?.name
+# the last child must exist (not omit)
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+metadata:
+  name: !pick
+    - !ref $Values?.fullname
+    - !ref $Values?.name
+    - app
+# last is a concrete fallback
+```
+
+</td></tr>
+</table>
 
 ## See also
 

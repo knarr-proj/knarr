@@ -54,11 +54,60 @@ For a **field** omit, `nodeSelector?: !ref $Values?.nodeSelector` is simpler.
 
 ## Common mistakes
 
-**Wrong — `!len` as `$when`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-**Wrong — `!empty` in `$rules` meaning “required”**
+```yaml
+---
+!emit
+$when: !len $Values.workers
+$then:
+  kind: ConfigMap
+$else: ""
+# !len is an int, not a bool
+```
 
-`$rules` are must-true: `!empty` means “must be empty”.
+</td><td>
+
+```yaml
+---
+!emit
+$when: !not-empty $Values?.workers
+$then:
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: workers
+$else: ""
+# $when needs a bool — !not-empty
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!validation
+$rules:
+  - !empty $Values?.name
+$fail: "set name"
+# !empty as a rule means the value must be empty
+```
+
+</td><td>
+
+```yaml
+---
+!validation
+$rules:
+  - !not-empty $Values?.name
+$fail: "set name"
+# required values use !not-empty
+```
+
+</td></tr>
+</table>
 
 ## See also
 

@@ -49,15 +49,76 @@ data:
 
 ## Common mistakes
 
-**Wrong — `b64enc()` in `!expr`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-**Wrong — encoding a mapping**
+```yaml
+---
+!bind
+$Tok: !expr "b64enc($Values.token)"
+# no b64enc() in !expr
+```
 
-Encode a string (`!to-json-str` first if you need JSON bytes).
+</td><td>
 
-**Wrong — `$N: !b64enc $X?.y` without `?:` on the key**
+```yaml
+---
+!emit
+data:
+  token: !b64enc $Values.token
+# encode with !b64enc
+```
 
-Pair omit markers.
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+data:
+  config: !b64enc $Values.config
+# encoding a mapping is an error
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Json: !to-json-str $Values.config
+---
+!emit
+data:
+  config: !b64enc $Json
+# encode a string; JSON bytes via !to-json-str first
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Tok: !b64enc $Values?.token
+# omit $of without ?: on the key is an error
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Tok?: !b64enc $Values?.token
+---
+!emit
+data:
+  token?: !ref $Tok?
+# pair omit markers
+```
+
+</td></tr>
+</table>
 
 ## See also
 

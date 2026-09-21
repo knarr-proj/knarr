@@ -52,19 +52,94 @@ $Ann: !format
 
 ## Common mistakes
 
-**Wrong — `len()` in `!expr`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-**Wrong — `$when: !len $Xs`**
+```yaml
+---
+!bind
+$n: !expr "len($Values.workers)"
+# no len() in !expr
+```
 
-**Right —** `!not-empty` or `$N: !len` then `!expr "$N > 0"`.
+</td><td>
 
-**Wrong — expecting rune count**
+```yaml
+---
+!bind
+$n: !len $Values.workers
+# length is the !len tag
+```
 
-`"ж"` → `2` bytes.
+</td></tr>
+<tr><td>
 
-**Wrong — `$N: !len $X?.y`**
+```yaml
+---
+!emit
+$when: !len $Values.workers
+$then:
+  kind: ConfigMap
+$else: ""
+# !len is an int, not a bool
+```
 
-Need `$N?:`.
+</td><td>
+
+```yaml
+---
+!emit
+$when: !not-empty $Values?.workers
+$then:
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: workers
+$else: ""
+# $when needs a bool: !not-empty, or !len then !expr "$N > 0"
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$N: !len $Values.label
+# "ж" is 2 bytes, not 1 rune
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$N: !len $Values.label
+# !len of a string is UTF-8 byte length
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$N: !len $Values?.workers
+# omit !len without ?: on the key is an error
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$N?: !len $Values?.workers
+# pair omit: $N?: with ?.
+```
+
+</td></tr>
+</table>
 
 ## See also
 

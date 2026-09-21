@@ -79,17 +79,87 @@ $Idx: !range
 
 ## Common mistakes
 
-**Wrong — `$to` and `$until` together**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-Pick one.
+```yaml
+---
+!bind
+$Idx: !range
+  $to: 3
+  $until: 3
+# $to and $until together is an error
+```
 
-**Wrong — `$over: !range` on `!foreach`**
+</td><td>
 
-**Right —** `$Idx: !range` in bind, `$over: !ref $Idx`.
+```yaml
+---
+!bind
+$Idx: !range
+  $until: 3
+# pick $to (inclusive) or $until (exclusive)
+```
 
-**Wrong — float bounds**
+</td></tr>
+<tr><td>
 
-`!int` first.
+```yaml
+---
+!emit
+spec:
+  env: !foreach
+    $over: !range
+      $until: 3
+    $as: $I
+    $yield:
+      name: !str $I
+# !range cannot be $over directly
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Idx: !range
+  $until: 3
+---
+!emit
+spec:
+  env: !foreach
+    $over: !ref $Idx
+    $as: $I
+    $yield:
+      name: !str $I
+# bind !range, then $over: !ref
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Idx: !range
+  $until: !ref $Values.cpu
+# bounds must be int; a float is an error
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$N: !int $Values.completions
+$Idx: !range
+  $until: !ref $N
+# !int first, then !range
+```
+
+</td></tr>
+</table>
 
 ## See also
 

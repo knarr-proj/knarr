@@ -56,19 +56,113 @@ $Pull: !join
 
 ## Common mistakes
 
-**Wrong — in `!emit`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-**Right — bind, `!ref`.**
+```yaml
+---
+!emit
+data:
+  hosts: !join
+    $sep: ","
+    $over: !ref $Values.hosts
+# !join is bind-only
+```
 
-**Wrong — `over:` without `$`**
+</td><td>
 
-**Wrong — joining ints**
+```yaml
+---
+!bind
+$HostList: !join
+  $sep: ","
+  $over: !ref $Values.hosts
+---
+!emit
+data:
+  hosts: !ref $HostList
+# join in bind, then !ref
+```
 
-`!str` each element first, or `!foreach` + `!str`.
+</td></tr>
+<tr><td>
 
-**Wrong — `%s-%s` when `!join` is enough**
+```yaml
+---
+!bind
+$HostList: !join
+  over: !ref $Values.hosts
+  sep: ","
+# keys need $: $over / $sep
+```
 
-Either is valid; `!join` is simpler for one delimiter.
+</td><td>
+
+```yaml
+---
+!bind
+$HostList: !join
+  $sep: ","
+  $over: !ref $Values.hosts
+# $sep and $over are the join keys
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Ports: !join
+  $sep: ","
+  $over: !ref $Values.ports
+# joining ints is an error
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$StrPorts: !foreach
+  $over: !ref $Values.ports
+  $as: $P
+  $yield: !str $P
+$Ports: !join
+  $sep: ","
+  $over: !ref $StrPorts
+# !str each element first
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Name: !format
+  - "%s-%s"
+  - !ref $Values.name
+  - svc
+# a single delimiter does not need !format
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Name: !join
+  $sep: "-"
+  $over:
+    - !ref $Values.name
+    - svc
+# one delimiter — !join
+```
+
+</td></tr>
+</table>
 
 ## See also
 

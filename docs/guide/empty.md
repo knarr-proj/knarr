@@ -53,19 +53,121 @@ $filter: !empty $E?.optionalNote
 
 ## Common mistakes
 
-**Wrong — `empty()` in `!expr`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-**Wrong — `!nempty`**
+```yaml
+---
+!emit
+$when: !expr "empty($Values.tls)"
+$then:
+  kind: ConfigMap
+$else: ""
+# no empty() in !expr
+```
 
-Use `!not-empty`.
+</td><td>
 
-**Wrong — wrapping `!not !empty`**
+```yaml
+---
+!emit
+$when: !empty $Values?.tls
+$then:
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: no-tls
+$else: ""
+# emptiness is the !empty tag
+```
 
-`!not` does not wrap this tag.
+</td></tr>
+<tr><td>
 
-**Wrong — `$when: !empty $Values.tls` without `?.`**
+```yaml
+---
+!emit
+$when: !nempty $Values?.sidecars
+$then:
+  kind: ConfigMap
+$else: ""
+# !nempty is not a tag
+```
 
-Missing `tls` errors.
+</td><td>
+
+```yaml
+---
+!emit
+$when: !not-empty $Values?.sidecars
+$then:
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: sidecars
+$else: ""
+# use !not-empty
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+$when: !not !empty $Values?.tls
+$then:
+  kind: ConfigMap
+$else: ""
+# !not does not wrap !empty
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+$when: !not-empty $Values?.tls
+$then:
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: tls
+$else: ""
+# use !not-empty or !expr
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+$when: !empty $Values.tls
+$then:
+  kind: ConfigMap
+$else: ""
+# missing tls without ?. is an error, not empty
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+$when: !empty $Values?.tls
+$then:
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: no-tls
+$else: ""
+# ?. turns a missing path into omit, which !empty treats as true
+```
+
+</td></tr>
+</table>
 
 ## See also
 

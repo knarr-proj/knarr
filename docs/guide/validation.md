@@ -70,22 +70,79 @@ Multiple `!validation` documents run in file order. `$warning` documents can all
 
 ## Common mistakes
 
-**Wrong — `required` inside `!expr`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
+---
+!validation
 $rules:
   - !expr "required($Values.name)"
+$fail: "set name"
+# no required() in !expr
 ```
 
-**Right — `!not-empty` / `!validation`.**
+</td><td>
 
-**Wrong — both `$fail` and `$warning`**
+```yaml
+---
+!validation
+$rules:
+  - !not-empty $Values?.name
+$fail: "set name"
+# required is !not-empty on $rules
+```
 
-Pick one.
+</td></tr>
+<tr><td>
 
-**Wrong — `$rules` must-true vs `!empty` for required**
+```yaml
+---
+!validation
+$rules:
+  - !not-empty $Values?.name
+$fail: "set name"
+$warning: "missing name"
+# $fail and $warning cannot both be set
+```
 
-`!empty` as a rule means “this **must** be empty”. Required values: **`!not-empty`**.
+</td><td>
+
+```yaml
+---
+!validation
+$rules:
+  - !not-empty $Values?.name
+$fail: "set name"
+# pick $fail or $warning
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!validation
+$rules:
+  - !empty $Values?.name
+$fail: "set name"
+# !empty as a rule means the value must be empty
+```
+
+</td><td>
+
+```yaml
+---
+!validation
+$rules:
+  - !not-empty $Values?.name
+$fail: "set name"
+# required values use !not-empty
+```
+
+</td></tr>
+</table>
 
 ## See also
 

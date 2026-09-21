@@ -83,14 +83,17 @@ Split computation across documents. Order of `!bind` documents does not restrict
 
 ## Common mistakes
 
-**Wrong — untagged values document**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
 name: api
 replicas: 2
+# untagged document is not a bind; names never enter the graph
 ```
 
-**Right**
+</td><td>
 
 ```yaml
 ---
@@ -98,47 +101,77 @@ replicas: 2
 $Values:
   name: api
   replicas: 2
+# !bind is the document tag; keys are $Name
 ```
 
-**Wrong — bind as a field**
+</td></tr>
+<tr><td>
 
 ```yaml
 $Values: !bind
   name: api
+# !bind is a document tag, not a field
 ```
 
-**Right — tag the document**
+</td><td>
 
 ```yaml
 ---
 !bind
 $Values:
   name: api
+# tag the document; put keys in the mapping
 ```
 
-**Wrong — reserved names**
+</td></tr>
+<tr><td>
 
 ```yaml
 ---
 !bind
 $Release:
   name: prod
+# $Release is reserved and unused in v1
 ```
 
-**Right — pick another binding** (`$Rel`, `$Instance`, …). `$Release` / `$Chart` / `$Capabilities` are reserved.
-
-**Wrong — `$Tls` after optional bind**
+</td><td>
 
 ```yaml
+---
+!bind
+$Rel: prod
+# use $Rel / $Instance; $Release / $Chart / $Capabilities are reserved
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
 $Tls?: !ref $Values?.tls
-host: !ref $Tls.host
+---
+!emit
+spec:
+  host: !ref $Tls.host
+# optional bind is $Tls?, not $Tls
 ```
 
-**Right**
+</td><td>
 
 ```yaml
-host?: !ref $Tls?.host
+---
+!bind
+$Tls?: !ref $Values?.tls
+---
+!emit
+spec:
+  host?: !ref $Tls?.host
+# pair $Tls? / ?. with ?: on the output key
 ```
+
+</td></tr>
+</table>
 
 ## See also
 

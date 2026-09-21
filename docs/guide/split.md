@@ -55,13 +55,53 @@ $Lines: !split
 
 ## Common mistakes
 
-**Wrong — empty `$sep`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-Error.
+```yaml
+---
+!bind
+$Hosts: !split
+  $sep: ""
+  $of: !ref $Values.hostCsv
+# empty $sep is an error
+```
 
-**Wrong — splitting in `!expr`**
+</td><td>
 
-No `split()` function.
+```yaml
+---
+!bind
+$Hosts: !split
+  $sep: ","
+  $of: !ref $Values.hostCsv
+# $sep must be a non-empty string
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Hosts: !expr "split(',', $Values.hostCsv)"
+# no split() in !expr
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Hosts: !split
+  $sep: ","
+  $of: !ref $Values.hostCsv
+# split is the !split tag
+```
+
+</td></tr>
+</table>
 
 ## See also
 

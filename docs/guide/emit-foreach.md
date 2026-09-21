@@ -116,25 +116,132 @@ $yield:
 
 ## Common mistakes
 
-**Wrong — `!foreach` as the root document** to emit many Deployments.
-
-**Right — `!emit-foreach`.** `!foreach` only fills a **field** (a sequence).
-
-**Wrong — `$items:`**
-
-Removed. Use `$over` / `$as` / `$yield`.
-
-**Wrong — `$over?:`**
-
-**Right**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
-$over: !expr "$Values?.workers ?? []"
+---
+!foreach
+$over: !ref $Values.workers
+$as: $W
+$yield:
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: !ref $W.name
+# !foreach fills a sequence field; it is not a root document
 ```
 
-**Wrong — `$as` inside document `$when`**
+</td><td>
 
-`$when` on `!emit-foreach` cannot see `$as`. It only gates the pack.
+```yaml
+---
+!emit-foreach
+$over: !ref $Values.workers
+$as: $W
+$yield:
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: !ref $W.name
+# one document per item is !emit-foreach
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit-foreach
+$items: !ref $Values.workers
+$as: $W
+$yield:
+  kind: Pod
+  metadata:
+    name: !ref $W.name
+# $items was removed
+```
+
+</td><td>
+
+```yaml
+---
+!emit-foreach
+$over: !ref $Values.workers
+$as: $W
+$yield:
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: !ref $W.name
+# use $over / $as / $yield
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit-foreach
+$over?: !ref $Values?.workers
+$as: $W
+$yield:
+  kind: Pod
+  metadata:
+    name: !ref $W.name
+# $over?: is not allowed
+```
+
+</td><td>
+
+```yaml
+---
+!emit-foreach
+$over: !expr "$Values?.workers ?? []"
+$as: $W
+$yield:
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: !ref $W.name
+# missing list becomes [] so the loop runs over nothing
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit-foreach
+$over: !ref $Values.workers
+$as: $W
+$when: !ref $W.enabled
+$yield:
+  kind: Pod
+  metadata:
+    name: !ref $W.name
+# document $when cannot see $as
+```
+
+</td><td>
+
+```yaml
+---
+!emit-foreach
+$over: !ref $Values.workers
+$as: $W
+$filter: !ref $W.enabled
+$yield:
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: !ref $W.name
+# per-item gate is $filter; $when only gates the whole pack
+```
+
+</td></tr>
+</table>
 
 ## See also
 

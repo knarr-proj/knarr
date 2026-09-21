@@ -69,31 +69,71 @@ Inside `!typedef`, a type body may be `!read types.yaml` (plain YAML schema, not
 
 ## Common mistakes
 
-**Wrong**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
+---
+!bind
 $Values:
   $type: !ref $ValuesType
+# $type is not how you apply a typedef
 ```
 
-**Right**
+</td><td>
 
 ```yaml
+---
+!bind
 $Values: !$ValuesType
   name: api
+# apply with $Name: !$Type
 ```
 
-**Wrong — `!Type` without `$`**
-
-**Right — `!$ValuesType`.**
-
-**Wrong — two tags**
+</td></tr>
+<tr><td>
 
 ```yaml
-$Values: !$ValuesType !read values.yaml
+---
+!bind
+$Values: !ValuesType
+  name: api
+# the tag needs $: !$ValuesType
 ```
 
-**Right —** type a bind whose fields you list, or `!import` a `!bind` document. Do not stack tags.
+</td><td>
+
+```yaml
+---
+!bind
+$Values: !$ValuesType
+  name: api
+# !$Name is the apply tag
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Values: !$ValuesType !read values.yaml
+# two tags on one node is an error
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Values: !$ValuesType
+  name: api
+# type a mapping you list, or !import a !bind document
+```
+
+</td></tr>
+</table>
 
 ## See also
 

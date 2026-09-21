@@ -57,25 +57,75 @@ metadata:
 
 ## Common mistakes
 
-**Wrong — `string()` in `!expr`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
-replicas: !expr "string($Values.replicas)"
+---
+!emit
+metadata:
+  labels:
+    replicas: !expr "string($Values.replicas)"
+# no string() in !expr
 ```
 
-**Right**
+</td><td>
 
 ```yaml
-replicas: !str $Values.replicas
+---
+!emit
+metadata:
+  labels:
+    replicas: !str $Values.replicas
+# stringify with !str
 ```
 
-**Wrong — `!str` of a mapping**
+</td></tr>
+<tr><td>
 
-Use [`!to-json-str`](to-json-str.md) if you need JSON text, or emit the mapping as YAML.
+```yaml
+---
+!bind
+$S: !str $Values.config
+# !str of a mapping is an error
+```
 
-**Wrong — `%s` in `!format` with an int**
+</td><td>
 
-`!str` first, or use `%d`.
+```yaml
+---
+!emit
+data:
+  config.json: !to-json-str $Values.config
+# JSON text is !to-json-str; or emit the mapping as YAML
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Name: !format
+  - "%s"
+  - !ref $Values.replicas
+# %s with an int is an error
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Name: !format
+  - "%d"
+  - !ref $Values.replicas
+# use %d, or !str first
+```
+
+</td></tr>
+</table>
 
 ## See also
 

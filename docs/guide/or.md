@@ -40,13 +40,67 @@ $when: !expr "$Values?.ingress.enabled ?? false || $Values?.mesh.enabled ?? fals
 
 ## Common mistakes
 
-**Wrong — `or()` in `!expr`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-Use `||`.
+```yaml
+---
+!emit
+$when: !expr "or($Values.ingress.enabled, $Values.mesh.enabled)"
+$then:
+  kind: Ingress
+$else: ""
+# no or() in !expr
+```
 
-**Wrong — `!not` wrapping `!or`**
+</td><td>
 
-Rewrite with `!and` + `!not-empty`, or `!expr`.
+```yaml
+---
+!emit
+$when: !expr "$Values.ingress.enabled || $Values.mesh.enabled"
+$then:
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: !ref $Values.name
+$else: ""
+# short-circuit bools use ||
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+$when: !not !or
+  - !ref $Values.ingress.enabled
+  - !ref $Values.mesh.enabled
+$then:
+  kind: Ingress
+$else: ""
+# !not does not wrap !or
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+$when: !expr "!($Values.ingress.enabled || $Values.mesh.enabled)"
+$then:
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: !ref $Values.name
+$else: ""
+# rewrite with !expr, or !and + !not
+```
+
+</td></tr>
+</table>
 
 ## See also
 

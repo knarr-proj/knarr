@@ -55,19 +55,96 @@ $when: !and
 
 ## Common mistakes
 
-**Wrong — empty `!and []`**
-
-**Wrong — omit child**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
-- !ref $Values?.enabled
+---
+!emit
+$when: !and []
+$then:
+  kind: Service
+$else: ""
+# empty !and is an error
 ```
 
-Use `?? false` in `!expr` or a required path.
+</td><td>
 
-**Wrong — `and()` in `!expr`**
+```yaml
+---
+!emit
+$when: !and
+  - !ref $Values.service.enabled
+  - !expr "$Values.replicas > 1"
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
+# !and needs at least one bool child
+```
 
-Use `&&`.
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+$when: !and
+  - !ref $Values?.enabled
+$then:
+  kind: Service
+$else: ""
+# omit child is not a bool
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+$when: !expr "$Values?.enabled ?? false"
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
+# use ?? false, or a required path
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+$when: !expr "and($Values.service.enabled, $Values.tls)"
+$then:
+  kind: Service
+$else: ""
+# no and() in !expr
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+$when: !expr "$Values.service.enabled && $Values.tls"
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
+# short-circuit bools use &&
+```
+
+</td></tr>
+</table>
 
 ## See also
 

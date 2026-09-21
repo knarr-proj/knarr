@@ -77,38 +77,125 @@ env?: !foreach
 
 ## Common mistakes
 
-**Wrong — optional key, required path**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
-affinity?: !ref $Values.affinity
+---
+!emit
+spec:
+  affinity?: !ref $Values.affinity
+# ?: on the key does not make the path optional; missing affinity still errors
 ```
 
-Missing `affinity` is still an error.
-
-**Wrong — required key, optional path**
+</td><td>
 
 ```yaml
-affinity: !ref $Values?.affinity
+---
+!emit
+spec:
+  affinity?: !ref $Values?.affinity
+# both ?: on the key and ?. on the path omit the key
 ```
 
-Omit on a required key is an error.
-
-**Wrong — `$over?:`**
-
-**Right —** `$over: !expr "$X?.y ?? []"`.
-
-**Wrong — `a ?? b ?? c` in `!expr`**
-
-**Right —** [`!pick`](pick.md).
-
-**Wrong — mixed `?:` in a mapping**
+</td></tr>
+<tr><td>
 
 ```yaml
+---
+!emit
+spec:
+  affinity: !ref $Values?.affinity
+# omit on a required key is an error
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+spec:
+  affinity?: !ref $Values?.affinity
+# required key must get a value; optional key uses ?:
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+spec:
+  env: !foreach
+    $over?: !ref $Values?.env
+    $as: $E
+    $yield:
+      name: !ref $E.name
+# $over?: is not allowed
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+spec:
+  env: !foreach
+    $over: !expr "$Values?.env ?? []"
+    $as: $E
+    $yield:
+      name: !ref $E.name
+# fill omit with [] so $over is a list
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+metadata:
+  name: !expr "$Values?.fullname ?? $Values?.name ?? 'app'"
+# ?? in !expr is binary only
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+metadata:
+  name: !pick
+    - !ref $Values?.fullname
+    - !ref $Values?.name
+    - app
+# n-way omit default is !pick
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
 spec?:
   replicas: !ref $Values.replicas
+# parent ?: requires every child ?: as well
 ```
 
-Parent `?:` requires every child `?:` as well.
+</td><td>
+
+```yaml
+---
+!emit
+spec?:
+  replicas?: !ref $Values?.replicas
+# every child of an optional mapping is ?:
+```
+
+</td></tr>
+</table>
 
 ## See also
 

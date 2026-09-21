@@ -59,17 +59,71 @@ inside `!bind`, then `!ref` on the Deployment.
 
 ## Common mistakes
 
-**Wrong — knarr tags inside the read file**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-**Right —** plain YAML data. Program files use [`!import`](import.md).
+```yaml
+---
+!bind
+$Probe: !read probes/http.knarr
+# the read file must be plain YAML data, not knarr tags
+```
 
-**Wrong — multi-document YAML**
+</td><td>
 
-**Right —** one document per `!read`, or split files.
+```yaml
+---
+!bind
+$Probe: !read probes/http.yaml
+---
+!emit
+spec:
+  livenessProbe: !ref $Probe
+# data files use !read; program files use !import
+```
 
-**Wrong — `$Values: !import values.yaml`**
+</td></tr>
+<tr><td>
 
-`!import` splices knarr **documents**, not a value.
+```yaml
+---
+!bind
+$All: !read many.yaml
+# multi-document YAML is an error
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$A: !read a.yaml
+$B: !read b.yaml
+# one document per !read, or split files
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Values: !import values.yaml
+# !import splices knarr documents, not a value
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Values: !read values.yaml
+# load a YAML tree with !read
+```
+
+</td></tr>
+</table>
 
 ## See also
 

@@ -69,21 +69,92 @@ $when: !and
 
 ## Common mistakes
 
-**Wrong — `if` on a field using `$when`**
-
-`$when` is not allowed on random keys. Use [`!match`](match.md) or [omit](omit.md).
-
-**Wrong — `$when: !len $Xs`**
-
-**Right —** `$when: !not-empty $Xs` or `!expr "$N > 0"` after `!len`.
-
-**Wrong — omit `$when` without `??`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
-$when: !ref $Values?.enabled
+---
+!emit
+spec:
+  replicas:
+    $when: !expr "$Values.ha"
+    $then: 3
+    $else: 1
+# $when is not allowed on a field
 ```
 
-If `enabled` is missing, omit is not a bool. Use `?? false`.
+</td><td>
+
+```yaml
+---
+!emit
+spec:
+  replicas: !match
+    $if: !ref $Values.ha
+    $then: 3
+    $else: 1
+# field-level if is !match
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+$when: !len $Values.workers
+$then:
+  kind: ConfigMap
+$else: ""
+# !len is an int, not a bool
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+$when: !not-empty $Values?.workers
+$then:
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: workers
+$else: ""
+# $when needs a bool: !not-empty, or !expr after !len
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+$when: !ref $Values?.enabled
+$then:
+  kind: Service
+$else: ""
+# omit is not a bool
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+$when: !expr "$Values?.enabled ?? false"
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
+# missing enabled becomes false
+```
+
+</td></tr>
+</table>
 
 ## See also
 

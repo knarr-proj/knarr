@@ -41,11 +41,49 @@ token?: !b64dec $Values?.tokenB64
 
 ## Common mistakes
 
-**Wrong — host `b64dec()` in `!expr`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-**Wrong — padding / url alphabet surprises**
+```yaml
+---
+!bind
+$Raw: !expr "b64dec($Values.wrapped)"
+# no b64dec() in !expr
+```
 
-RFC 4648 standard alphabet; invalid input fails the render.
+</td><td>
+
+```yaml
+---
+!bind
+$Raw: !b64dec $Values.wrapped
+# decode with !b64dec
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+data:
+  token: !b64dec $Values.tokenUrlB64
+# URL-safe alphabet (- _) or missing padding fails the render
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+data:
+  token: !b64dec $Values.tokenB64
+# RFC 4648 standard alphabet (+ /) with padding
+```
+
+</td></tr>
+</table>
 
 ## See also
 

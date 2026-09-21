@@ -65,37 +65,93 @@ A missing step with `?.` is omit, not an error. `??` fills a default and keeps t
 
 ## Common mistakes
 
-**Wrong — operators in `!ref`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
-replicas: !ref $Values.replicas + 1
+---
+!emit
+spec:
+  replicas: !ref $Values.replicas + 1
+# !ref is a path; operators belong in !expr
 ```
 
-**Right —** [`!expr`](expr.md).
-
-**Wrong — dynamic index**
+</td><td>
 
 ```yaml
-image: !ref $Values.images[$Worker.name]
+---
+!emit
+spec:
+  replicas: !expr "$Values.replicas + 1"
+# arithmetic is !expr
 ```
 
-**Right**
+</td></tr>
+<tr><td>
 
 ```yaml
-image: !expr "$Values.images[$Worker.name]"
+---
+!emit
+spec:
+  image: !ref $Values.images[$Worker.name]
+# dynamic index is not a !ref path
 ```
 
-**Wrong — unquoted `[`**
+</td><td>
 
 ```yaml
-name: !ref $Workers[0].name
+---
+!emit
+spec:
+  image: !expr "$Values.images[$Worker.name]"
+# computed index is !expr
 ```
 
-YAML parses this as two tokens. Quote it.
+</td></tr>
+<tr><td>
 
-**Wrong — `!path`**
+```yaml
+---
+!emit
+metadata:
+  name: !ref $Workers[0].name
+# unquoted [ is two YAML tokens
+```
 
-Removed. Use `!ref` / `!expr`.
+</td><td>
+
+```yaml
+---
+!emit
+metadata:
+  name: !ref "$Workers[0].name"
+# quote the path when it contains [
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+metadata:
+  name: !path $Values.name
+# !path was removed
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+metadata:
+  name: !ref $Values.name
+# use !ref / !expr
+```
+
+</td></tr>
+</table>
 
 ## See also
 

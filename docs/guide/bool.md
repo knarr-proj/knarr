@@ -66,25 +66,66 @@ spec:
 
 ## Common mistakes
 
-**Wrong — YAML `yes` / `on` / `TRUE` as coerce input**
-
-knarr `!bool` does not accept them (and knarr documents reject `!!bool`).
-
-**Wrong — `1` → true**
-
-Int is an error. Use a real bool or the strings `"true"` / `"false"`.
-
-**Wrong — `bool()` in `!expr`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
+---
+!bind
+$HA: !bool "yes"
+# !bool does not accept yes / on / TRUE
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$HA: !bool "true"
+# only a bool or lowercase true / false
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$On: !bool 1
+# int is an error; 1 is not true
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$On: !bool "true"
+# use a real bool or the strings "true" / "false"
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
 $On: !expr "bool($Values.ha)"
+# no bool() in !expr
 ```
 
-**Right**
+</td><td>
 
 ```yaml
+---
+!bind
 $On: !bool $Values.ha
+# coerce with !bool
 ```
+
+</td></tr>
+</table>
 
 ## See also
 

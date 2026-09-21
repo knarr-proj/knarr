@@ -116,7 +116,9 @@ spec:
 
 ## Common mistakes
 
-**Wrong — `$when` without `$then` / `$else`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
 ---
@@ -124,36 +126,112 @@ spec:
 $when: !ref $On
 apiVersion: v1
 kind: Service
+# $when cannot mix with a raw manifest
 ```
 
-**Right — exclusive shapes:** either a raw manifest **or** `$when`+`$then`+`$else`.
-
-**Wrong — `when:`**
+</td><td>
 
 ```yaml
-when: !ref $On
-```
-
-**Right**
-
-```yaml
+---
+!emit
 $when: !ref $On
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
+# exclusive shapes: raw manifest, or $when + $then + $else
 ```
 
-**Wrong — `!format` in the manifest**
+</td></tr>
+<tr><td>
 
 ```yaml
+---
+!emit
+when: !ref $On
+$then:
+  apiVersion: v1
+  kind: Service
+$else: ""
+# the key is $when, not when
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+$when: !ref $On
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
+# $when is the document gate
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
 metadata:
   name: !format
     - "%s-svc"
     - !ref $Values.name
+# !format is bind-only
 ```
 
-**Right — bind, then `!ref`.** See [`!format`](format.md).
+</td><td>
 
-**Wrong — `$else: null`**
+```yaml
+---
+!bind
+$Name: !format
+  - "%s-svc"
+  - !ref $Values.name
+---
+!emit
+metadata:
+  name: !ref $Name
+# format in bind, then !ref in the manifest
+```
 
-Use `$else: ""` to skip.
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+$when: !ref $On
+$then:
+  apiVersion: v1
+  kind: Service
+$else: null
+# knarr has no null
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+$when: !ref $On
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
+# $else: "" skips the document
+```
+
+</td></tr>
+</table>
 
 ## See also
 

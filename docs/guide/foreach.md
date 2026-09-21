@@ -83,21 +83,103 @@ $yield?: !ref $S?.container
 
 ## Common mistakes
 
-**Wrong — foreach as the only document** to create Pods.
-
-**Right —** [`!emit-foreach`](emit-foreach.md).
-
-**Wrong — `$over: !ref $Values?.workers`** (omit `$over`)
-
-**Right**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
-$over: !expr "$Values?.workers ?? []"
+---
+!foreach
+$over: !ref $Values.workers
+$as: $W
+$yield:
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: !ref $W.name
+# !foreach is not a root document for many Pods
 ```
 
-**Wrong — mixing string and mapping `$yield` in one loop**
+</td><td>
 
-One sort per loop.
+```yaml
+---
+!emit-foreach
+$over: !ref $Values.workers
+$as: $W
+$yield:
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: !ref $W.name
+# one document per item is !emit-foreach
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+spec:
+  containers: !foreach
+    $over: !ref $Values?.workers
+    $as: $W
+    $yield:
+      name: !ref $W.name
+# omit $over is an error
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+spec:
+  containers: !foreach
+    $over: !expr "$Values?.workers ?? []"
+    $as: $W
+    $yield:
+      name: !ref $W.name
+# missing list becomes []
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+spec:
+  env: !foreach
+    $over: !ref $Values.env
+    $as: $E
+    $yield: !match
+      $if: !ref $E.plain
+      $then: !ref $E.name
+      $else:
+        name: !ref $E.name
+        value: !ref $E.value
+# one loop cannot mix string and mapping $yield
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+spec:
+  env: !foreach
+    $over: !ref $Values.env
+    $as: $E
+    $yield:
+      name: !ref $E.name
+      value: !ref $E.value
+# one YAML sort per loop
+```
+
+</td></tr>
+</table>
 
 ## See also
 

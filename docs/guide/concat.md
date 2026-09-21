@@ -51,27 +51,90 @@ $Ports: !concat
 
 ## Common mistakes
 
-**Wrong — in the manifest**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
-args: !concat
-  - [ "--verbose" ]
-  - !ref $Values.extraArgs
+---
+!emit
+spec:
+  containers:
+    - args: !concat
+        - ["--verbose"]
+        - !ref $Values.extraArgs
+# !concat is bind-only
 ```
 
-**Right — bind, then `args: !ref $Args`.**
-
-**Wrong — splicing with YAML**
+</td><td>
 
 ```yaml
-args:
-  - --verbose
+---
+!bind
+$Args: !concat
+  - ["--verbose"]
   - !ref $Values.extraArgs
+---
+!emit
+spec:
+  containers:
+    - args: !ref $Args
+# concat in bind, then !ref
 ```
 
-That nests a list. Use `!concat`.
+</td></tr>
+<tr><td>
 
-**Wrong — `$A + $B` on sequences**
+```yaml
+---
+!emit
+spec:
+  containers:
+    - args:
+        - --verbose
+        - !ref $Values.extraArgs
+# a list child nests a list, it does not splice
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Args: !concat
+  - ["--verbose"]
+  - !ref $Values.extraArgs
+---
+!emit
+spec:
+  containers:
+    - args: !ref $Args
+# splice sequences with !concat
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Args: !expr "$Fixed + $Extra"
+# + never concatenates lists
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Args: !concat
+  - !ref $Fixed
+  - !ref $Extra
+# list concat is !concat
+```
+
+</td></tr>
+</table>
 
 ## See also
 

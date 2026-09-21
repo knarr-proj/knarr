@@ -68,27 +68,91 @@ spec:
 
 ## Common mistakes
 
-**Wrong — tags on keys**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
-replicas !if: ...
+---
+!emit
+spec:
+  replicas !if: !expr "$Values.ha"
+# tags belong on the value, not on the key
 ```
 
-**Right — tag the value `!match`.**
-
-**Wrong — list of `$if` entries**
+</td><td>
 
 ```yaml
-!match
-  - $if: ...
-  - $if: ...
+---
+!emit
+spec:
+  replicas: !match
+    $if: !ref $Values.ha
+    $then: 3
+    $else: 1
+# tag the value !match
 ```
 
-**Right — nested `$else: !match`.**
+</td></tr>
+<tr><td>
 
-**Wrong — `$when` inside `!match`**
+```yaml
+---
+!emit
+spec:
+  type: !match
+    - $if: !ref $Values.ingress.enabled
+      $then: ClusterIP
+    - $if: !ref $Values.loadBalancer
+      $then: LoadBalancer
+# !match is not a list of $if entries
+```
 
-Use `$if`.
+</td><td>
+
+```yaml
+---
+!emit
+spec:
+  type: !match
+    $if: !ref $Values.ingress.enabled
+    $then: ClusterIP
+    $else: !match
+      $if: !ref $Values.loadBalancer
+      $then: LoadBalancer
+      $else: ClusterIP
+# nest $else: !match
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+spec:
+  replicas: !match
+    $when: !expr "$Values.replicas > 0"
+    $then: !ref $Values.replicas
+    $else: 1
+# !match uses $if, not $when
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+spec:
+  replicas: !match
+    $if: !expr "$Values.replicas > 0"
+    $then: !ref $Values.replicas
+    $else: 1
+# $when is for !emit / !emit-foreach
+```
+
+</td></tr>
+</table>
 
 ## See also
 

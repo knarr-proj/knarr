@@ -60,37 +60,87 @@ cpu: "500m"
 
 ## Common mistakes
 
-**Wrong — `0.1 + 0.2` expecting `0.3`**
-
-IEEE, same as Go `float64`.
-
-**Wrong — `!int $Values.cpu` when cpu is `0.5`**
-
-No truncation. Keep the float or use `!float`.
-
-**Wrong — `float64()` in `!expr`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
+---
+!bind
+$Ok: !expr "0.1 + 0.2 == 0.3"
+# IEEE float64; 0.1 + 0.2 is not 0.3
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Sum: !expr "0.1 + 0.2"
+# same rounding as Go float64; do not compare with == 0.3
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Cpu: !int $Values.cpu
+# cpu 0.5 cannot truncate; !int of a float is an error
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Cpu: !float $Values.cpu
+# keep the float, or use !float
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
 $Cpu: !expr "float64($Values.cpuStr)"
+# no float64() in !expr
 ```
 
-**Right**
+</td><td>
 
 ```yaml
+---
+!bind
 $Cpu: !float $Values.cpuStr
+# coerce with !float
 ```
 
-**Wrong — millicores as float**
+</td></tr>
+<tr><td>
 
 ```yaml
+---
+!bind
 $Cpu: !float "500m"
+# millicores are not a float
 ```
 
-**Right — leave Quantity as a string**
+</td><td>
 
 ```yaml
-cpu: "500m"
+---
+!emit
+spec:
+  limits:
+    cpu: "500m"
+# leave Quantity as a quoted string
 ```
+
+</td></tr>
+</table>
 
 ## See also
 

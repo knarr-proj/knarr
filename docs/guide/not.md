@@ -43,14 +43,65 @@ $filter: !not $Worker.disabled
 
 ## Common mistakes
 
-**Wrong — two tags**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
+---
+!emit
 $when: !not !ref $On
-$when: !not !empty $X
+$then:
+  kind: Service
+$else: ""
+# two tags on one node; !not does not wrap !ref
 ```
 
-**Right —** `!not $On` or `!not-empty` / `!expr`.
+</td><td>
+
+```yaml
+---
+!emit
+$when: !not $Values.service.enabled
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
+# !not takes a path scalar
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+$when: !not !empty $Values?.tls
+$then:
+  kind: ConfigMap
+$else: ""
+# !not does not wrap !empty
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+$when: !not-empty $Values?.tls
+$then:
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: tls
+$else: ""
+# use !not-empty or !expr
+```
+
+</td></tr>
+</table>
 
 ## See also
 

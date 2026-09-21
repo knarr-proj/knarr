@@ -75,25 +75,106 @@ Operand must be **float**.
 
 ## Common mistakes
 
-**Wrong — in metadata**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
-name: !format
-  - "%s-svc"
-  - !ref $Values.name
+---
+!emit
+metadata:
+  name: !format
+    - "%s-svc"
+    - !ref $Values.name
+# !format is bind-only
 ```
 
-**Right — bind, `!ref`.**
+</td><td>
 
-**Wrong — `!printf` or `printf()` in `!expr`**
+```yaml
+---
+!bind
+$Name: !format
+  - "%s-svc"
+  - !ref $Values.name
+---
+!emit
+metadata:
+  name: !ref $Name
+# format in bind, then !ref
+```
 
-**Wrong — `%s` with an int**
+</td></tr>
+<tr><td>
 
-Use `%d` or `!str` first.
+```yaml
+---
+!bind
+$Name: !expr "printf('%s-svc', $Values.name)"
+# no printf() in !expr; no !printf tag
+```
 
-**Wrong — `"%s-%s"` with bare `$X` in the sequence**
+</td><td>
 
-That is the string `"$X"`. Use `!ref $X`.
+```yaml
+---
+!bind
+$Name: !format
+  - "%s-svc"
+  - !ref $Values.name
+# Go fmt is !format
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Name: !format
+  - "%s"
+  - !ref $Values.replicas
+# %s with an int is an error
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Name: !format
+  - "%d"
+  - !ref $Values.replicas
+# use %d, or !str first
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Name: !format
+  - "%s-%s"
+  - $Values.env
+  - $Values.name
+# bare $X in the sequence is the string "$X"
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Name: !format
+  - "%s-%s"
+  - !ref $Values.env
+  - !ref $Values.name
+# operands are !ref (or other tags), not bare identifiers
+```
+
+</td></tr>
+</table>
 
 ## See also
 

@@ -63,32 +63,112 @@ Result is float. `0.1 + 0.2` is IEEE, not decimal `0.3`.
 
 ## Common mistakes
 
-**Wrong**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
 ```yaml
+---
+!bind
 $n: !expr "len($Values.workers)"
-name: !expr "$Values.name + '-svc'"
-$x: !expr "$On ? 1 : 0"
-$bad: !expr "{app: $Values.name}"
+# no len() in !expr
 ```
 
-**Right**
+</td><td>
 
 ```yaml
+---
+!bind
 $n: !len $Values.workers
+# length is the !len tag
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$name: !expr "$Values.name + '-svc'"
+# + is not string concat
+```
+
+</td><td>
+
+```yaml
+---
+!bind
 $Name: !format
   - "%s-svc"
   - !ref $Values.name
-replicas: !match
-  $if: !ref $On
-  $then: 1
-  $else: 0
-$Labels: !expr "{'app': $Values.name}"
+# string format is bind-only !format
 ```
 
-**Wrong — `Values.replicas` without `$`**
+</td></tr>
+<tr><td>
 
-**Right — `$Values.replicas`.**
+```yaml
+---
+!bind
+$x: !expr "$On ? 1 : 0"
+# no ternary in !expr
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+spec:
+  replicas: !match
+    $if: !ref $On
+    $then: 1
+    $else: 0
+# branch on a value with !match
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$bad: !expr "{app: $Values.name}"
+# unquoted key app: is not valid in !expr
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Labels: !expr "{'app': $Values.name}"
+# object keys in !expr are quoted
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!emit
+spec:
+  replicas: !expr "Values.replicas"
+# identifiers in !expr need $
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+spec:
+  replicas: !expr "$Values.replicas"
+# $Values.replicas is the path
+```
+
+</td></tr>
+</table>
 
 ## See also
 

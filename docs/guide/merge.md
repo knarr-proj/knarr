@@ -65,15 +65,88 @@ Use [`!concat`](concat.md) for lists.
 
 ## Common mistakes
 
-**Wrong — in `spec:`**
+<table>
+<tr><th>Wrong</th><th>Right</th></tr>
+<tr><td>
 
-**Right — bind, `!ref`.**
+```yaml
+---
+!emit
+spec:
+  resources: !merge
+    - requests:
+        cpu: "100m"
+    - !ref $Values.resources
+# !merge is bind-only
+```
 
-**Wrong — expecting list concat**
+</td><td>
 
-**Wrong — `$Name?: !merge`**
+```yaml
+---
+!bind
+$Res: !merge
+  - requests:
+      cpu: "100m"
+  - !ref $Values.resources
+---
+!emit
+spec:
+  resources: !ref $Res
+# merge in bind, then !ref
+```
 
-Not allowed.
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Args: !merge
+  - args: ["--a"]
+  - args: ["--b"]
+# sequences are replaced, not concatenated
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Args: !concat
+  - ["--a"]
+  - ["--b"]
+# glue lists with !concat
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+---
+!bind
+$Res?: !merge
+  - requests:
+      cpu: "100m"
+  - !ref $Values?.resources
+# $Name?: !merge is not allowed
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$User: !expr "$Values?.resources ?? {}"
+$Res: !merge
+  - requests:
+      cpu: "100m"
+  - !ref $User
+# fill omit, then !merge
+```
+
+</td></tr>
+</table>
 
 ## See also
 
