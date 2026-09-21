@@ -2,8 +2,6 @@
 
 Boolean negation of a **path**. Same `RefScalar` as [`!ref`](ref.md).
 
-**Helm:** `not` / `if not` — [vs Helm](not-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -56,6 +54,52 @@ $when: !not !empty $X
 
 ## See also
 
-- [vs Helm](not-vs-helm.md)
 - [`!not-empty`](not-empty.md)
 - [`$when`](when.md)
+
+## Comparison with Helm
+
+`!not` negates a path scalar, not another tag.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{- if not .Values.service.enabled }}
+```
+
+</td><td>
+
+```yaml
+$when: !not $Values.service.enabled
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- if not .Values.debug }}
+```
+
+</td><td>
+
+```yaml
+$when: !expr "!($Values?.debug ?? false)"
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- if not .disabled }}
+```
+
+</td><td>
+
+```yaml
+$filter: !not $Worker.disabled
+```
+
+</td></tr>
+</table>

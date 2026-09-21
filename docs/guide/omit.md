@@ -2,8 +2,6 @@
 
 knarr never drops a key because a value is empty-looking. Absence is always **written**.
 
-**Helm:** `if`, `with`, `default`, `dig` — [vs Helm](omit-vs-helm.md).
-
 ## Syntax
 
 | Marker | Where | Meaning |
@@ -19,7 +17,7 @@ Optional mapping: every child is `?:` iff the parent is. Empty optional `{}` →
 
 ## Examples
 
-### Optional affinity (Helm `with`)
+### Optional affinity
 
 ```yaml
 spec:
@@ -114,7 +112,91 @@ Parent `?:` requires every child `?:` as well.
 
 ## See also
 
-- [vs Helm](omit-vs-helm.md)
 - [`!pick`](pick.md)
 - [`!match`](match.md)
 - [`!expr`](expr.md)
+
+## Comparison with Helm
+
+Absence is written: key `?:` **and** path `?.`. `??` keeps the key with a default.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{- with .Values.affinity }}
+affinity:
+{{ toYaml . | nindent 2 }}
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+affinity?: !ref $Values?.affinity
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+host: {{ .Values.tls.host | default "localhost" }}
+```
+
+</td><td>
+
+```yaml
+host: !expr "$Values.tls?.host ?? 'localhost'"
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ dig "tls" "cert" "" .Values }}
+```
+
+</td><td>
+
+```yaml
+cert?: !ref $Values?.tls?.cert
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ coalesce .Values.fullnameOverride .Values.name "app" }}
+```
+
+</td><td>
+
+```yaml
+name: !pick
+  - !ref $Values?.fullnameOverride
+  - !ref $Values?.name
+  - app
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- if .Values.tls }}tls: ...{{- end }}
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Tls?: !ref $Values?.tls
+---
+!emit
+spec:
+  tls?: !ref $Tls?
+```
+
+</td></tr>
+</table>

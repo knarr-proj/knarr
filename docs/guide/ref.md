@@ -2,8 +2,6 @@
 
 Read a path. No operators. Sugar over the same paths as [`!expr`](expr.md).
 
-**Helm:** `{{ .Values.name }}`, `index` — [vs Helm](ref-vs-helm.md).
-
 ## Syntax
 
 Tagged scalar, `RefScalar`:
@@ -92,6 +90,81 @@ Removed. Use `!ref` / `!expr`.
 
 ## See also
 
-- [vs Helm](ref-vs-helm.md)
 - [`!expr`](expr.md)
 - [Omit](omit.md)
+
+## Comparison with Helm
+
+`!ref` is a path. Missing without `?.` is an error, not empty.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+name: {{ .Values.name }}
+```
+
+</td><td>
+
+```yaml
+name: !ref $Values.name
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+host: {{ .Values.env.database.host }}
+```
+
+</td><td>
+
+```yaml
+host: !ref $Values.env.database.host
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+name: {{ index .Values.workers 0 "name" }}
+```
+
+</td><td>
+
+```yaml
+name: !ref "$Workers[0].name"
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ index .Values.labels "app.kubernetes.io/name" }}
+```
+
+</td><td>
+
+```yaml
+app: !ref "$Values.labels['app.kubernetes.io/name']"
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- with .Values.livenessProbe }}
+livenessProbe:
+{{ toYaml . | nindent 2 }}
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+livenessProbe?: !ref $Values?.livenessProbe
+```
+
+</td></tr>
+</table>

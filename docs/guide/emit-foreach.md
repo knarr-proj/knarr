@@ -1,10 +1,8 @@
 # `!emit-foreach`
 
-Emit **N YAML documents** — one document per item (Helm `range` at the top of a template file).
+Emit **N YAML documents** — one document per item.
 
 For lists **inside** one mapping (env, ports, extra hosts), use [`!foreach`](foreach.md), not this tag.
-
-**Helm:** `{{- range .Values.workers }}` around a whole resource — [vs Helm](emit-foreach-vs-helm.md).
 
 ## Syntax
 
@@ -140,6 +138,118 @@ $over: !expr "$Values?.workers ?? []"
 
 ## See also
 
-- [vs Helm](emit-foreach-vs-helm.md)
 - [`!foreach`](foreach.md)
 - [`$when`](when.md)
+
+## Comparison with Helm
+
+`!emit-foreach` is `range` around a **whole resource**. Lists inside one spec use `!foreach`.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{- range .Values.workers }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ .name }}
+---
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+---
+!emit-foreach
+$over: !ref $Values.workers
+$as: $Worker
+$yield:
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: !ref $Worker.name
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- range .Values.workers }}
+{{- if .enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ .name }}
+{{- end }}
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+---
+!emit-foreach
+$over: !ref $Values.workers
+$as: $Worker
+$filter: !ref $Worker.enabled
+$yield:
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: !ref $Worker.name
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- range $comp, $image := .Values.images }}
+metadata:
+  name: {{ $comp }}
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+---
+!emit-foreach
+$over: !ref $Values.images
+$as: $Image
+$key: $Comp
+$yield:
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: !ref $Comp
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- if .Values.deployWorkers }}
+{{- range .Values.workers }} ... {{- end }}
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+---
+!emit-foreach
+$when: !expr "$Values.deployWorkers ?? false"
+$over: !ref $Values.workers
+$as: $Worker
+$yield:
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: !ref $Worker.name
+```
+
+</td></tr>
+</table>

@@ -2,8 +2,6 @@
 
 Base64-decode to a **string**. Invalid alphabet or non-UTF-8 is an error.
 
-**Helm:** `b64dec` — [vs Helm](b64dec-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -51,5 +49,58 @@ RFC 4648 standard alphabet; invalid input fails the render.
 
 ## See also
 
-- [vs Helm](b64dec-vs-helm.md)
 - [`!b64enc`](b64enc.md)
+
+## Comparison with Helm
+
+`!b64dec` yields UTF-8 text. Invalid alphabet fails the render.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{ .Values.caB64 | b64dec }}
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Ca: !b64dec $Values.caB64
+---
+!emit
+data:
+  ca.crt: !ref $Ca
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ .Values.tokenB64 | b64dec }}
+```
+
+</td><td>
+
+```yaml
+token?: !b64dec $Values?.tokenB64
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ b64enc (b64dec .Values.wrapped) }}
+```
+
+</td><td>
+
+```yaml
+$Raw: !b64dec $Values.wrapped
+$Again: !b64enc $Raw
+```
+
+</td></tr>
+</table>

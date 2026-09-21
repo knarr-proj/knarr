@@ -2,8 +2,6 @@
 
 Coerce to **string**.
 
-**Helm:** `toString` / `print` — [vs Helm](str-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -81,6 +79,68 @@ Use [`!to-json-str`](to-json-str.md) if you need JSON text, or emit the mapping 
 
 ## See also
 
-- [vs Helm](str-vs-helm.md)
 - [`!int`](int.md)
 - [`!to-json-str`](to-json-str.md)
+
+## Comparison with Helm
+
+`!str` stringifies scalars. Seq/map is an error (not `toYaml`).
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+replicas: {{ .Values.replicas | toString | quote }}
+```
+
+</td><td>
+
+```yaml
+labels:
+  replicas: !str $Values.replicas
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+ha: {{ .Values.ha | toString }}
+```
+
+</td><td>
+
+```yaml
+annotations:
+  ha: !str $Values.ha
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+name: {{ . }}
+```
+
+</td><td>
+
+```yaml
+metadata:
+  name: !str $I
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+prometheus.io/port: {{ .Values.port | quote }}
+```
+
+</td><td>
+
+```yaml
+prometheus.io/port: !str $Values.port
+```
+
+</td></tr>
+</table>

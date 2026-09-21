@@ -2,8 +2,6 @@
 
 Base64-encode a **string** (UTF-8 bytes, RFC 4648, no newlines). Result is a string. Allowed on any value node (unlike `!format`).
 
-**Helm:** `b64enc` — [vs Helm](b64enc-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -63,5 +61,60 @@ Pair omit markers.
 
 ## See also
 
-- [vs Helm](b64enc-vs-helm.md)
 - [`!b64dec`](b64dec.md)
+
+## Comparison with Helm
+
+`!b64enc` is a tagged scalar on a **string** (RFC 4648, no newlines).
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+data:
+  password: {{ .Values.password | b64enc }}
+```
+
+</td><td>
+
+```yaml
+data:
+  password: !b64enc $Values.password
+  username: !b64enc $Values.user
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ .Values.token | b64enc }}
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Tok?: !b64enc $Values?.token
+---
+!emit
+data:
+  token?: !ref $Tok?
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+tls.crt: {{ .Values.certPem | b64enc }}
+```
+
+</td><td>
+
+```yaml
+tls.crt: !b64enc $Values.certPem
+```
+
+</td></tr>
+</table>

@@ -90,7 +90,7 @@ spec:
 
 ## 4. Optional field (no silent empty maps)
 
-Helm often writes nothing when `.Values.affinity` is missing. knarr never drops a key unless you mark **both** the key and the path:
+A missing path is an error unless you mark **both** the key and the path:
 
 ```yaml
 spec:

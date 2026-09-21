@@ -2,8 +2,6 @@
 
 Field-level **if / else**. The tag sits on a **value**, not on a key.
 
-**Helm:** `{{- if }}` inside a spec field — [vs Helm](match-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -94,7 +92,69 @@ Use `$if`.
 
 ## See also
 
-- [vs Helm](match-vs-helm.md)
 - [`$when`](when.md)
 - [Omit](omit.md)
 - [`!pick`](pick.md)
+
+## Comparison with Helm
+
+`!match` is `if` / `else` on a **value**. Document-level if is `$when`.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+replicas: {{ if gt .Values.replicas 0 }}{{ .Values.replicas }}{{ else }}1{{ end }}
+```
+
+</td><td>
+
+```yaml
+replicas: !match
+  $if: !expr "$Values.replicas > 0"
+  $then: !ref $Values.replicas
+  $else: 1
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- if gt .Values.replicas 1 }}
+topologySpreadConstraints:
+  - maxSkew: 1
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+topologySpreadConstraints?: !match
+  $if: !expr "$Values.replicas > 1"
+  $then:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+type: {{ if .Values.ingress.enabled }}ClusterIP{{ else if .Values.loadBalancer }}LoadBalancer{{ else }}ClusterIP{{ end }}
+```
+
+</td><td>
+
+```yaml
+type: !match
+  $if: !ref $Values.ingress.enabled
+  $then: ClusterIP
+  $else: !match
+    $if: !ref $Values.loadBalancer
+    $then: LoadBalancer
+    $else: ClusterIP
+```
+
+</td></tr>
+</table>

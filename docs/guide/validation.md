@@ -2,8 +2,6 @@
 
 A **check document**. It never emits a manifest. Run after all binds, before emit.
 
-**Helm:** `required`, `fail`, `{{ fail }}` — [vs Helm](validation-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -91,6 +89,66 @@ Pick one.
 
 ## See also
 
-- [vs Helm](validation-vs-helm.md)
 - [`!not-empty`](not-empty.md)
 - [`!and`](and.md)
+
+## Comparison with Helm
+
+`!validation` is `required` / `fail` as a document, not a pipeline function.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{ required "set name" .Values.name }}
+```
+
+</td><td>
+
+```yaml
+---
+!validation
+$rules:
+  - !not-empty $Values?.name
+$fail: "set Values.name"
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- if .Values.legacy }}{{ fail "remove legacy" }}{{- end }}
+```
+
+</td><td>
+
+```yaml
+---
+!validation
+$rules:
+  - !expr "!($Values?.legacy ?? false)"
+$fail: "remove Values.legacy"
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- if not .Values.image }}
+{{- /* warn */}}
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+---
+!validation
+$rules:
+  - !expr "$Values?.image"
+$warning: "using default image"
+```
+
+</td></tr>
+</table>

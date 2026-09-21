@@ -2,8 +2,6 @@
 
 Boolean: not [`!empty`](empty.md) of the same path. Use this for “required” and `$when` “has sidecars”.
 
-**Helm:** `not (empty .)` / `if .Values.foo` — [vs Helm](not-empty-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -64,6 +62,82 @@ For a **field** omit, `nodeSelector?: !ref $Values?.nodeSelector` is simpler.
 
 ## See also
 
-- [vs Helm](not-empty-vs-helm.md)
 - [`!empty`](empty.md)
 - [`!validation`](validation.md)
+
+## Comparison with Helm
+
+`!not-empty` is the usual `if .Values.foo` / `required` test.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{- if .Values.sidecars }}
+kind: ConfigMap
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+$when: !not-empty $Values?.sidecars
+$then:
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: sidecars
+$else: ""
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ required "set name" .Values.name }}
+```
+
+</td><td>
+
+```yaml
+---
+!validation
+$rules:
+  - !not-empty $Values?.name
+$fail: "set name"
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- if .ports }}
+```
+
+</td><td>
+
+```yaml
+$filter: !not-empty $W?.ports
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- with .Values.nodeSelector }}
+nodeSelector:
+{{ toYaml . | nindent 2 }}
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+nodeSelector?: !ref $Values?.nodeSelector
+```
+
+</td></tr>
+</table>

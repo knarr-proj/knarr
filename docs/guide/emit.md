@@ -2,8 +2,6 @@
 
 An **emit document** is exactly one YAML document on stdout (unless `$when` is false and `$else` is `""`). The document may be a Kubernetes manifest or any other YAML mapping.
 
-**Helm:** a file under `templates/` — [vs Helm](emit-vs-helm.md).
-
 ## Syntax
 
 **Unconditional** — the mapping *is* the manifest. No `$when`:
@@ -159,7 +157,105 @@ Use `$else: ""` to skip.
 
 ## See also
 
-- [vs Helm](emit-vs-helm.md)
 - [`$when`](when.md)
 - [`!emit-foreach`](emit-foreach.md)
 - [`!match`](match.md) for field-level if
+
+## Comparison with Helm
+
+Each `!emit` is one output document (one file under `templates/`).
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+# templates/deploy.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: !ref $Values.name
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.name }}
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+$when: !ref $Values.service.enabled
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- if .Values.useJob }}
+kind: Job
+{{- else }}
+kind: Deployment
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+$when: !expr "$Values.useJob"
+$then:
+  apiVersion: batch/v1
+  kind: Job
+  metadata:
+    name: !ref $Values.name
+$else:
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: !ref $Values.name
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+affinity:
+{{ toYaml .Values.affinity | nindent 2 }}
+```
+
+</td><td>
+
+```yaml
+affinity?: !ref $Values?.affinity
+```
+
+</td></tr>
+</table>

@@ -2,8 +2,6 @@
 
 Coerce to **bool**.
 
-**Helm:** `eq` tricks / sprig bool — [vs Helm](bool-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -90,6 +88,63 @@ $On: !bool $Values.ha
 
 ## See also
 
-- [vs Helm](bool-vs-helm.md)
 - [`!not`](not.md)
 - [`$when`](when.md)
+
+## Comparison with Helm
+
+`!bool` accepts a bool or lowercase `"true"` / `"false"` only — not `yes` / `1`.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{- if eq .Values.ha "true" }}
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$HA: !bool $Values.ha
+---
+!emit
+$when: !ref $HA
+$then:
+  apiVersion: policy/v1
+  kind: PodDisruptionBudget
+  metadata:
+    name: !ref $Values.name
+$else: ""
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+enabled: {{ .Values.service.enabled }}
+```
+
+</td><td>
+
+```yaml
+!ref $Values.service.enabled
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- if .Values.ingress.tls }}
+```
+
+</td><td>
+
+```yaml
+$TlsOn: !bool $Values.ingress.tls
+```
+
+</td></tr>
+</table>

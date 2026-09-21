@@ -2,8 +2,6 @@
 
 Coerce to IEEE **float64**. YAML `0.5` / `1.0` is already float; YAML `1` is int.
 
-**Helm:** `float64` — [vs Helm](float-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -64,7 +62,7 @@ cpu: "500m"
 
 **Wrong — `0.1 + 0.2` expecting `0.3`**
 
-IEEE, same as Helm/Go.
+IEEE, same as Go `float64`.
 
 **Wrong — `!int $Values.cpu` when cpu is `0.5`**
 
@@ -96,7 +94,68 @@ cpu: "500m"
 
 ## See also
 
-- [vs Helm](float-vs-helm.md)
 - [`!expr`](expr.md)
 - [`!format`](format.md)
 - [`!int`](int.md)
+
+## Comparison with Helm
+
+YAML `0.5` is float; `"500m"` stays a string. Int+float in `!expr` promotes.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+cpu: {{ .Values.cpu }}
+```
+
+</td><td>
+
+```yaml
+limits:
+  cpu: !ref $Values.cpu
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ float64 .Values.cpuStr }}
+```
+
+</td><td>
+
+```yaml
+$Cpu: !float $Values.cpuStr
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ add .Values.replicas 0.5 }}
+```
+
+</td><td>
+
+```yaml
+$Limit: !expr "$Values.replicas + 0.5"
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+cpu: 500m
+```
+
+</td><td>
+
+```yaml
+cpu: "500m"
+# !float "500m" errors
+```
+
+</td></tr>
+</table>

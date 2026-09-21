@@ -2,8 +2,6 @@
 
 Load **one** YAML 1.2 document as a **value** (data, not knarr). Typical: `values.yaml`, a ConfigMap file, a JSON object that is also YAML.
 
-**Helm:** `.Files.Get` + `fromYaml` — [vs Helm](read-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -17,7 +15,7 @@ $config: !read config/app.yaml
 - JSON/YAML `null` is an error (no null in knarr).
 - Core YAML tags (`!!str`) allowed **in the file**. Knarr tags (`!ref`) in that file are errors.
 - Anchors in the file are expanded to a tree.
-- Not multi-doc (`!read-docs` is v2). Not raw `Files.Get` bytes.
+- Not multi-doc (`!read-docs` is v2). Not raw file bytes.
 
 ## Examples
 
@@ -75,6 +73,71 @@ inside `!bind`, then `!ref` on the Deployment.
 
 ## See also
 
-- [vs Helm](read-vs-helm.md)
 - [`!import`](import.md)
 - [`!from-json-str`](from-json-str.md)
+
+## Comparison with Helm
+
+`!read` loads one YAML **tree**. It does not execute templates in that file.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{ .Files.Get "values.yaml" | fromYaml }}
+```
+
+</td><td>
+
+```yaml
+$Values: !read values.yaml
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ .Files.Get "files/app.yaml" }}
+```
+
+</td><td>
+
+```yaml
+$AppCfg: !read files/app.yaml
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ .Files.Get "probes/http.yaml" | fromYaml }}
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Probe: !read probes/http.yaml
+---
+!emit
+spec:
+  livenessProbe: !ref $Probe
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ .Files.Get "overrides.json" | fromJson }}
+```
+
+</td><td>
+
+```yaml
+$Extra: !read overrides.json
+```
+
+</td></tr>
+</table>

@@ -2,8 +2,6 @@
 
 A **bind document** names values. It never appears in stdout. All `$Name` keys from every `!bind` (plus `!typedef` keys) share one graph: forward references are allowed; duplicate names and cycles are errors.
 
-**Helm:** values.yaml plus `{{ $x := }}` — [vs Helm](bind-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -144,7 +142,87 @@ host?: !ref $Tls?.host
 
 ## See also
 
-- [vs Helm](bind-vs-helm.md)
 - [`!ref`](ref.md)
 - [`!typedef`](typedef.md)
 - [General Conventions](../best-practices/general-conventions.md)
+
+## Comparison with Helm
+
+Values are named in `!bind`. There is no sidecar `values.yaml` plus `{{ $x := }}`.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+# values.yaml
+name: api
+# _helpers.tpl
+{{- $full := printf "%s-%s" .Values.env .Values.name -}}
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Values:
+  name: api
+  env: prod
+$FullName: !format
+  - "%s-%s"
+  - !ref $Values.env
+  - !ref $Values.name
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+replicas: {{ .Values.replicas }}
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Values:
+  replicas: 3
+---
+!emit
+spec:
+  replicas: !ref $Values.replicas
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- $tls := .Values.tls -}}
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Tls?: !ref $Values?.tls
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ .Release.Name }}
+```
+
+</td><td>
+
+```yaml
+# $Release is reserved and unused in v1
+# use $Rel / $Instance
+```
+
+</td></tr>
+</table>

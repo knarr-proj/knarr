@@ -21,13 +21,13 @@ metadata:
 
 Details: [`!format`](guide/format.md).
 
-## Optional Helm `with` is a pair of `?`
+## Optional nested mapping
 
 ```yaml
 affinity?: !ref $Values?.affinity
 ```
 
-Not a `!with` tag. Details: [Omit](guide/omit.md), [vs Helm](guide/omit-vs-helm.md).
+Not a `!with` tag. Details: [Omit](guide/omit.md).
 
 ## Default that keeps the key
 
@@ -57,8 +57,8 @@ Field-level `if` / `else if`: [`!match`](guide/match.md). Details: [`$when`](gui
 
 ## Ports on a Pod vs a Pod per worker
 
-| Helm `range` | knarr |
-|--------------|--------|
+| Need | Construct |
+|------|-----------|
 | env/ports **inside** one spec | [`!foreach`](guide/foreach.md) |
 | one Deployment **per** item | [`!emit-foreach`](guide/emit-foreach.md) |
 
@@ -88,7 +88,7 @@ data:
 
 Details: [`!b64enc`](guide/b64enc.md). Decode: [`!b64dec`](guide/b64dec.md).
 
-## ConfigMap checksum like Helm
+## ConfigMap checksum
 
 ```yaml
 metadata:
@@ -98,7 +98,7 @@ data:
   config.json: !to-json-str $Values.config
 ```
 
-Canon is Helm `toJson` (Go `json.Marshal`, sorted keys, HTML-escape). Details: [`!sha256-json`](guide/sha256-json.md), [`!to-json-str`](guide/to-json-str.md).
+Canon is Go `json.Marshal` (sorted keys, HTML-escape). Details: [`!sha256-json`](guide/sha256-json.md), [`!to-json-str`](guide/to-json-str.md).
 
 ## Concatenate container args
 
@@ -152,7 +152,7 @@ $yield?: !ref $Worker?.sidecar
 
 Omit yield → no element (foreach) / no document (emit-foreach). Details: [`!foreach`](guide/foreach.md).
 
-## Fail the render like Helm `required`
+## Fail the render if a value is missing
 
 ```yaml
 ---

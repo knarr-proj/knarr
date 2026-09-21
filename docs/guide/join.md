@@ -1,8 +1,6 @@
 # `!join`
 
-Join a sequence of **strings** with a separator. Bind-only. Result is a string.
-
-**Helm:** `join` — [vs Helm](join-vs-helm.md). Split: [`!split`](split.md).
+Join a sequence of **strings** with a separator. Bind-only. Result is a string. Split: [`!split`](split.md).
 
 ## Syntax
 
@@ -74,6 +72,68 @@ Either is valid; `!join` is simpler for one delimiter.
 
 ## See also
 
-- [vs Helm](join-vs-helm.md)
 - [`!split`](split.md)
 - [`!format`](format.md)
+
+## Comparison with Helm
+
+`!join` is bind-only: `$sep` + `$over` → string.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{ join "," .Values.hosts }}
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$HostList: !join
+  $sep: ","
+  $over: !ref $Values.hosts
+---
+!emit
+data:
+  hosts: !ref $HostList
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ .Values.name }}.svc.cluster.local
+```
+
+</td><td>
+
+```yaml
+$Name: !join
+  $sep: "."
+  $over:
+    - !ref $Values.name
+    - svc
+    - cluster
+    - local
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ join "," .Values.pullSecrets }}
+```
+
+</td><td>
+
+```yaml
+$Pull: !join
+  $sep: ","
+  $over: !ref $Values.pullSecrets
+```
+
+</td></tr>
+</table>

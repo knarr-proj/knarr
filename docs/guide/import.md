@@ -4,8 +4,6 @@ Splice **knarr documents** from another file into this stream, as if they were w
 
 This is not a value. To load **data** (values.yaml), use [`!read`](read.md).
 
-**Helm:** `{{ include }}` / `{{ define }}` are **not** v1. File split is document splice — [vs Helm](import-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -87,11 +85,80 @@ labels: !import labels.yaml
 $Values: !read values.yaml
 ```
 
-**Wrong — expecting Helm `define` scope with `$as`**
+**Wrong — import as a snippet in a field with loop scope**
 
-Named template fragments with loop scope are not in v1.
+Document splice only. Named fragments with `$as` scope are not in v1.
 
 ## See also
 
-- [vs Helm](import-vs-helm.md)
 - [`!read`](read.md)
+
+## Comparison with Helm
+
+`!import` splices **documents**. Named `define` / `include` of snippets is not v1.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{ include "mychart.labels" . }}
+```
+
+</td><td>
+
+```yaml
+# not v1 as include — emit the mapping, or !read data and !ref
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ define "mychart.worker" }}kind: Pod{{ end }}
+```
+
+</td><td>
+
+```yaml
+---
+!import workers.knarr
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+# helm -f values.yaml
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Values: !read values.yaml
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+labels:
+{{ include "mychart.labels" . | nindent 2 }}
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Labels: !read labels.yaml
+---
+!emit
+metadata:
+  labels: !ref $Labels
+```
+
+</td></tr>
+</table>

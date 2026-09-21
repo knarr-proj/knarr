@@ -2,8 +2,6 @@
 
 Schema mode for **`!$Type`** only. It does **not** change missing `!ref` without `?.` (that is always an error).
 
-**Helm:** `values.schema.json` / chart validation — [vs Helm](policy-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -87,5 +85,62 @@ Either drop `!policy` or type a bind.
 
 ## See also
 
-- [vs Helm](policy-vs-helm.md)
 - [`!typedef`](typedef.md)
+
+## Comparison with Helm
+
+`!policy` is schema mode for `!$Type` only. Missing `!ref` without `?.` always errors.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```json
+{ "required": ["name"] }
+```
+
+</td><td>
+
+```yaml
+---
+!policy strict
+---
+!typedef
+$ValuesType:
+  name: string
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ required "name" .Values.name }}
+```
+
+</td><td>
+
+```yaml
+# missing !ref $Values.name without ?. is always an error
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+# extra keys often ignored
+```
+
+</td><td>
+
+```yaml
+---
+!policy soft
+---
+!bind
+$Values: !$ValuesType
+  name: api
+  extra: true
+```
+
+</td></tr>
+</table>

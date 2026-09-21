@@ -2,8 +2,6 @@
 
 Split a **string** on a separator. Bind-only. Result is a sequence of strings.
 
-**Helm:** `splitList` / `split` — [vs Helm](split-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -67,6 +65,58 @@ No `split()` function.
 
 ## See also
 
-- [vs Helm](split-vs-helm.md)
 - [`!join`](join.md)
 - [`!foreach`](foreach.md)
+
+## Comparison with Helm
+
+`!split` returns a **list**. Sprig `split` returns a dict of `_0`, `_1`.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{ splitList "," .Values.hostCsv }}
+```
+
+</td><td>
+
+```yaml
+$Hosts: !split
+  $sep: ","
+  $of: !ref $Values.hostCsv
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ split ":" .Values.image }}
+```
+
+</td><td>
+
+```yaml
+$Bits: !split
+  $sep: ":"
+  $of: !ref $Values.image
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ splitList "\n" .Values.allowlist }}
+```
+
+</td><td>
+
+```yaml
+$Lines: !split
+  $sep: "\n"
+  $of: !ref $Values.allowlist
+```
+
+</td></tr>
+</table>

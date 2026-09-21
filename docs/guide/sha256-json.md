@@ -2,9 +2,7 @@
 
 SHA-256 of `!to-json-str` (UTF-8), hex lowercase.
 
-≡ Helm `sha256sum (toJson .)` ≡ `!sha256` of `!to-json-str`.
-
-**Helm:** `toJson | sha256sum` — [vs Helm](sha256-json-vs-helm.md).
+Same as `!sha256` of `!to-json-str` (Go JSON canon).
 
 ## Syntax
 
@@ -54,14 +52,62 @@ checksum/secret: !sha256-json $Values.secretData
 
 **Wrong — hashing YAML text**
 
-Would not match Helm `toJson` checksums. YAML hash is v2.
+Would not match JSON checksums. YAML hash is v2.
 
 **Wrong — unsorted pretty JSON**
 
-The tag uses the frozen Helm JSON canon.
+The tag uses the frozen Go JSON canon (sorted keys, HTML-escape).
 
 ## See also
 
-- [vs Helm](sha256-json-vs-helm.md)
 - [`!to-json-str`](to-json-str.md)
 - [`!sha256`](sha256.md)
+
+## Comparison with Helm
+
+`!sha256-json` is `toJson | sha256sum` (sorted keys, HTML-escape).
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+checksum/config: {{ toJson .Values.config | sha256sum }}
+```
+
+</td><td>
+
+```yaml
+checksum/config: !sha256-json $Values.config
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ toJson .Values.config | sha256sum }}
+```
+
+</td><td>
+
+```yaml
+$Json: !to-json-str $Values.config
+$Sum: !sha256
+  $of: !ref $Json
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+checksum/secret: {{ toJson .Values.secretData | sha256sum }}
+```
+
+</td><td>
+
+```yaml
+checksum/secret: !sha256-json $Values.secretData
+```
+
+</td></tr>
+</table>

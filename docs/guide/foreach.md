@@ -4,8 +4,6 @@ Build a **sequence** for one field (env, ports, volumeMounts). It does not emit 
 
 Many resources: [`!emit-foreach`](emit-foreach.md).
 
-**Helm:** `range` inside a list — [vs Helm](foreach-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -103,6 +101,96 @@ One sort per loop.
 
 ## See also
 
-- [vs Helm](foreach-vs-helm.md)
 - [`!emit-foreach`](emit-foreach.md)
 - [Omit](omit.md)
+
+## Comparison with Helm
+
+`!foreach` fills a **sequence field**. One document per item is `!emit-foreach`.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+env:
+{{- range .Values.env }}
+  - name: {{ .name }}
+    value: {{ .value | quote }}
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+env: !foreach
+  $over: !ref $Values.env
+  $as: $E
+  $yield:
+    name: !ref $E.name
+    value: !ref $E.value
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+ports:
+{{- range .Values.ports }}
+  - containerPort: {{ . }}
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+ports: !foreach
+  $over: !ref $Values.ports
+  $as: $P
+  $yield:
+    containerPort: !ref $P
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- range $k, $v := .Values.labels }}
+  - name: {{ $k }}
+    value: {{ $v | quote }}
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+env: !foreach
+  $over: !ref $Values.labels
+  $as: $V
+  $key: $K
+  $yield:
+    name: !ref $K
+    value: !ref $V
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- range .Values.env }}{{- if .enabled }}...{{- end }}{{- end }}
+```
+
+</td><td>
+
+```yaml
+env: !foreach
+  $over: !ref $Values.env
+  $as: $E
+  $filter: !ref $E.enabled
+  $yield:
+    name: !ref $E.name
+    value: !ref $E.value
+```
+
+</td></tr>
+</table>

@@ -2,8 +2,6 @@
 
 Build a sequence of **ints**. Bind-only. Use it as `$over` via `!ref`.
 
-**Helm:** `until`, `untilStep`, `seq` — [vs Helm](range-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -13,14 +11,14 @@ $Idx: !range
   $step: 1          # omit → 1
 ```
 
-Helm-style exclusive end:
+Exclusive end:
 
 ```yaml
 $Idx: !range
   $until: 3         # 0, 1, 2
 ```
 
-- XOR `$to` (inclusive) or `$until` (exclusive, like Helm `until`).
+- XOR `$to` (inclusive) or `$until` (exclusive).
 - Bounds and `$step` are **int**.
 - `$step: 0` is an error. Impossible direction → `[]`.
 - Not used as `$over` directly: bind first.
@@ -36,7 +34,7 @@ $Idx: !range
 # [0, 1, 2]
 ```
 
-### `until` like Helm `until 3`
+### Exclusive `$until: 3` → `[0, 1, 2]`
 
 ```yaml
 $Idx: !range
@@ -95,6 +93,73 @@ Pick one.
 
 ## See also
 
-- [vs Helm](range-vs-helm.md)
 - [`!emit-foreach`](emit-foreach.md)
 - [`!str`](str.md)
+
+## Comparison with Helm
+
+`$until` is exclusive (like `until`). `$to` is **inclusive**. Bind, then `!ref`.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{- range until 3 }}  {{/* 0,1,2 */}}
+```
+
+</td><td>
+
+```yaml
+$Idx: !range
+  $until: 3
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- range untilStep 0 3 1 }}
+```
+
+</td><td>
+
+```yaml
+$Idx: !range
+  $from: 0
+  $to: 2
+  $step: 1
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- range until .Values.completions }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ . }}
+{{- end }}
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$Idx: !range
+  $until: !ref $Values.completions
+---
+!emit-foreach
+$over: !ref $Idx
+$as: $I
+$yield:
+  apiVersion: batch/v1
+  kind: Job
+  metadata:
+    name: !str $I
+```
+
+</td></tr>
+</table>

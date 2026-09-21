@@ -1,8 +1,6 @@
 # `!to-json-str`
 
-Serialize a knarr node to a JSON **string**. Canon ≡ Helm `toJson` = Go `encoding/json.Marshal`: compact, **sorted** keys, HTML-escape `& < >`.
-
-**Helm:** `toJson` — [vs Helm](to-json-str-vs-helm.md).
+Serialize a knarr node to a JSON **string**. Canon is Go `encoding/json.Marshal`: compact, **sorted** keys, HTML-escape `& < >`.
 
 ## Syntax
 
@@ -40,7 +38,7 @@ data:
 
 ### `&` in a note
 
-`a&b` becomes `"a\u0026b"` in JSON, like Helm.
+`a&b` becomes `"a\u0026b"` in JSON.
 
 ### Float
 
@@ -52,7 +50,7 @@ JSON of knarr float matches Go `float64` marshal (`1.0` as float may print `1`).
 
 **Wrong — expecting pretty JSON or first-seen key order**
 
-That would break Helm checksums.
+That would break checksums that depend on this canon.
 
 **Wrong — YAML dump**
 
@@ -60,6 +58,55 @@ That would break Helm checksums.
 
 ## See also
 
-- [vs Helm](to-json-str-vs-helm.md)
 - [`!from-json-str`](from-json-str.md)
 - [`!sha256-json`](sha256-json.md)
+
+## Comparison with Helm
+
+Canon is Go `json.Marshal`: compact, **sorted** keys, HTML-escape `& < >` — same as `toJson`.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+config.json: {{ toJson .Values.config }}
+```
+
+</td><td>
+
+```yaml
+data:
+  runtime.json: !to-json-str $Values.runtime
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+checksum: {{ toJson .Values.config | sha256sum }}
+```
+
+</td><td>
+
+```yaml
+checksum/config: !sha256-json $Values.config
+data:
+  config.json: !to-json-str $Values.config
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ toJson (dict "note" "a&b") }}
+```
+
+</td><td>
+
+```yaml
+# note a&b → JSON "a\u0026b"
+```
+
+</td></tr>
+</table>

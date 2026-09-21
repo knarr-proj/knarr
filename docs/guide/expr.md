@@ -2,8 +2,6 @@
 
 A formula: operators, paths, list/map literals. **No function calls.**
 
-**Helm:** `eq`, `gt`, `and`, `add` in templates — [vs Helm](expr-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -94,8 +92,82 @@ $Labels: !expr "{'app': $Values.name}"
 
 ## See also
 
-- [vs Helm](expr-vs-helm.md)
 - [`!ref`](ref.md)
 - [`!format`](format.md)
 - [`!len`](len.md)
 - [`!float`](float.md)
+
+## Comparison with Helm
+
+`!expr` is operators only — no `len()`, `printf()`, `int()`.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{- if and .Values.service.enabled (gt .Values.replicas 1) }}
+```
+
+</td><td>
+
+```yaml
+$ShowSvc: !expr "$Values.service.enabled && $Values.replicas > 1"
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+replicas: {{ add .Values.replicas 1 }}
+```
+
+</td><td>
+
+```yaml
+replicas: !expr "$Values.replicas + 1"
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+ports: {{ .Values.ports | default (list 80 443) }}
+```
+
+</td><td>
+
+```yaml
+$Ports: !expr "$Values?.ports ?? [80, 443]"
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ index .Values.images .name }}
+```
+
+</td><td>
+
+```yaml
+image: !expr "$Values.images[$Worker.name]"
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+name: {{ .Values.name }}-svc
+```
+
+</td><td>
+
+```yaml
+$Name: !format
+  - "%s-svc"
+  - !ref $Values.name
+```
+
+</td></tr>
+</table>

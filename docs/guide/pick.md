@@ -1,8 +1,6 @@
 # `!pick`
 
-N-way **omit** default: first child that is present wins. Not Helm `coalesce` (empty string does **not** fall through).
-
-**Helm:** `coalesce`, chained `default` — [vs Helm](pick-vs-helm.md).
+N-way **omit** default: first child that is present wins. An empty string does **not** fall through.
 
 ## Syntax
 
@@ -57,7 +55,7 @@ If `port` is `0`, you get `0` — not 8080. Zero is a value.
 
 **Wrong — treating `""` as missing**
 
-Helm `coalesce` skips empty. knarr `!pick` does not.
+Zero, `false`, and `""` are values and win.
 
 **Wrong — n-ary `??`**
 
@@ -73,6 +71,60 @@ The last must exist.
 
 ## See also
 
-- [vs Helm](pick-vs-helm.md)
 - [Omit](omit.md)
 - [`!expr`](expr.md) `??`
+
+## Comparison with Helm
+
+`!pick` skips **omit** only. `""` / `0` / `false` win and do not fall through (`coalesce` would skip them).
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{ coalesce .Values.fullnameOverride .Values.name "app" }}
+```
+
+</td><td>
+
+```yaml
+name: !pick
+  - !ref $Values?.fullnameOverride
+  - !ref $Values?.name
+  - app
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+image: {{ .Values.image.full | default .Values.image.repository | default "ghcr.io/acme/app:latest" }}
+```
+
+</td><td>
+
+```yaml
+image: !pick
+  - !ref $Values?.image.full
+  - !ref $Values?.image.repository
+  - ghcr.io/acme/app:latest
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+containerPort: {{ .Values.port | default 8080 }}
+```
+
+</td><td>
+
+```yaml
+containerPort: !pick
+  - !ref $Values?.port
+  - 8080
+```
+
+</td></tr>
+</table>

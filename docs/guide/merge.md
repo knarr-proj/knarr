@@ -2,8 +2,6 @@
 
 Deep-merge mappings. Later wins. Sequences are **replaced**, not concatenated. Bind-only.
 
-**Helm:** `merge`, `mustMerge` — [vs Helm](merge-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -79,6 +77,65 @@ Not allowed.
 
 ## See also
 
-- [vs Helm](merge-vs-helm.md)
 - [`!concat`](concat.md)
 - [Omit](omit.md)
+
+## Comparison with Helm
+
+`!merge` is bind-only. Nested maps merge; sequences are replaced.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{ merge .Values.resources (dict "requests" (dict "cpu" "100m")) }}
+```
+
+</td><td>
+
+```yaml
+$Res: !merge
+  - requests:
+      cpu: "100m"
+      memory: "128Mi"
+  - !ref $Values.resources
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ merge .Values.livenessProbe (dict "timeoutSeconds" 1) }}
+```
+
+</td><td>
+
+```yaml
+$UserProbe: !expr "$Values?.livenessProbe ?? {}"
+$Probe: !merge
+  - httpGet:
+      path: /healthz
+      port: 8080
+    timeoutSeconds: 1
+  - !ref $UserProbe
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+# last args list wins
+```
+
+</td><td>
+
+```yaml
+$M: !merge
+  - args: ["--a"]
+  - args: ["--b"]
+# args is ["--b"]; use !concat to glue lists
+```
+
+</td></tr>
+</table>

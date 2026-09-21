@@ -2,8 +2,6 @@
 
 Boolean OR of a sequence of predicates. All children are evaluated (no short-circuit).
 
-**Helm:** `or` — [vs Helm](or-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -52,6 +50,54 @@ Rewrite with `!and` + `!not-empty`, or `!expr`.
 
 ## See also
 
-- [vs Helm](or-vs-helm.md)
 - [`!and`](and.md)
 - [`$when`](when.md)
+
+## Comparison with Helm
+
+Tag `!or` is boolean only (not coalesce). All children run.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+{{- if or .Values.ingress.enabled .Values.mesh.enabled }}
+```
+
+</td><td>
+
+```yaml
+$when: !or
+  - !ref $Values.ingress.enabled
+  - !ref $Values.mesh.enabled
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ or .Values.host "localhost" }}
+```
+
+</td><td>
+
+```yaml
+host: !expr "$Values?.host ?? 'localhost'"
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- if or .Values.ingress.enabled .Values.mesh.enabled }}
+```
+
+</td><td>
+
+```yaml
+$when: !expr "$Values?.ingress.enabled ?? false || $Values?.mesh.enabled ?? false"
+```
+
+</td></tr>
+</table>

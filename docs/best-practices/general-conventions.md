@@ -1,6 +1,6 @@
 # General Conventions
 
-These rules apply to every knarr file. They are the same laws as [SPEC.md](../../lang/SPEC.md); this page is the checklist for authors.
+These rules apply to every knarr file. This page is the checklist for authors.
 
 ## Files and documents
 
@@ -76,17 +76,17 @@ Kubernetes quantities like `"500m"` stay **strings**.
 
 ## Output
 
-- Key order in a mapping is **source order**, not sorted (JSON checksums are the exception: sorted keys, Helm `toJson` canon).
+- Key order in a mapping is **source order**, not sorted (JSON checksums are the exception: sorted keys, Go `json.Marshal` canon).
 - Stdout is YAML 1.2, UTF-8, LF, 2-space block style.
 - Zero manifests (all `$else: ""`, empty loops, false `$when` on `!emit-foreach`) → empty stdout, exit 0.
 
-## Helm habits to drop
+## Habits to drop
 
-| Helm | knarr |
-|------|--------|
+| Don't | Do |
+|--------|-----|
 | `{{ }}` in YAML text | Tags on YAML nodes |
-| `-f` / `--set` | Files only |
-| `with` / `.` scope | `field?: !ref $X?.obj` |
-| `define` / `include` of snippets | Not in v1; split files with [`!import`](../guide/import.md) (documents, not values) |
-| `toYaml .` | Emit the mapping, or JSON via [`!to-json-str`](../guide/to-json-str.md) |
+| CLI value overlays | Files only |
+| Nested “with” scope | `field?: !ref $X?.obj` |
+| Snippet macros | Not in v1; split files with [`!import`](../guide/import.md) (documents, not values) |
+| Dump a mapping as YAML text | Emit the mapping, or JSON via [`!to-json-str`](../guide/to-json-str.md) |
 | Silent `null` | Error or explicit omit |

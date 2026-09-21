@@ -2,8 +2,6 @@
 
 Format a string with **Go `fmt`** verbs (not Rust `{}`). Bind-only.
 
-**Helm:** `printf` — [vs Helm](format-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -99,7 +97,82 @@ That is the string `"$X"`. Use `!ref $X`.
 
 ## See also
 
-- [vs Helm](format-vs-helm.md)
 - [`!join`](join.md)
 - [`!int`](int.md)
 - [`!float`](float.md)
+
+## Comparison with Helm
+
+`!format` is bind-only Go `fmt`. Type mismatch is an error, not `%!s`.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```gotemplate
+name: {{ printf "%s-%s" .Values.env .Values.name }}
+```
+
+</td><td>
+
+```yaml
+---
+!bind
+$FullName: !format
+  - "%s-%s"
+  - !ref $Values.env
+  - !ref $Values.name
+---
+!emit
+metadata:
+  name: !ref $FullName
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ printf "%s:%d" .Values.host .Values.port }}
+```
+
+</td><td>
+
+```yaml
+$Addr: !format
+  - "%s:%d"
+  - !ref $Values.host
+  - !ref $Port
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ printf "app=%q" .Values.name }}
+```
+
+</td><td>
+
+```yaml
+$Ann: !format
+  - "app=%q"
+  - !ref $Values.name
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{ printf "w-%04d" $i }}
+```
+
+</td><td>
+
+```yaml
+$WorkerId: !format
+  - "w-%04d"
+  - !ref $I
+```
+
+</td></tr>
+</table>

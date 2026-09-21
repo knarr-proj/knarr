@@ -68,7 +68,7 @@ One input file, local files only. No stdin, no `-f` / `--set`. Values live in th
 | Document | What it is |
 |----------|------------|
 | [Getting Started](docs/getting-started.md) | Smallest program: values → YAML documents |
-| [Language guide](docs/README.md) | Every construct: syntax, examples, Helm mapping |
+| [Language guide](docs/README.md) | Every construct: syntax, examples |
 | [Tips and Tricks](docs/tips-and-tricks.md) | Everyday patterns |
 | [General Conventions](docs/best-practices/general-conventions.md) | Naming, `$` keys, omit, bind vs emit |
 

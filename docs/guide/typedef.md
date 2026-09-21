@@ -2,8 +2,6 @@
 
 Declare a **schema** once, apply it to a bind (or to each `!foreach` element via `$yield: !$T`). Defaults live in the schema.
 
-**Helm:** `values.yaml` defaults + schema — [vs Helm](typedef-vs-helm.md).
-
 ## Syntax
 
 ```yaml
@@ -99,6 +97,73 @@ $Values: !$ValuesType !read values.yaml
 
 ## See also
 
-- [vs Helm](typedef-vs-helm.md)
 - [`!policy`](policy.md)
 - [`!bind`](bind.md)
+
+## Comparison with Helm
+
+Defaults live in `!typedef`. Apply with `$Name: !$Type`.
+
+<table>
+<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><td>
+
+```yaml
+# values.yaml
+replicas: 1
+```
+
+</td><td>
+
+```yaml
+---
+!typedef
+$ValuesType:
+  replicas: { type: int, default: 1 }
+---
+!bind
+$Values: !$ValuesType
+  name: api
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+resources:
+  requests:
+    cpu: 100m
+```
+
+</td><td>
+
+```yaml
+---
+!typedef
+$ValuesType:
+  resources:
+    requests:
+      cpu: string
+      memory: string
+```
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+{{- range .Values.sidecars }}
+```
+
+</td><td>
+
+```yaml
+$Containers: !foreach
+  $over: !ref $Values.sidecars
+  $as: $S
+  $yield: !$SidecarType
+    name: !ref $S.name
+    image: !ref $S.image
+```
+
+</td></tr>
+</table>
