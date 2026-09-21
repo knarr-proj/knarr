@@ -157,6 +157,7 @@ name: !format
 $Name: !format
   - "%s-svc"
   - !ref $Values.name
+---
 !emit
 name: !ref $Name
 # format in bind, then !ref in the manifest
@@ -205,7 +206,7 @@ Each `!emit` is one output document (one file under `templates/`).
 ```gotemplate
 # templates/deploy.yaml
 kind: Deployment
-name: {{ .Values.name }}
+name: {{ required "name" .Values.name }}
 ```
 
 </td></tr>
@@ -220,7 +221,7 @@ name: !ref $Values.name
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -238,19 +239,12 @@ name: {{ .Values.name }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-$when: !ref $Values.service.enabled
-$then:
-  kind: Service
-  name: !ref $Values.name
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` with no else just skips; knarr `$when` requires `$then` and `$else` (`$else: ""` to skip).
+Helm prints only `kind: Service`. Extra keys in `$then` are a different document. Missing `enabled` without `?? false` is an error.
 
 </td></tr>
 </table>
@@ -271,7 +265,7 @@ kind: Deployment
 
 ```yaml
 !emit
-$when: !ref $Values.useJob
+$when: !ref $Values.useJob ?? false
 $then:
   kind: Job
 $else:
@@ -281,7 +275,7 @@ $else:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm can swap one field; knarr `$then` / `$else` are whole documents. Field-level if is `!match`.
+Same result when `useJob` is bool or missing.
 
 </td></tr>
 </table>
@@ -297,15 +291,12 @@ affinity:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-affinity?: !ref $Values?.affinity
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `toYaml` keeps the `affinity:` key (null/empty); knarr `?:` omits the key.
+Helm `toYaml` keeps `affinity:` (null/empty). Knarr `?:` omits the key.
 
 </td></tr>
 </table>

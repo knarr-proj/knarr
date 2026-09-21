@@ -12,7 +12,7 @@ Tagged **scalar** only (not `{ }` / `[ ]` as the tag body). Quotes are **YAML 1.
 
 The lexer strips `$` from binding names outside quotes. You still **write** `$Values`.
 
-The formula (left of `??`, or the whole scalar) must contain **at least one of**: an operator (`&&` `||` `!` `==` `!=` `<` `>` `<=` `>=` `+ - * /`), dyn-index `$Map[$Key]`, or `$Name` inside a list/map literal. Otherwise it is an error — no computation.
+The formula (left of `??`, or the whole scalar) must contain **at least one of**: an operator (`&&` `||` `!` `==` `!=` `<` `>` `<=` `>=` `+ - * /`), dyn-index `$Map[$Key]`, or `$Name` inside a list/map literal. Otherwise it is an error — no computation. The CLI says the tag should be [`!ref`](ref.md) (or a YAML literal). An operator or dyn-index in [`!ref`](ref.md) says the tag should be `!expr`.
 
 Allowed inside a formula: number/bool/string literals, `[80, $Port]`, `{'app': $Values.name}`, `$Name` paths including `?.`, those operators. One top-level `??` defaults the **whole** formula if it has no result (omit). Do not bind optional fields first just to hide `?.`. A path with no operator (even with `??`) is an error — use [`!ref`](ref.md). `true` / `1` / `[80, 443]` / `{'k': 1}` as the whole `!expr` are errors — use YAML.
 
@@ -324,21 +324,12 @@ kind: Service
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$ShowSvc: !expr "$Values.service.enabled && $Values.replicas > 1"
-!emit
-$when: !ref $ShowSvc
-$then:
-  kind: Service
-  name: !ref $Values.name
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `and` / `gt` live in `if`; knarr operators live in `!expr` (no `len()` / `printf()`).
+Helm `and` / `gt` of missing is false/empty. Knarr `&&` of omit is an error. No `len()` / `printf()` in `!expr`.
 
 </td></tr>
 </table>
@@ -347,7 +338,7 @@ Helm `and` / `gt` live in `if`; knarr operators live in `!expr` (no `len()` / `p
 <tr><th>Helm</th><td>
 
 ```gotemplate
-replicas: {{ add .Values.replicas 1 }}
+replicas: {{ add (required "replicas" .Values.replicas) 1 }}
 ```
 
 </td></tr>
@@ -361,7 +352,7 @@ replicas: !expr "$Values.replicas + 1"
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -378,19 +369,12 @@ kind: Ingress
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-$when: !expr "$Values?.ingress.enabled || $Values?.mesh.enabled ?? false"
-$then:
-  kind: Ingress
-  name: !ref $Values.name
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `or` of missing is empty/false; knarr omit is not false. `true || omit` is true and does not take `?? false`.
+Helm `or` of missing is empty/false. Knarr omit is not false. `true || omit` is true and does not take `?? false`.
 
 </td></tr>
 </table>
@@ -399,7 +383,7 @@ Helm `or` of missing is empty/false; knarr omit is not false. `true || omit` is 
 <tr><th>Helm</th><td>
 
 ```gotemplate
-image: {{ index .Values.images .name }}
+image: {{ required "image" (index .Values.images .name) }}
 ```
 
 </td></tr>
@@ -413,7 +397,35 @@ image: !expr "$Values.images[$Worker.name]"
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
+
+</td></tr>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
+
+```gotemplate
+name: {{ required "name" .Values.name }}-svc
+```
+
+</td></tr>
+<tr><th>Knarr</th><td>
+
+```yaml
+!bind
+$Name: !format
+  - "%s-svc"
+  - !ref $Values.name
+---
+!emit
+name: !ref $Name
+```
+
+</td></tr>
+<tr><th>Difference</th><td>
+
+Same result. Knarr `+` is not string concat — `!format` in bind.
 
 </td></tr>
 </table>
@@ -428,17 +440,12 @@ name: {{ .Values.name }}-svc
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Name: !format
-  - "%s-svc"
-  - !ref $Values.name
-```
+Impossible as `!expr "$Values.name + '-svc'"`.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm concatenates strings in the template; knarr `+` is not string concat — use `!format` in bind.
+No string `+` in `!expr`. Use `!format` (bind-only).
 
 </td></tr>
 </table>

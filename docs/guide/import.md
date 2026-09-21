@@ -24,7 +24,9 @@ This is not a value. To load **data** (values.yaml), use [`!read`](read.md).
 ```yaml
 !bind
 $Values: !read values.yaml
+---
 !import workers.knarr
+---
 !emit
 kind: Service
 name: !ref $Values.name
@@ -47,6 +49,7 @@ $yield:
 
 ```yaml
 !import types.knarr
+---
 !bind
 $Values: !$ValuesType
   name: api
@@ -73,6 +76,7 @@ labels: !import labels.yaml
 ```yaml
 !bind
 $Labels: !read labels.yaml
+---
 !emit
 labels: !ref $Labels
 # load a YAML tree with !read, then !ref
@@ -138,16 +142,12 @@ labels:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-labels:
-  app: !ref $Values.name
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Named `define` / `include` is not v1. Emit the mapping, or `!read` data and `!ref`.
+Named `define` / `include` is not v1.
 
 </td></tr>
 </table>
@@ -165,16 +165,12 @@ kind: Pod
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!import workers.knarr
-# workers.knarr emits:
-# kind: Pod
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `define` is a named snippet; knarr `!import` splices a whole file of documents.
+Helm `define` is a named snippet. Knarr `!import` splices a whole file of documents.
 
 </td></tr>
 </table>
@@ -190,15 +186,12 @@ name: api
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Values: !read values.yaml
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `-f` is CLI merge into `.Values`; knarr loads a tree in `!bind`.
+Helm `-f` is CLI merge into `.Values`. Knarr has no `-f`.
 
 </td></tr>
 </table>
@@ -214,17 +207,12 @@ labels:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Labels: !read labels.yaml
-!emit
-labels: !ref $Labels
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-`include` runs a template; `!read` loads data only (no tags in that file).
+`include` runs a template. `!read` loads data only.
 
 </td></tr>
 </table>

@@ -2,6 +2,8 @@
 
 knarr never drops a key because a value is empty-looking. Absence is always **written**.
 
+This page is the **hub** for omit markers. Tag guides (`!ref`, `!expr`, `!foreach`, …) keep one or two local examples and link here. Do not copy this page into every construct.
+
 ## Syntax
 
 | Marker | Where | Meaning |
@@ -48,6 +50,7 @@ $sum: !expr "$Values?.a + $Values?.b ?? 0"
 ```yaml
 !bind
 $Tls?: !ref $Values?.tls
+---
 !emit
 tls?: !ref $Tls?
 cert?: !ref $Tls?.cert
@@ -121,6 +124,7 @@ No `$else` + `?:` → no key when `init` is missing or `[]`. Do not write `initC
 $HostList?: !join
   $sep: ","
   $over: !ref $Values?.hosts
+---
 !emit
 hosts?: !ref $HostList?
 ```
@@ -143,6 +147,7 @@ $Items?: !foreach
   $as: $E
   $yield:
     name: !ref $E.name
+---
 !emit
 env?: !ref $Items?
 ```
@@ -156,6 +161,7 @@ Missing `env` → no `$Items`. `env: []` + `$yield:` → `$Items: []`. `$Items?:
 $Hosts?: !split
   $sep: ","
   $of: !ref $Values?.hostCsv
+---
 !emit
 hostAliases?: !ref $Hosts?
 ```
@@ -168,6 +174,7 @@ Missing `hostCsv` → no `$Hosts`. `hostCsv: ""` → `$Hosts: []`. Same pair on 
 !bind
 $PwHash?: !sha256
   $of: !ref $Values?.password
+---
 !emit
 checksum/secret?: !ref $PwHash?
 ```
@@ -181,6 +188,7 @@ Missing `password` → no `$PwHash`. `password: ""` → hash of `""` (a real hex
 $Args?: !concat
   - ["--verbose"]
   - !ref $Values?.extraArgs
+---
 !emit
 args?: !ref $Args?
 ```
@@ -201,6 +209,7 @@ $Args: !concat
 $Res?: !merge
   - !ref $Values?.requests
   - !ref $Values?.limits
+---
 !emit
 resources?: !ref $Res?
 ```
@@ -388,15 +397,12 @@ affinity:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-affinity?: !ref $Values?.affinity
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `with` skips empty/nil; knarr `?:` + `?.` omit missing/omit, not a present `{}`.
+Helm `with` skips nil **and** a present empty `{}`. Knarr `?:` omits missing/omit only.
 
 </td></tr>
 </table>
@@ -411,18 +417,12 @@ host: {{ .Values.tls.host | default "localhost" }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-# default — key stays
-host: !ref "$Values.tls?.host ?? 'localhost'"
-# omit
-host?: !ref $Values.tls?.host
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `| default` replaces `""`; knarr `??` fills omit only, not `""`. `?:` omits the key.
+Helm `| default` replaces `""`. Knarr `??` fills omit only.
 
 </td></tr>
 </table>
@@ -439,16 +439,13 @@ cert: {{ dig "tls" "cert" "" .Values }}
 
 ```yaml
 !emit
-# default — key stays
 cert: !ref "$Values?.tls?.cert ?? ''"
-# omit
-cert?: !ref $Values?.tls?.cert
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `dig` with `""` still emits `cert:` as an empty string (`?? ''` keeps the key); knarr `?:` omits the key.
+Same result: missing → `cert:` empty string.
 
 </td></tr>
 </table>
@@ -463,18 +460,12 @@ name: {{ coalesce .Values.fullnameOverride .Values.name "app" }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-name: !pick
-  - !ref $Values?.fullnameOverride
-  - !ref $Values?.name
-  - app
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-`coalesce` skips `""` / `false` / `0`; `!pick` skips omit only.
+`coalesce` skips `""` / `false` / `0`. `!pick` skips omit only.
 
 </td></tr>
 </table>
@@ -491,17 +482,12 @@ tls: ...
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Tls?: !ref $Values?.tls
-!emit
-tls?: !ref $Tls?
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` is truthiness; knarr optional bind is omit.
+Helm `if` is truthiness (present `{}` is false). Knarr `?:` omits missing/omit only.
 
 </td></tr>
 </table>

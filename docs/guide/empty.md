@@ -199,19 +199,12 @@ kind: ConfigMap
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-$when: !empty $Values?.tls
-$then:
-  kind: ConfigMap
-  name: no-tls
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `empty` is a function in `if`; knarr `!empty` is a bool tag. Missing without `?.` still errors.
+Helm prints only `kind`. Extra `$then` keys change the document.
 
 </td></tr>
 </table>
@@ -229,17 +222,12 @@ deprecated: {{ .Values.deprecated }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!validation
-$rules:
-  - !empty $Values?.deprecated
-$fail: "remove deprecated"
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `fail` is inline; knarr `$fail` is on the validation document.
+Helm prints `deprecated:` then may `fail`. Knarr `!validation` does not print the field.
 
 </td></tr>
 </table>
@@ -259,20 +247,12 @@ env:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-env: !foreach
-  $over: !ref $Values.env
-  $as: $E
-  $filter: !empty $E?.optionalNote
-  $yield:
-    name: !ref $E.name
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Empty range: Helm `env:` null; knarr `env: []`.
 
 </td></tr>
 </table>

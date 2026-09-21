@@ -40,6 +40,7 @@ Rules are **must-true**. When the flag should be absent:
 ```yaml
 !bind
 $Legacy: !ref $Values?.legacy ?? false
+---
 !validation
 $rules:
   - !not $Legacy
@@ -53,6 +54,7 @@ $fail: "remove Values.legacy"
 $Msg: !format
   - "using default image for %s"
   - !ref $Values.name
+---
 !validation
 $rules:
   - !ref $Values?.image
@@ -154,17 +156,12 @@ name: {{ required "set name" .Values.name }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!validation
-$rules:
-  - !not-empty $Values?.name
-$fail: "set Values.name"
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm fails at that pipe; knarr `!validation` is a document that runs `$rules`.
+Helm `required` prints the value or fails. Knarr `!validation` does not print `name`.
 
 </td></tr>
 </table>
@@ -182,19 +179,12 @@ legacy: {{ .Values.legacy }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Legacy: !ref $Values?.legacy ?? false
-!validation
-$rules:
-  - !not $Legacy
-$fail: "remove Values.legacy"
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `fail` is inline; knarr `$fail` is on the validation document. Helm `if .Values.legacy` is truthiness; knarr defaults with `!ref` `??`, then `!not`.
+Helm prints `legacy:` then may `fail` on truthiness. Knarr `!validation` does not print the field.
 
 </td></tr>
 </table>
@@ -212,17 +202,12 @@ image: {{ .Values.image }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!validation
-$rules:
-  - !ref $Values?.image
-$warning: "using default image"
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm has no first-class warning from `if`; knarr `$warning` does not fail the render.
+Helm has no first-class warning. Knarr `$warning` does not print `image:`.
 
 </td></tr>
 </table>

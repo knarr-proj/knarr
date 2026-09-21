@@ -27,6 +27,7 @@ $Args: !concat
 $Args: !concat
   - ["--verbose", "--alsologtostderr"]
   - !ref $Values.extraArgs
+---
 !emit
 args: !ref $Args
 ```
@@ -54,6 +55,7 @@ $Ports: !concat
 $Args?: !concat
   - ["--verbose"]
   - !ref $Values?.extraArgs
+---
 !emit
 args?: !ref $Args?
 ```
@@ -81,6 +83,7 @@ args: !concat
 $Args: !concat
   - ["--verbose"]
   - !ref $Values.extraArgs
+---
 !emit
 args: !ref $Args
 # concat in bind, then !ref
@@ -104,6 +107,7 @@ args:
 $Args: !concat
   - ["--verbose"]
   - !ref $Values.extraArgs
+---
 !emit
 args: !ref $Args
 # splice sequences with !concat
@@ -196,7 +200,7 @@ $Args: !concat
 <tr><th>Helm</th><td>
 
 ```gotemplate
-args: {{ concat (list "--verbose") .Values.extraArgs }}
+args: {{ concat (list "--verbose") (required "extraArgs" .Values.extraArgs) }}
 ```
 
 </td></tr>
@@ -207,6 +211,7 @@ args: {{ concat (list "--verbose") .Values.extraArgs }}
 $Args: !concat
   - ["--verbose"]
   - !ref $Values.extraArgs
+---
 !emit
 args: !ref $Args
 ```
@@ -214,7 +219,7 @@ args: !ref $Args
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `concat` is in the template; knarr `!concat` is bind-only, then `!ref`.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -223,7 +228,7 @@ Helm `concat` is in the template; knarr `!concat` is bind-only, then `!ref`.
 <tr><th>Helm</th><td>
 
 ```gotemplate
-ports: {{ concat .Values.fixedPorts .Values.dynamicPorts }}
+ports: {{ concat (required "fixed" .Values.fixedPorts) (required "dyn" .Values.dynamicPorts) }}
 ```
 
 </td></tr>
@@ -234,6 +239,7 @@ ports: {{ concat .Values.fixedPorts .Values.dynamicPorts }}
 $Ports: !concat
   - !ref $Values.fixedPorts
   - !ref $Values.dynamicPorts
+---
 !emit
 ports: !ref $Ports
 ```
@@ -241,7 +247,7 @@ ports: !ref $Ports
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `concat` is in the template; knarr `!concat` is bind-only.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -265,12 +271,15 @@ args:
 $Args: !concat
   - ["--verbose"]
   - !ref "$Values?.extraArgs ?? []"
+---
+!emit
+args: !ref $Args
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `range` appends in the template; knarr fills omit with `[]` then concatenates in bind.
+Same list when `extraArgs` is missing (`[]`) or a list.
 
 </td></tr>
 </table>

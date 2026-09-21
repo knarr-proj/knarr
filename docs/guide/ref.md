@@ -22,7 +22,7 @@ Tagged scalar, `RefScalar`:
 - `.ident` steps, `[n]` indexes, `['key']` for non-idents.
 - Quotes follow **YAML 1.2**, not “start of line”. Quote when the scalar contains `[` `{` `]` `}` `,`, `: ` (colon+space), a nested quoted string, or `#` after a space. `/` and `?? false` need no quotes.
 - One `??` for the **whole** scalar. N-way is [`!pick`](pick.md). The same `??` exists on [`!expr`](expr.md) for a formula.
-- A path with `??` and no operator is **`!ref`**. The same text in `!expr` is an error (no computation).
+- A path with `??` and no operator is **`!ref`**. The same text in `!expr` is an error (no computation); the CLI says to use `!ref`. An operator or `$Map[$Key]` in `!ref` is an error; the CLI says to use `!expr`.
 - A constant (`true`, `[80, 443]`) is YAML, not `!expr`.
 - Dynamic `$Map[$Key]` is **`!expr` only**, not `!ref`.
 - One tag per node. Not `!!ref`.
@@ -183,7 +183,7 @@ name: !ref $Values.name
 <tr><th>Helm</th><td>
 
 ```gotemplate
-name: {{ .Values.name }}
+name: {{ required "name" .Values.name }}
 ```
 
 </td></tr>
@@ -197,7 +197,29 @@ name: !ref $Values.name
 </td></tr>
 <tr><th>Difference</th><td>
 
-Missing `.Values.name` is empty in Helm; knarr `!ref` without `?.` is an error.
+Same result. Fail text differs.
+
+</td></tr>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
+
+```gotemplate
+name: {{ .Values.name }}
+```
+
+(missing `.Values.name` → `name:` empty)
+
+</td></tr>
+<tr><th>Knarr</th><td>
+
+Impossible in v1.
+
+</td></tr>
+<tr><th>Difference</th><td>
+
+Knarr never treats a missing required path as empty. Write `?.` and `?? ''` or omit the key with `?:`.
 
 </td></tr>
 </table>
@@ -212,15 +234,12 @@ host: {{ .Values.env.database.host }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-host: !ref $Values.env.database.host
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-A missing intermediate key is empty in Helm; knarr is an error unless each step is `?.`.
+Helm missing intermediate → empty. Knarr without `?.` is an error. Required nest: `required` + `!ref $Values.env.database.host`.
 
 </td></tr>
 </table>
@@ -237,16 +256,13 @@ cert: {{ dig "tls" "cert" "" .Values }}
 
 ```yaml
 !emit
-# default — key stays
 cert: !ref "$Values?.tls?.cert ?? ''"
-# omit
-cert?: !ref $Values?.tls?.cert
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-`dig` with default `""` still emits `cert:` as an empty string. Knarr `?? ''` keeps the key; `?:` omits it.
+Same result: missing path → `cert:` empty string. `?:` is omit, not this pair.
 
 </td></tr>
 </table>
@@ -263,16 +279,13 @@ host: {{ dig "env" "database" "host" "localhost" .Values }}
 
 ```yaml
 !emit
-# default — key stays
 host: !ref "$Values?.env?.database?.host ?? 'localhost'"
-# omit
-host?: !ref $Values?.env?.database?.host
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-`dig` with `"localhost"` matches knarr `??`. `?:` omits the key instead.
+Same result.
 
 </td></tr>
 </table>
@@ -289,16 +302,13 @@ tag: {{ dig "image" "tag" "latest" .Values }}
 
 ```yaml
 !emit
-# default — key stays
 tag: !ref "$Values?.image?.tag ?? 'latest'"
-# omit
-tag?: !ref $Values?.image?.tag
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-`dig` with `"latest"` matches knarr `??`. `?:` omits the key instead.
+Same result.
 
 </td></tr>
 </table>
@@ -315,16 +325,13 @@ secretName: {{ dig "server" "tls" "secretName" "" .Values.config }}
 
 ```yaml
 !emit
-# default — key stays
 secretName: !ref "$Values.config?.server?.tls?.secretName ?? ''"
-# omit
-secretName?: !ref $Values.config?.server?.tls?.secretName
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Empty-string `dig` default keeps the key (`?? ''`). Knarr `?:` omits it.
+Same result.
 
 </td></tr>
 </table>
@@ -339,15 +346,12 @@ name: {{ index .Values.workers 0 "name" }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-name: !ref "$Workers[0].name"
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `index` of a missing key is empty; knarr `[0]` without `?.` is an error.
+Helm missing `index` → empty. Knarr `[0]` without `?.` is an error.
 
 </td></tr>
 </table>
@@ -356,7 +360,7 @@ Helm `index` of a missing key is empty; knarr `[0]` without `?.` is an error.
 <tr><th>Helm</th><td>
 
 ```gotemplate
-app: {{ index .Values.labels "app.kubernetes.io/name" }}
+app: {{ required "label" (index .Values.labels "app.kubernetes.io/name") }}
 ```
 
 </td></tr>
@@ -370,7 +374,7 @@ app: !ref "$Values.labels['app.kubernetes.io/name']"
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -388,15 +392,12 @@ livenessProbe:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-livenessProbe?: !ref $Values?.livenessProbe
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `with` skips empty/nil; knarr `?:` omits missing/omit only.
+Helm `with` skips nil **and** a present empty `{}`. Knarr `?:` omits missing/omit only.
 
 </td></tr>
 </table>

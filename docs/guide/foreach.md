@@ -120,6 +120,7 @@ $Items?: !foreach
   $yield:
     name: !ref $E.name
     value: !ref $E.value
+---
 !emit
 env?: !ref $Items?
 ```
@@ -338,20 +339,12 @@ env:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-env: !foreach
-  $over: !ref $Values.env
-  $as: $E
-  $yield:
-    name: !ref $E.name
-    value: !ref $E.value
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `| quote` adds quotes in the rendered text; knarr `value` is a YAML string.
+Empty `env`: Helm leaves `env:` (null); knarr `env: !foreach` + `$over: []` is `env: []`. `| quote` is text quotes.
 
 </td></tr>
 </table>
@@ -369,19 +362,12 @@ ports:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-ports: !foreach
-  $over: !ref $Values.ports
-  $as: $P
-  $yield:
-    containerPort: !ref $P
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Empty `ports`: Helm leaves `ports:` (null); knarr `ports: !foreach` + `$over: []` is `ports: []`. Skip the key: last table.
 
 </td></tr>
 </table>
@@ -400,21 +386,12 @@ env:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-env: !foreach
-  $over: !ref $Values.labels
-  $as: $V
-  $key: $K
-  $yield:
-    name: !ref $K
-    value: !ref $V
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Empty map: Helm `env:` null; knarr `env: []`. `| quote` is text quotes.
 
 </td></tr>
 </table>
@@ -435,21 +412,12 @@ env:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-env: !foreach
-  $over: !ref $Values.env
-  $as: $E
-  $filter: !ref $E.enabled
-  $yield:
-    name: !ref $E.name
-    value: !ref $E.value
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+All filtered out: Helm `env:` null; knarr `env: []` unless `env?:` + `$yield?:`. Helm `if` is truthiness.
 
 </td></tr>
 </table>
@@ -483,7 +451,7 @@ env?: !foreach
 </td></tr>
 <tr><th>Difference</th><td>
 
-Missing or empty `env` → no key in both. Helm `if` is truthiness; knarr writes both `?:` markers.
+Missing or empty `env` → no key in both. Helm `| quote` is text quotes.
 
 </td></tr>
 </table>

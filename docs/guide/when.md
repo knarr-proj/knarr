@@ -182,19 +182,12 @@ kind: Service
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-$when: !ref $Values.service.enabled
-$then:
-  kind: Service
-  name: !ref $Values.name
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` with no else just skips; knarr `$when` requires `$then` and `$else`.
+Helm `if` of missing is skip. Knarr `$when` without `?? false` is an error. The Helm snippet prints only `kind`; a knarr `$then` with extra keys is a different document.
 
 </td></tr>
 </table>
@@ -211,19 +204,12 @@ kind: ConfigMap
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-$when: !not-empty $Values?.sidecars
-$then:
-  kind: ConfigMap
-  name: sidecars
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if .Values.sidecars` is a truthiness test (empty list is false); knarr `$when` needs a bool (`!not-empty`).
+Helm `if` is truthiness. Knarr `$when` needs a bool. Extra keys in `$then` change the document.
 
 </td></tr>
 </table>
@@ -240,21 +226,12 @@ kind: Service
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-$when: !and
-  - !ref $Values.service.enabled
-  - !expr "$Values.replicas > 1"
-$then:
-  kind: Service
-  name: !ref $Values.name
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `and` / `gt` live in `if`; knarr `$when` is a bool from `!and` + `!expr`.
+Helm `and` / `gt` of missing is false. Knarr omit / missing path is an error.
 
 </td></tr>
 </table>
@@ -274,20 +251,32 @@ name: {{ .name }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit-foreach
-$when: !ref $Values.deployWorkers ?? false
-$over: !ref $Values.workers
-$as: $Worker
-$yield:
-  kind: Pod
-  name: !ref $Worker.name
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Helm `if` is truthiness (non-bool present values). Knarr `$when` needs a bool. Helm `range` here is not `---`-separated documents.
+
+</td></tr>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
+
+```gotemplate
+name: {{ .Release.Name }}
+```
+
+</td></tr>
+<tr><th>Knarr</th><td>
+
+Impossible in v1.
+
+</td></tr>
+<tr><th>Difference</th><td>
+
+`$Release` / `$Chart` / `$Capabilities` are reserved and not injected.
 
 </td></tr>
 </table>

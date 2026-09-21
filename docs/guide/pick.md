@@ -11,7 +11,7 @@ name: !pick
   - app
 ```
 
-- Tagged sequence, ≥2 elements (two is legal; the shorter 2-way is still `??`). No warning.
+- Tagged sequence, ≥2 elements (two is legal; the shorter 2-way is still `??`). No warning. A planned golden checks 2-way `!pick` and `??` print the same stdout.
 - All but the last must be omit-capable (`?.` / `$Name?`).
 - Last is a concrete value (not omit).
 - First non-omit wins. Always a value: `$Name?: !pick` / `$Res?: !pick` is an error (the last child is concrete, so `?:` cannot fire).
@@ -182,18 +182,12 @@ name: {{ coalesce .Values.fullnameOverride .Values.name "app" }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-name: !pick
-  - !ref $Values?.fullnameOverride
-  - !ref $Values?.name
-  - app
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-`coalesce` skips `""` / `false` / `0`; `!pick` skips omit only.
+`coalesce` skips `""` / `false` / `0`. `!pick` skips omit only.
 
 </td></tr>
 </table>
@@ -208,18 +202,12 @@ image: {{ .Values.image.full | default .Values.image.repository | default "ghcr.
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-image: !pick
-  - !ref $Values?.image.full
-  - !ref $Values?.image.repository
-  - ghcr.io/acme/app:latest
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `| default` skips empty strings; knarr `!pick` keeps `""`.
+Helm `| default` skips `""`. `!pick` keeps `""`.
 
 </td></tr>
 </table>
@@ -234,20 +222,12 @@ containerPort: {{ .Values.port | default 8080 }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-# default — key stays
-containerPort: !pick
-  - !ref $Values?.port
-  - 8080
-# omit
-containerPort?: !ref $Values?.port
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-`0` is empty for Helm `default`; knarr keeps `0`.
+`0` is empty for Helm `default`. `!pick` keeps `0`.
 
 </td></tr>
 </table>

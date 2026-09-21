@@ -26,6 +26,7 @@ $Parts: !split
 $Hosts: !split
   $sep: ","
   $of: !ref $Values.hostCsv
+---
 !emit
 hostAliases: !foreach
   $over: !ref $Hosts
@@ -61,6 +62,7 @@ $Lines: !split
 $Hosts?: !split
   $sep: ","
   $of: !ref $Values?.hostCsv
+---
 !emit
 hostAliases?: !foreach
   $over: !ref $Hosts?
@@ -221,12 +223,15 @@ hosts: {{ splitList "," .Values.hostCsv }}
 $Hosts: !split
   $sep: ","
   $of: !ref $Values.hostCsv
+---
+!emit
+hosts: !ref $Hosts
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same list when `hostCsv` is present.
 
 </td></tr>
 </table>
@@ -241,17 +246,12 @@ bits: {{ split ":" .Values.image }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Bits: !split
-  $sep: ":"
-  $of: !ref $Values.image
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `split` returns a dict `_0`, `_1`; knarr `!split` returns a list.
+Helm `split` returns a dict `_0`, `_1`. Knarr `!split` returns a list.
 
 </td></tr>
 </table>
@@ -271,12 +271,15 @@ lines: {{ splitList "\n" .Values.allowlist }}
 $Lines: !split
   $sep: "\n"
   $of: !ref $Values.allowlist
+---
+!emit
+lines: !ref $Lines
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same list when `allowlist` is present.
 
 </td></tr>
 </table>

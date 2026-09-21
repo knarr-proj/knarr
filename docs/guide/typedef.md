@@ -11,6 +11,7 @@ $ValuesType:
   replicas: { type: int, default: 1 }
   image: string
   containerPort: int
+---
 !bind
 $Values: !$ValuesType
   name: api
@@ -145,19 +146,12 @@ replicas: 1
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!typedef
-$ValuesType:
-  replicas: { type: int, default: 1 }
-!bind
-$Values: !$ValuesType
-  name: api
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm default is a value in `values.yaml`; knarr default is in `!typedef` and applied by `!$Type`.
+Helm default is a key in `values.yaml`. Knarr `!typedef` default is not that file.
 
 </td></tr>
 </table>
@@ -174,19 +168,12 @@ resources:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!typedef
-$ValuesType:
-  resources:
-    requests:
-      cpu: string
-      memory: string
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-`!typedef` declares types; it does not emit a resource.
+`!typedef` declares types. It does not emit `resources:`.
 
 </td></tr>
 </table>
@@ -205,20 +192,12 @@ containers:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Containers: !foreach
-  $over: !ref $Values.sidecars
-  $as: $S
-  $yield: !$SidecarType
-    name: !ref $S.name
-    image: !ref $S.image
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `range` is in the template; knarr `!$SidecarType` applies per item in bind.
+Empty `sidecars`: Helm `containers:` null; knarr bind `!foreach` + `$over: []` is `[]`. Bind-only is not Helm stdout.
 
 </td></tr>
 </table>

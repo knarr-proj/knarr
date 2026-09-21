@@ -165,7 +165,7 @@ replicas: !match
 <tr><th>Helm</th><td>
 
 ```gotemplate
-replicas: {{ if gt .Values.replicas 0 }}{{ .Values.replicas }}{{ else }}1{{ end }}
+replicas: {{ if gt (required "replicas" .Values.replicas) 0 }}{{ .Values.replicas }}{{ else }}1{{ end }}
 ```
 
 </td></tr>
@@ -182,7 +182,7 @@ replicas: !match
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -200,19 +200,12 @@ topologySpreadConstraints:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-topologySpreadConstraints?: !match
-  $if: !expr "$Values.replicas > 1"
-  $then:
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` just does not print the key; knarr `!match` without `$else` is omit (pair with `?:`).
+Helm `if` omits the key. The listed knarr `$then` is a different mapping (`topologyKey` extra). Missing `replicas` is empty vs error.
 
 </td></tr>
 </table>
@@ -227,21 +220,12 @@ type: {{ if .Values.ingress.enabled }}ClusterIP{{ else if .Values.loadBalancer }
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-type: !match
-  $if: !ref $Values.ingress.enabled
-  $then: ClusterIP
-  $else: !match
-    $if: !ref $Values.loadBalancer
-    $then: LoadBalancer
-    $else: ClusterIP
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Helm `if` is truthiness. Knarr `$if` needs a bool; missing path is an error.
 
 </td></tr>
 </table>

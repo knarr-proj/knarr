@@ -15,6 +15,7 @@ $Pem: !b64dec $Values.certB64
 ```yaml
 !bind
 $Ca: !b64dec $Values.caB64
+---
 !emit
 ca.crt: !ref $Ca
 ```
@@ -84,7 +85,7 @@ token: !b64dec $Values.tokenB64
 <tr><th>Helm</th><td>
 
 ```gotemplate
-ca.crt: {{ .Values.caB64 | b64dec }}
+ca.crt: {{ required "ca" .Values.caB64 | b64dec }}
 ```
 
 </td></tr>
@@ -93,6 +94,7 @@ ca.crt: {{ .Values.caB64 | b64dec }}
 ```yaml
 !bind
 $Ca: !b64dec $Values.caB64
+---
 !emit
 ca.crt: !ref $Ca
 ```
@@ -100,7 +102,7 @@ ca.crt: !ref $Ca
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -115,15 +117,12 @@ token: {{ .Values.tokenB64 | b64dec }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-token?: !b64dec $Values?.tokenB64
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Missing value is empty in Helm; knarr `?:` omits the key.
+Missing value is empty in Helm. Knarr `?:` omits the key.
 
 </td></tr>
 </table>
@@ -142,12 +141,15 @@ token: {{ b64enc (b64dec .Values.wrapped) }}
 !bind
 $Raw: !b64dec $Values.wrapped
 $Again: !b64enc $Raw
+---
+!emit
+token: !ref $Again
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result when `wrapped` is present.
 
 </td></tr>
 </table>

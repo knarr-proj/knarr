@@ -27,6 +27,7 @@ $Csv: !join
 $HostList: !join
   $sep: ","
   $over: !ref $Values.hosts
+---
 !emit
 hosts: !ref $HostList
 ```
@@ -65,6 +66,7 @@ $Csv: !join
 $HostList?: !join
   $sep: ","
   $over: !ref $Values?.hosts
+---
 !emit
 metadata:
   annotations:
@@ -78,6 +80,7 @@ Missing `hosts` → no `$HostList` → no annotation key. `hosts: []` in values 
 $HostList: !join
   $sep: ","
   $over: !ref "$Values?.hosts ?? []"
+---
 !emit
 hosts: !ref $HostList
 ```
@@ -111,6 +114,7 @@ hosts: !join
 $HostList: !join
   $sep: ","
   $over: !ref $Values.hosts
+---
 !emit
 hosts: !ref $HostList
 # join in bind, then !ref
@@ -296,7 +300,7 @@ $Name: !join
 <tr><th>Helm</th><td>
 
 ```gotemplate
-hosts: {{ join "," .Values.hosts }}
+hosts: {{ join "," (required "hosts" .Values.hosts) }}
 ```
 
 </td></tr>
@@ -307,6 +311,7 @@ hosts: {{ join "," .Values.hosts }}
 $HostList: !join
   $sep: ","
   $over: !ref $Values.hosts
+---
 !emit
 hosts: !ref $HostList
 ```
@@ -314,7 +319,7 @@ hosts: !ref $HostList
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -323,7 +328,7 @@ Same behavior.
 <tr><th>Helm</th><td>
 
 ```gotemplate
-name: {{ .Values.name }}.svc.cluster.local
+name: {{ required "name" .Values.name }}.svc.cluster.local
 ```
 
 </td></tr>
@@ -338,12 +343,15 @@ $Name: !join
     - svc
     - cluster
     - local
+---
+!emit
+name: !ref $Name
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm concatenates in the template; knarr `!join` is bind-only.
+Same result when `name` is present (`required` on the Helm side if missing must fail).
 
 </td></tr>
 </table>
@@ -352,7 +360,7 @@ Helm concatenates in the template; knarr `!join` is bind-only.
 <tr><th>Helm</th><td>
 
 ```gotemplate
-pull: {{ join "," .Values.pullSecrets }}
+pull: {{ join "," (required "pullSecrets" .Values.pullSecrets) }}
 ```
 
 </td></tr>
@@ -363,12 +371,15 @@ pull: {{ join "," .Values.pullSecrets }}
 $Pull: !join
   $sep: ","
   $over: !ref $Values.pullSecrets
+---
+!emit
+pull: !ref $Pull
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>

@@ -94,21 +94,24 @@ checksum/config: !sha256-json $Values.config
 <tr><th>Helm</th><td>
 
 ```gotemplate
-checksum/config: {{ toJson .Values.config | sha256sum }}
+checksum/config: {{ toJson (required "config" .Values.config) | sha256sum }}
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+!bind
+$Sum: !sha256-json $Values.config
+---
 !emit
-checksum/config: !sha256-json $Values.config
+checksum/config: !ref $Sum
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same digest. Fail text differs.
 
 </td></tr>
 </table>
@@ -128,12 +131,15 @@ checksum/config: {{ toJson .Values.config | sha256sum }}
 $Json: !to-json-str $Values.config
 $Sum: !sha256
   $of: !ref $Json
+---
+!emit
+checksum/config: !ref $Sum
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Two-step `!to-json-str` + `!sha256` matches `!sha256-json` if you hash the canon JSON string.
+Same digest as `toJson | sha256sum` when `config` is present.
 
 </td></tr>
 </table>
@@ -142,21 +148,24 @@ Two-step `!to-json-str` + `!sha256` matches `!sha256-json` if you hash the canon
 <tr><th>Helm</th><td>
 
 ```gotemplate
-checksum/secret: {{ toJson .Values.secretData | sha256sum }}
+checksum/secret: {{ toJson (required "secret" .Values.secretData) | sha256sum }}
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+!bind
+$Sum: !sha256-json $Values.secretData
+---
 !emit
-checksum/secret: !sha256-json $Values.secretData
+checksum/secret: !ref $Sum
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same digest. Fail text differs.
 
 </td></tr>
 </table>

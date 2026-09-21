@@ -22,6 +22,7 @@ $Extra: !from-json-str $Values.extraJson
 $Values:
   extraJson: '{"replicas":3}'
 $Extra: !from-json-str $Values.extraJson
+---
 !emit
 replicas: !ref $Extra.replicas
 ```
@@ -51,6 +52,7 @@ $Extra: !expr "fromJson($Values.extraJson)"
 ```yaml
 !bind
 $Extra: !from-json-str $Values.extraJson
+---
 !emit
 replicas: !ref $Extra.replicas
 # parse a JSON string with !from-json-str
@@ -117,6 +119,7 @@ replicas: {{ ( .Values.extraJson | fromJson ).replicas }}
 $Values:
   extraJson: '{"replicas":3}'
 $Extra: !from-json-str $Values.extraJson
+---
 !emit
 replicas: !ref $Extra.replicas
 ```
@@ -139,15 +142,12 @@ extra: {{ .Files.Get "x.json" | fromJson }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Extra: !read x.json
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `Files.Get` + `fromJson`; knarr `!read` of a `.json` file (YAML parse, JSON subset).
+Helm `fromJson` numbers are float64. Knarr `!read` YAML/JSON numbers without `.` are int.
 
 </td></tr>
 </table>
@@ -162,15 +162,12 @@ n: {{ fromJson "{"n":1}" }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$N: !from-json-str '{"n":1}'
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `fromJson` numbers are float64; knarr JSON numbers without `.` are int.
+Helm `fromJson` numbers are float64. Knarr JSON numbers without `.` are int.
 
 </td></tr>
 </table>

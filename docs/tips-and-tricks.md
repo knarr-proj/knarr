@@ -12,6 +12,7 @@ $FullName: !format
   - "%s-%s"
   - !ref $Values.env
   - !ref $Values.name
+---
 !emit
 name: !ref $FullName
 ```
@@ -101,6 +102,7 @@ Canon is Go `json.Marshal` (sorted keys, HTML-escape). Details: [`!sha256-json`]
 $Args: !concat
   - [ "--verbose" ]
   - !ref $Values.extraArgs
+---
 !emit
 args: !ref $Args
 ```
@@ -112,6 +114,7 @@ args: !ref $Args
 ```yaml
 !bind
 $Port: !int $Values.port
+---
 !emit
 containerPort: !ref $Port
 ```

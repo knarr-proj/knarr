@@ -122,7 +122,7 @@ $Name: !format
 <tr><th>Helm</th><td>
 
 ```gotemplate
-replicas: {{ .Values.replicas | toString | quote }}
+replicas: {{ required "replicas" .Values.replicas | toString | quote }}
 ```
 
 </td></tr>
@@ -136,7 +136,7 @@ replicas: !str $Values.replicas
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `quote` adds quotes in the rendered text; knarr `!str` is a typed string in YAML.
+Same string value. Helm `quote` is text quotes.
 
 </td></tr>
 </table>
@@ -145,7 +145,7 @@ Helm `quote` adds quotes in the rendered text; knarr `!str` is a typed string in
 <tr><th>Helm</th><td>
 
 ```gotemplate
-ha: {{ .Values.ha | toString }}
+ha: {{ required "ha" .Values.ha | toString }}
 ```
 
 </td></tr>
@@ -159,7 +159,7 @@ ha: !str $Values.ha
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -176,18 +176,12 @@ name: {{ . }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit-foreach
-$over: !ref $Idx
-$as: $I
-$yield:
-  name: !str $I
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm prints the int; knarr needs `!str` for a name string.
+Helm `name:` is an int. Knarr `!str` is a string.
 
 </td></tr>
 </table>
@@ -196,7 +190,7 @@ Helm prints the int; knarr needs `!str` for a name string.
 <tr><th>Helm</th><td>
 
 ```gotemplate
-prometheus.io/port: {{ .Values.port | quote }}
+prometheus.io/port: {{ required "port" .Values.port | quote }}
 ```
 
 </td></tr>
@@ -210,7 +204,7 @@ prometheus.io/port: !str $Values.port
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `quote` adds quotes in the rendered text; knarr `!str` is a typed string.
+Same string value. Helm `quote` is text quotes.
 
 </td></tr>
 </table>

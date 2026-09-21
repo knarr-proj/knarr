@@ -26,6 +26,7 @@ username: !b64enc $Values.user
 ```yaml
 !bind
 $Tok?: !b64enc $Values?.token
+---
 !emit
 token?: !ref $Tok?
 ```
@@ -70,6 +71,7 @@ config: !b64enc $Values.config
 ```yaml
 !bind
 $Json: !to-json-str $Values.config
+---
 !emit
 config: !b64enc $Json
 # encode a string; JSON bytes via !to-json-str first
@@ -89,6 +91,7 @@ $Tok: !b64enc $Values?.token
 ```yaml
 !bind
 $Tok?: !b64enc $Values?.token
+---
 !emit
 token?: !ref $Tok?
 # pair omit markers
@@ -109,7 +112,7 @@ token?: !ref $Tok?
 <tr><th>Helm</th><td>
 
 ```gotemplate
-password: {{ .Values.password | b64enc }}
+password: {{ required "password" .Values.password | b64enc }}
 ```
 
 </td></tr>
@@ -123,7 +126,7 @@ password: !b64enc $Values.password
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -138,17 +141,12 @@ token: {{ .Values.token | b64enc }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Tok?: !b64enc $Values?.token
-!emit
-token?: !ref $Tok?
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Missing `.Values.token` is empty in Helm; knarr omit pair drops the key.
+Missing `.Values.token` is empty in Helm. Knarr `?:` omits the key.
 
 </td></tr>
 </table>
@@ -157,7 +155,7 @@ Missing `.Values.token` is empty in Helm; knarr omit pair drops the key.
 <tr><th>Helm</th><td>
 
 ```gotemplate
-tls.crt: {{ .Values.certPem | b64enc }}
+tls.crt: {{ required "cert" .Values.certPem | b64enc }}
 ```
 
 </td></tr>
@@ -171,7 +169,7 @@ tls.crt: !b64enc $Values.certPem
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>

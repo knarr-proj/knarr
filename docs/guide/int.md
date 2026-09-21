@@ -21,6 +21,7 @@ containerPort: !int $Values.port
 ```yaml
 !bind
 $Port: !int $Values.port
+---
 !emit
 containerPort: !ref $Port
 ```
@@ -59,6 +60,7 @@ containerPort: !expr "int($Values.port)"
 ```yaml
 !bind
 $Port: !int $Values.port
+---
 !emit
 containerPort: !ref $Port
 # coerce with !int in bind, then !ref
@@ -78,6 +80,7 @@ containerPort: !!int $Values.port
 ```yaml
 !bind
 $Port: !int $Values.port
+---
 !emit
 containerPort: !ref $Port
 # one knarr tag on a path
@@ -134,7 +137,7 @@ $N: !expr "$Values.replicas + $One"
 <tr><th>Helm</th><td>
 
 ```gotemplate
-containerPort: {{ int .Values.port }}
+containerPort: {{ int (required "port" .Values.port) }}
 ```
 
 </td></tr>
@@ -143,6 +146,7 @@ containerPort: {{ int .Values.port }}
 ```yaml
 !bind
 $Port: !int $Values.port
+---
 !emit
 containerPort: !ref $Port
 ```
@@ -150,7 +154,7 @@ containerPort: !ref $Port
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -165,15 +169,12 @@ port: {{ atoi .Values.port }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Port: !int $Values.port
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `atoi` and knarr `!int` both parse decimal strings; knarr `"+1"` is an error (`"08"` → 8).
+knarr `!int` of `"+1"` is an error. Bind-only snippet is not Helm stdout.
 
 </td></tr>
 </table>
@@ -195,12 +196,15 @@ $Name: !format
   - "%s-%d"
   - !ref $Values.env
   - !ref $Port
+---
+!emit
+name: !ref $Name
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `int()` in `printf`; knarr no `int()` in `!expr` — `!int` in bind, then `!format`.
+Same result when `env` and `port` are present.
 
 </td></tr>
 </table>
@@ -215,16 +219,12 @@ n: {{ int 1.9 }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$N: !int 1
-# !int 1.9 is an error
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `int` truncates `1.9` → `1`; knarr `!int` of a float is an error.
+Helm `int` truncates `1.9` → `1`. Knarr `!int` of a float is an error.
 
 </td></tr>
 </table>

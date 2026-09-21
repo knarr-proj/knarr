@@ -23,6 +23,7 @@ $Cpu: !float $Values.cpuStr
 !bind
 $Values:
   cpu: 0.5
+---
 !emit
 resources:
     cpu: !ref $Values.cpu
@@ -141,7 +142,7 @@ YAML `0.5` is float; `"500m"` stays a string. Int+float in `!expr` promotes.
 <tr><th>Helm</th><td>
 
 ```gotemplate
-cpu: {{ .Values.cpu }}
+cpu: {{ required "cpu" .Values.cpu }}
 ```
 
 </td></tr>
@@ -155,7 +156,7 @@ cpu: !ref $Values.cpu
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -173,12 +174,15 @@ cpu: {{ float64 .Values.cpuStr }}
 ```yaml
 !bind
 $Cpu: !float $Values.cpuStr
+---
+!emit
+cpu: !ref $Cpu
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `float64()` is in the template; knarr `!float` is a tag (no `float64()` in `!expr`).
+Same result when `cpuStr` is a decimal string. No `float64()` in `!expr`.
 
 </td></tr>
 </table>
@@ -196,12 +200,15 @@ limit: {{ add .Values.replicas 0.5 }}
 ```yaml
 !bind
 $Limit: !expr "$Values.replicas + 0.5"
+---
+!emit
+limit: !ref $Limit
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result when `replicas` is present.
 
 </td></tr>
 </table>
@@ -216,15 +223,12 @@ cpu: 500m
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-cpu: "500m"
-```
+Impossible as `!float "500m"`.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm may treat `500m` as a string Quantity; knarr keep Quantity quoted. `!float "500m"` is an error.
+`!float "500m"` is an error. Keep Quantity quoted as a string.
 
 </td></tr>
 </table>

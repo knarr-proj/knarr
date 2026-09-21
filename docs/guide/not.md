@@ -31,6 +31,7 @@ Default the path first, then negate:
 ```yaml
 !bind
 $Debug: !ref $Values?.debug ?? false
+---
 !emit
 $when: !not $Debug
 ```
@@ -111,6 +112,7 @@ $else: ""
 ```yaml
 !bind
 $Debug: !ref $Values?.debug ?? false
+---
 !emit
 $when: !not $Debug
 $then:
@@ -146,19 +148,12 @@ kind: Service
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-$when: !not $Values.service.enabled
-$then:
-  kind: Service
-  name: !ref $Values.name
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `not` is truthiness; knarr `!not` needs a bool.
+Helm `not` is truthiness. Knarr `!not` needs a bool.
 
 </td></tr>
 </table>
@@ -175,21 +170,12 @@ kind: Deployment
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Debug: !ref $Values?.debug ?? false
-!emit
-$when: !not $Debug
-$then:
-  kind: Deployment
-  name: !ref $Values.name
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Missing `.Values.debug` makes Helm `not` true; knarr defaults with `!ref` `?? false`, then `!not`.
+Helm prints only `kind`. Extra `$then` keys change the document. Helm `not` of a present empty string is true; knarr `?? false` then `!not` needs a bool.
 
 </td></tr>
 </table>
@@ -209,20 +195,12 @@ env:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-env: !foreach
-  $over: !ref $Values.workers
-  $as: $Worker
-  $filter: !not $Worker.disabled
-  $yield:
-    name: !ref $Worker.name
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Helm `not .disabled` of missing is true. Knarr `!not` of omit is an error. Empty range: Helm `env:` null; knarr `env: []`.
 
 </td></tr>
 </table>

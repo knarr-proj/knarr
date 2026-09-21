@@ -92,6 +92,7 @@ name: !format
 $Name: !format
   - "%s-svc"
   - !ref $Values.name
+---
 !emit
 name: !ref $Name
 # format in bind, then !ref
@@ -177,7 +178,7 @@ $Name: !format
 <tr><th>Helm</th><td>
 
 ```gotemplate
-name: {{ printf "%s-%s" .Values.env .Values.name }}
+name: {{ printf "%s-%s" (required "env" .Values.env) (required "name" .Values.name) }}
 ```
 
 </td></tr>
@@ -189,6 +190,7 @@ $FullName: !format
   - "%s-%s"
   - !ref $Values.env
   - !ref $Values.name
+---
 !emit
 name: !ref $FullName
 ```
@@ -196,7 +198,7 @@ name: !ref $FullName
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `printf` is in the template; knarr `!format` is bind-only.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -211,18 +213,12 @@ addr: {{ printf "%s:%d" .Values.host .Values.port }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Addr: !format
-  - "%s:%d"
-  - !ref $Values.host
-  - !ref $Port
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `printf` is in the template; knarr `!format` is bind-only. Wrong operand type is `%!s` in Helm, an error in knarr.
+Wrong operand type is `%!s` in Helm, an error in knarr. Bind-only `!format` is not this Helm stdout unless types already match.
 
 </td></tr>
 </table>
@@ -231,7 +227,7 @@ Helm `printf` is in the template; knarr `!format` is bind-only. Wrong operand ty
 <tr><th>Helm</th><td>
 
 ```gotemplate
-ann: {{ printf "app=%q" .Values.name }}
+ann: {{ printf "app=%q" (required "name" .Values.name) }}
 ```
 
 </td></tr>
@@ -242,12 +238,15 @@ ann: {{ printf "app=%q" .Values.name }}
 $Ann: !format
   - "app=%q"
   - !ref $Values.name
+---
+!emit
+ann: !ref $Ann
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -262,17 +261,12 @@ name: {{ printf "w-%04d" $i }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$WorkerId: !format
-  - "w-%04d"
-  - !ref $I
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `$i` comes from `range`; knarr `$I` comes from `!range`.
+Helm `$i` is a `range` local. Knarr `$I` is a bind from `!range`. The snippets are not whole programs.
 
 </td></tr>
 </table>

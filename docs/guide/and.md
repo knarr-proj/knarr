@@ -155,21 +155,12 @@ kind: Service
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-$when: !and
-  - !ref $Values.service.enabled
-  - !expr "$Values.replicas > 1"
-$then:
-  kind: Service
-  name: !ref $Values.name
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `and` short-circuits; knarr `!and` evaluates every child. Use `&&` in `!expr` to short-circuit.
+Helm `and` of missing is false. Knarr missing path is an error. `!and` evaluates every child.
 
 </td></tr>
 </table>
@@ -189,22 +180,12 @@ env:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-env: !foreach
-  $over: !ref $Values.workers
-  $as: $W
-  $filter: !and
-    - !not-empty $W?.ports
-    - !ref $W.enabled
-  $yield:
-    name: !ref $W.name
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `and` is truthiness; knarr `!and` is boolean only (`!not-empty` for a list).
+Helm `and` is truthiness. Knarr `!and` is boolean only. Empty range: Helm `env:` null; knarr `env: []`.
 
 </td></tr>
 </table>
@@ -219,18 +200,12 @@ name: {{ and .Values.name .Values.image }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!validation
-$rules:
-  - !and
-    - !not-empty $Values?.name
-    - !not-empty $Values?.image
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `and` of strings returns the last truthy value; knarr `!and` is boolean only.
+Helm `and` of strings returns the last truthy value. Knarr `!and` is boolean only.
 
 </td></tr>
 </table>
@@ -247,19 +222,12 @@ kind: Service
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-$when: !expr "$Values.service.enabled && $Values.tls"
-$then:
-  kind: Service
-  name: !ref $Values.name
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `and` vs knarr `&&` in `!expr` (short-circuit). `$Values.tls` must be a bool here.
+Helm `and` treats a present map as true. Knarr `&&` needs bools.
 
 </td></tr>
 </table>

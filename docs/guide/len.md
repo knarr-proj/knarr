@@ -141,7 +141,7 @@ $N?: !len $Values?.workers
 <tr><th>Helm</th><td>
 
 ```gotemplate
-replicas: {{ len .Values.workers }}
+replicas: {{ len (required "workers" .Values.workers) }}
 ```
 
 </td></tr>
@@ -155,7 +155,7 @@ replicas: !len $Values.workers
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -170,18 +170,12 @@ image: {{ last .Values.workers }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$N: !len $Values.workers
-$I: !expr "$N - 1"
-!emit
-image: !expr "$Values.workers[$I].image"
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `last` is one function; knarr indexes via `!len` + `!expr`. Helm `last` of a list of maps is the last map; this knarr example takes `.image`.
+Helm `last` of a list of maps is the last map. This knarr snippet takes `.image`.
 
 </td></tr>
 </table>
@@ -198,19 +192,12 @@ kind: ConfigMap
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-$when: !not-empty $Values?.workers
-$then:
-  kind: ConfigMap
-  name: workers
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `gt (len) 0` is in `if`; knarr `$when` needs a bool (`!not-empty`). `len()` is not valid in `!expr`.
+Helm prints only `kind`. Extra `$then` keys change the document. `len()` is not valid in `!expr`.
 
 </td></tr>
 </table>
@@ -231,12 +218,15 @@ $N: !len $Values.labels
 $Ann: !format
   - "%d-labels"
   - !ref $N
+---
+!emit
+ann: !ref $Ann
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `printf` + `len` in the template; knarr `!len` then bind-only `!format`.
+Same result when `labels` is present.
 
 </td></tr>
 </table>

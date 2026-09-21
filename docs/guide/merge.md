@@ -70,6 +70,7 @@ Use [`!concat`](concat.md) for lists.
 $Res?: !merge
   - !ref $Values?.requests
   - !ref $Values?.limits
+---
 !emit
 resources?: !ref $Res?
 ```
@@ -99,6 +100,7 @@ $Res: !merge
   - requests:
       cpu: "100m"
   - !ref $Values.resources
+---
 !emit
 resources: !ref $Res
 # merge in bind, then !ref
@@ -181,19 +183,12 @@ resources: {{ merge .Values.resources (dict "requests" (dict "cpu" "100m")) }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Res: !merge
-  - requests:
-      cpu: "100m"
-      memory: "128Mi"
-  - !ref $Values.resources
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `merge` gives precedence to the first (dest) map; knarr later mapping wins.
+Helm `merge` dest-first. Knarr later mapping wins. Helm prints the merge; knarr `!merge` is bind-only.
 
 </td></tr>
 </table>
@@ -208,21 +203,12 @@ livenessProbe: {{ merge .Values.livenessProbe (dict "timeoutSeconds" 1) }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$UserProbe: !ref "$Values?.livenessProbe ?? {}"
-$Probe: !merge
-  - httpGet:
-      path: /healthz
-      port: 8080
-    timeoutSeconds: 1
-  - !ref $UserProbe
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `merge` dest-first; knarr later mapping wins. Missing probe is empty in Helm; knarr uses `?? {}`.
+Helm dest-first and missing probe is empty. Knarr later-wins and `!merge` is bind-only.
 
 </td></tr>
 </table>
@@ -237,17 +223,12 @@ args: {{ merge (dict "args" (list "--a")) (dict "args" (list "--b")) }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$M: !merge
-  - args: ["--a"]
-  - args: ["--b"]
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Both replace sequences (`args` is `["--b"]`). Use `!concat` to glue lists.
+Helm prints the merge as a template value. Knarr `!merge` is bind-only. Sequences replace in both languages, but this pair is not the same stdout.
 
 </td></tr>
 </table>

@@ -104,7 +104,7 @@ Canon is Go `json.Marshal`: compact, **sorted** keys, HTML-escape `& < >` — sa
 <tr><th>Helm</th><td>
 
 ```gotemplate
-config.json: {{ toJson .Values.config }}
+config.json: {{ toJson (required "config" .Values.config) }}
 ```
 
 </td></tr>
@@ -118,7 +118,7 @@ config.json: !to-json-str $Values.config
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same JSON. Fail text differs.
 
 </td></tr>
 </table>
@@ -126,24 +126,12 @@ Same behavior.
 <table>
 <tr><th>Helm</th><td>
 
-```gotemplate
-checksum: {{ toJson .Values.config | sha256sum }}
-config.json: {{ toJson .Values.config }}
-```
-
-</td></tr>
-<tr><th>Knarr</th><td>
-
-```yaml
-!emit
-checksum/config: !sha256-json $Values.config
-config.json: !to-json-str $Values.config
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Helm key is `checksum:`; knarr key is `checksum/config:`. Different document.
 
 </td></tr>
 </table>

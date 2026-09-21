@@ -117,21 +117,12 @@ kind: Ingress
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-$when: !or
-  - !ref $Values.ingress.enabled
-  - !ref $Values.mesh.enabled
-$then:
-  kind: Ingress
-  name: !ref $Values.name
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `or` short-circuits; knarr `!or` evaluates every child.
+Helm `or` of missing is false. Knarr `!or` of a missing required path is an error. `!or` also evaluates every child.
 
 </td></tr>
 </table>
@@ -146,18 +137,12 @@ host: {{ or .Values.host "localhost" }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-# default — key stays
-host: !ref "$Values?.host ?? 'localhost'"
-# omit
-host?: !ref $Values?.host
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `or` treats `""` as false and takes the default; knarr `??` fills omit only (`""` wins). `?:` omits the key.
+Helm `or` treats `""` as false. Knarr `??` fills omit only (`""` wins).
 
 </td></tr>
 </table>
@@ -174,19 +159,12 @@ kind: Ingress
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-$when: !expr "$Values?.ingress.enabled || $Values?.mesh.enabled ?? false"
-$then:
-  kind: Ingress
-  name: !ref $Values.name
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Missing nested keys are empty in Helm; knarr omit is not false. `true || omit` is true and does not take `?? false`.
+Missing nested keys are empty in Helm. Knarr omit is not false. `true || omit` is true and does not take `?? false`.
 
 </td></tr>
 </table>

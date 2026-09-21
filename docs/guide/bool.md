@@ -19,6 +19,7 @@ enabled?: !bool $Values?.enabled
 ```yaml
 !bind
 $HA: !bool $Values.ha
+---
 !emit
 $when: !ref $HA
 $then:
@@ -48,6 +49,7 @@ Already a bool — `!ref $Values.service.enabled` is enough; `!bool` is redundan
 ```yaml
 !bind
 $TlsOn: !bool $Values.ingress.tls
+---
 !emit
 tls?: !match
   $if: !ref $TlsOn
@@ -135,21 +137,12 @@ kind: PodDisruptionBudget
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$HA: !bool $Values.ha
-!emit
-$when: !ref $HA
-$then:
-  kind: PodDisruptionBudget
-  name: !ref $Values.name
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `eq ... "true"` compares strings; knarr `!bool` then `$when`.
+Helm prints only `kind`. Extra `$then` keys change the document.
 
 </td></tr>
 </table>
@@ -158,7 +151,7 @@ Helm `eq ... "true"` compares strings; knarr `!bool` then `$when`.
 <tr><th>Helm</th><td>
 
 ```gotemplate
-enabled: {{ .Values.service.enabled }}
+enabled: {{ required "enabled" .Values.service.enabled }}
 ```
 
 </td></tr>
@@ -172,7 +165,7 @@ enabled: !ref $Values.service.enabled
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -189,15 +182,12 @@ kind: Ingress
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$TlsOn: !bool $Values.ingress.tls
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` is truthiness (any non-empty); knarr `!bool` only accepts a bool or `"true"` / `"false"`.
+Helm `if` is truthiness. Knarr `!bool` accepts only a bool or `"true"` / `"false"`.
 
 </td></tr>
 </table>

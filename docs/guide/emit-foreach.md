@@ -202,6 +202,7 @@ $yield:
 
 ```gotemplate
 {{- range .Values.workers }}
+---
 kind: Pod
 name: {{ .name }}
 {{- end }}
@@ -212,7 +213,7 @@ name: {{ .name }}
 
 ```yaml
 !emit-foreach
-$over: !ref $Values.workers
+$over: !ref $Values?.workers
 $as: $Worker
 $yield:
   kind: Pod
@@ -222,7 +223,7 @@ $yield:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm prints `---` between items; knarr emits one document per item.
+Same YAML documents. Omit `$over` → zero documents.
 
 </td></tr>
 </table>
@@ -233,6 +234,7 @@ Helm prints `---` between items; knarr emits one document per item.
 ```gotemplate
 {{- range .Values.workers }}
 {{- if .enabled }}
+---
 kind: Pod
 name: {{ .name }}
 {{- end }}
@@ -244,9 +246,9 @@ name: {{ .name }}
 
 ```yaml
 !emit-foreach
-$over: !ref $Values.workers
+$over: !ref $Values?.workers
 $as: $Worker
-$filter: !ref $Worker.enabled
+$filter: !ref $Worker.enabled ?? false
 $yield:
   kind: Pod
   name: !ref $Worker.name
@@ -255,7 +257,7 @@ $yield:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same YAML documents when `enabled` is bool or missing.
 
 </td></tr>
 </table>
@@ -265,6 +267,7 @@ Same behavior.
 
 ```gotemplate
 {{- range $comp, $image := .Values.images }}
+---
 kind: Deployment
 name: {{ $comp }}
 {{- end }}
@@ -275,7 +278,7 @@ name: {{ $comp }}
 
 ```yaml
 !emit-foreach
-$over: !ref $Values.images
+$over: !ref $Values?.images
 $as: $Image
 $key: $Comp
 $yield:
@@ -286,7 +289,7 @@ $yield:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Same YAML documents. Omit `$over` → zero documents.
 
 </td></tr>
 </table>
@@ -306,20 +309,12 @@ name: {{ .name }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit-foreach
-$when: !ref $Values.deployWorkers ?? false
-$over: !ref $Values.workers
-$as: $Worker
-$yield:
-  kind: Pod
-  name: !ref $Worker.name
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Helm `if` is truthiness. Helm `range` here is not `---` documents. Knarr `$when` needs a bool.
 
 </td></tr>
 </table>

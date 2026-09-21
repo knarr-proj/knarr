@@ -131,19 +131,12 @@ kind: ConfigMap
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-$when: !not-empty $Values?.sidecars
-$then:
-  kind: ConfigMap
-  name: sidecars
-$else: ""
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if .Values.sidecars` is truthiness; knarr `$when` needs a bool (`!not-empty`).
+Helm prints only `kind`. Extra `$then` keys change the document.
 
 </td></tr>
 </table>
@@ -158,17 +151,12 @@ name: {{ required "set name" .Values.name }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!validation
-$rules:
-  - !not-empty $Values?.name
-$fail: "set name"
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `required` is a pipe; knarr `!validation` is a document.
+Helm `required` prints the value or fails. Knarr `!validation` does not print `name`.
 
 </td></tr>
 </table>
@@ -188,20 +176,12 @@ ports:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-ports: !foreach
-  $over: !ref $Values.workers
-  $as: $W
-  $filter: !not-empty $W?.ports
-  $yield:
-    name: !ref $W.name
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+Empty range: Helm `ports:` null; knarr `ports: []`.
 
 </td></tr>
 </table>
@@ -219,15 +199,12 @@ nodeSelector:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!emit
-nodeSelector?: !ref $Values?.nodeSelector
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `with` skips empty/nil; knarr `?:` omits missing/omit only.
+Helm `with` skips a present empty `{}`. Knarr `?:` does not.
 
 </td></tr>
 </table>

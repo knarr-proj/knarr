@@ -35,10 +35,12 @@ Wrong scalar types are **always** an error, even in `soft`.
 
 ```yaml
 !policy strict
+---
 !typedef
 $ValuesType:
   name: string
   replicas: { type: int, default: 1 }
+---
 !bind
 $Values: !$ValuesType
   name: api
@@ -50,9 +52,11 @@ $Values: !$ValuesType
 
 ```yaml
 !policy soft
+---
 !typedef
 $ValuesType:
   name: string
+---
 !bind
 $Values: !$ValuesType
   name: api
@@ -69,6 +73,7 @@ $Values: !$ValuesType
 
 ```yaml
 !policy soft
+---
 !emit
 image: !ref $Values.image
 # missing image still errors; soft does not change !ref
@@ -89,6 +94,7 @@ image?: !ref $Values?.image
 !bind
 $Values:
   name: api
+---
 !policy strict
 # !policy must be the first document
 ```
@@ -97,6 +103,7 @@ $Values:
 
 ```yaml
 !policy strict
+---
 !typedef
 $ValuesType:
   name: string
@@ -108,6 +115,7 @@ $ValuesType:
 
 ```yaml
 !policy strict
+---
 !bind
 $Values:
   name: api
@@ -118,9 +126,11 @@ $Values:
 
 ```yaml
 !policy strict
+---
 !typedef
 $ValuesType:
   name: string
+---
 !bind
 $Values: !$ValuesType
   name: api
@@ -148,17 +158,12 @@ $Values: !$ValuesType
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!policy strict
-!typedef
-$ValuesType:
-  name: string
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm schema is often a sidecar `values.schema.json`; knarr `!policy` + `!typedef` live in the program.
+Helm JSON schema is a sidecar file. Knarr `!policy` is not that file.
 
 </td></tr>
 </table>
@@ -181,7 +186,7 @@ name: !ref $Values.name
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `required` is a function; knarr missing `!ref` without `?.` is always an error (no `!policy` needed).
+Same result. Fail text differs.
 
 </td></tr>
 </table>
@@ -198,18 +203,12 @@ extra: true
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!policy soft
-!bind
-$Values: !$ValuesType
-  name: api
-  extra: true
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm keeps extra keys unless a JSON schema forbids them; knarr `strict` rejects them, `soft` keeps them.
+Helm `values.yaml` is not knarr stdout. `strict` vs `soft` is knarr policy, not a Helm render pair.
 
 </td></tr>
 </table>

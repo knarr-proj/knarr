@@ -54,6 +54,7 @@ $Idx: !range
 $Idx: !range
   $from: 0
   $until: !ref $Values.completions
+---
 !emit-foreach
 $over: !ref $Idx
 $as: $I
@@ -71,6 +72,7 @@ $yield:
 $Idx?: !range
   $from: 0
   $until: !ref $Values?.replicas
+---
 !emit-foreach
 $over: !ref $Idx?
 $as: $I
@@ -164,6 +166,7 @@ env: !foreach
 $Idx: !range
   $from: 0
   $until: 3
+---
 !emit
 env: !foreach
   $over: !ref $Idx
@@ -279,12 +282,15 @@ idx:
 $Idx: !range
   $from: 0
   $until: 3
+---
+!emit
+idx: !ref $Idx
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `until` starts at 0 without writing it. Knarr requires `$from: 0`. Both exclusive: `0,1,2`.
+Same list `0,1,2`. Knarr writes `$from: 0`.
 
 </td></tr>
 </table>
@@ -308,12 +314,15 @@ $Idx: !range
   $from: 0
   $to: 2
   $step: 1
+---
+!emit
+idx: !ref $Idx
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `untilStep` end is exclusive (`0,1,2`); knarr `$to` is inclusive (`$until` is exclusive).
+Same list `0,1,2`. Helm end exclusive; knarr `$to` inclusive.
 
 </td></tr>
 </table>
@@ -331,23 +340,12 @@ name: {{ . }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Idx: !range
-  $from: 0
-  $until: !ref $Values.completions
-!emit-foreach
-$over: !ref $Idx
-$as: $I
-$yield:
-  kind: Job
-  name: !str $I
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm prints the int as the name; knarr needs `!str` for a name string. Knarr writes `$from: 0`.
+Helm `name:` is an int. Knarr field names are strings (`!str`). Helm `range` here is not `---` documents.
 
 </td></tr>
 </table>

@@ -4,8 +4,8 @@ These rules apply to every knarr file. This page is the checklist for authors.
 
 ## Files and documents
 
-- The program is **YAML 1.2**, multiple documents separated by `---`.
-- Tagged scalars (`!ref`, `!expr`, `!not`, coerce) quote as YAML 1.2: `[` `{` `]` `}` `,`, `: ` (colon+space), and ` #` need quotes **anywhere**, not only at line start. `/` and `?? false` / `||` do not. A parser that accepts `?? [80, 443]` unquoted is not the knarr rule.
+- The program is **YAML 1.2**, multiple documents separated by `---`. Guide examples with two document tags (`!bind` then `!emit`, …) must show that `---` too.
+- Tagged scalars (`!ref`, `!expr`, `!not`, coerce) quote as YAML 1.2: `[` `{` `]` `}` `,`, `: ` (colon+space), and ` #` need quotes **anywhere**, not only at line start. `/` and `?? false` / `||` do not. A parser that accepts `?? [80, 443]` unquoted is not the knarr rule: knarr still rejects it. A planned negative golden covers that.
 - Every document has a **local tag**: `!bind`, `!emit`, `!emit-foreach`, `!import`, `!validation`, or prelude `!policy` / `!typedef`.
 - After `!import` flattening, order is: optional `!policy` (must be first), optional `!typedef`, then `!bind` / `!validation` / `!emit` / `!emit-foreach` mixed.
 - **No anchors** (`&`, `*`, `<<`) in knarr documents. Data files loaded with [`!read`](../guide/read.md) may use them; knarr sees the expanded tree.
@@ -81,6 +81,10 @@ Kubernetes quantities like `"500m"` stay **strings**.
 - Key order in a mapping is **source order**, not sorted (JSON checksums are the exception: sorted keys, Go `json.Marshal` canon).
 - Stdout is YAML 1.2, UTF-8, LF, 2-space block style.
 - Zero manifests (all `$else: ""`, empty loops, false `$when` on `!emit-foreach`) → empty stdout, exit 0.
+
+## Helm comparison in the guide
+
+Construct pages compare Helm only when the **result matches**, or they state **impossible** with no fake knarr snippet. “Almost the same” is not a row.
 
 ## Habits to drop
 

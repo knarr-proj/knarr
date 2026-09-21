@@ -31,6 +31,7 @@ $Values: !read values.yaml
 ```yaml
 !bind
 $AppCfg: !read files/app.yaml
+---
 !emit
 app.yaml: !to-json-str $AppCfg
 ```
@@ -66,6 +67,7 @@ $Probe: !read probes/http.knarr
 ```yaml
 !bind
 $Probe: !read probes/http.yaml
+---
 !emit
 livenessProbe: !ref $Probe
 # data files use !read; program files use !import
@@ -128,15 +130,12 @@ values: {{ .Files.Get "values.yaml" | fromYaml }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Values: !read values.yaml
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `Files.Get` is a string, then `fromYaml`; knarr `!read` is already a YAML tree.
+Helm embeds `Files.Get | fromYaml` in a field. Knarr `!read` is a bind tree, not that stdout.
 
 </td></tr>
 </table>
@@ -151,15 +150,12 @@ app.yaml: {{ .Files.Get "files/app.yaml" }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$AppCfg: !read files/app.yaml
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `Get` is raw text; knarr YAML-parses the file.
+Helm `Get` is raw text. Knarr `!read` YAML-parses the file.
 
 </td></tr>
 </table>
@@ -177,6 +173,7 @@ livenessProbe: {{ .Files.Get "probes/http.yaml" | fromYaml }}
 ```yaml
 !bind
 $Probe: !read probes/http.yaml
+---
 !emit
 livenessProbe: !ref $Probe
 ```
@@ -199,15 +196,12 @@ extra: {{ .Files.Get "overrides.json" | fromJson }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Extra: !read overrides.json
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `fromJson` parses JSON; knarr `!read` parses YAML (JSON is a subset).
+Helm `fromJson` numbers are float64. Knarr YAML/JSON numbers without `.` are int.
 
 </td></tr>
 </table>

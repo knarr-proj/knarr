@@ -39,6 +39,7 @@ $FullName: !format
   - "%s-%s"
   - !ref $Values.env
   - !ref $Values.name
+---
 !emit
 name: !ref $FullName
 ```
@@ -55,6 +56,7 @@ $Values: !read values.yaml
 ```yaml
 !bind
 $Tls?: !ref $Values?.tls
+---
 !emit
 tls?: !ref $Tls?
 ```
@@ -64,6 +66,7 @@ tls?: !ref $Tls?
 ```yaml
 !bind
 $Values: !read values.yaml
+---
 !bind
 $Port: !int $Values.port
 ```
@@ -134,6 +137,7 @@ $Rel: prod
 ```yaml
 !bind
 $Tls?: !ref $Values?.tls
+---
 !emit
 host: !ref $Tls.host
 # optional bind is $Tls?, not $Tls
@@ -144,6 +148,7 @@ host: !ref $Tls.host
 ```yaml
 !bind
 $Tls?: !ref $Values?.tls
+---
 !emit
 host?: !ref $Tls?.host
 # pair $Tls? / ?. with ?: on the output key
@@ -175,21 +180,12 @@ name: api
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Values:
-  name: api
-  env: prod
-$FullName: !format
-  - "%s-%s"
-  - !ref $Values.env
-  - !ref $Values.name
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm splits `values.yaml` and `_helpers.tpl`; knarr names everything in one `!bind`. `printf` stays in the template; `!format` is bind-only.
+Helm splits `values.yaml` and `_helpers.tpl`. That is not knarr stdout.
 
 </td></tr>
 </table>
@@ -198,7 +194,7 @@ Helm splits `values.yaml` and `_helpers.tpl`; knarr names everything in one `!bi
 <tr><th>Helm</th><td>
 
 ```gotemplate
-replicas: {{ .Values.replicas }}
+replicas: {{ required "replicas" .Values.replicas }}
 ```
 
 </td></tr>
@@ -208,6 +204,7 @@ replicas: {{ .Values.replicas }}
 !bind
 $Values:
   replicas: 3
+---
 !emit
 replicas: !ref $Values.replicas
 ```
@@ -215,7 +212,7 @@ replicas: !ref $Values.replicas
 </td></tr>
 <tr><th>Difference</th><td>
 
-Missing `.Values.replicas` is empty in Helm; knarr `!ref` without `?.` is an error.
+Same result when the key is present. Fail text differs.
 
 </td></tr>
 </table>
@@ -231,17 +228,12 @@ tls: {{ toYaml $tls | nindent 4 }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Tls?: !ref $Values?.tls
-!emit
-tls?: !ref $Tls?
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm assigns even when `.Values.tls` is nil; knarr `$Tls?:` is omit and must be paired with `?:` / `?.`.
+Helm `$tls :=` assigns nil. Knarr `$Tls?:` is omit, not a nil value.
 
 </td></tr>
 </table>
@@ -256,17 +248,12 @@ name: {{ .Release.Name }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-```yaml
-!bind
-$Rel: prod
-!emit
-name: !ref $Rel
-```
+Impossible in v1.
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-No `.Release` inject. `$Release` is reserved and unused in v1; pass the instance name as `$Rel`.
+No `.Release` inject. `$Release` is reserved.
 
 </td></tr>
 </table>
