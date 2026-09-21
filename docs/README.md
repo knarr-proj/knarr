@@ -1,8 +1,8 @@
 # knarr documentation
 
-**knarr** is a YAML 1.2 transform language and renderer for Kubernetes manifests. It is a **render-only** alternative to `helm template`: no install, upgrade, rollback, or release objects.
+**knarr** is a YAML 1.2 language for transforming **any YAML**. You write valid YAML with local tags (`!bind`, `!emit`, `!ref`, …). Bindings use `$Name`. Output is a multi-document YAML stream of whatever documents you emit.
 
-You write valid YAML with local tags (`!bind`, `!emit`, `!ref`, …). Bindings use `$Name`. Output is a multi-document YAML stream of manifests.
+Kubernetes manifests are a common use. Helm is a useful comparison (`helm template` without install/upgrade/rollback), not a limit of the language.
 
 > The CLI contract is `knarr render <file> [-o out] [--trace]`. There is no `-f` / `--set` overlay: values live in files (`!bind`, `!read`, `!import`).
 

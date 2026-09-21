@@ -1,6 +1,6 @@
 # `!emit`
 
-An **emit document** is exactly one Kubernetes manifest on stdout (unless `$when` is false and `$else` is `""`).
+An **emit document** is exactly one YAML document on stdout (unless `$when` is false and `$else` is `""`). The document may be a Kubernetes manifest or any other YAML mapping.
 
 **Helm:** a file under `templates/` — [vs Helm](emit-vs-helm.md).
 

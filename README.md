@@ -1,8 +1,10 @@
 # knarr
 
-A YAML-only transform language for Kubernetes manifests. A **render-only** alternative to `helm template`: you describe values and output with YAML tags instead of Go `{{ }}`.
+A YAML-only language for **transforming any YAML**: values in, documents out. You write valid YAML 1.2 with local tags (`!bind`, `!emit`, `!ref`, …) instead of embedding Go `{{ }}` in strings.
 
-The name is a Viking cargo ship (*knǫrr*) — it carries manifests.
+Kubernetes manifests are a common target (and the docs often use them as examples). The language itself is not Kubernetes-specific.
+
+The name is a Viking cargo ship (*knǫrr*) — it carries YAML.
 
 > **Proof of concept.** This repository documents a language. It is **not** a finished tool, not a Helm replacement for install/upgrade, and **not** production-ready.
 
@@ -16,13 +18,13 @@ The name is a Viking cargo ship (*knǫrr*) — it carries manifests.
 | Helm lifecycle (`install`, releases, hooks) | Out of scope |
 | Stability | Expect breaking changes while the renderer is built |
 
-Do not use knarr to ship cluster config today. There is nothing to install.
+Do not use knarr to generate production YAML today. There is nothing to install.
 
 ## What this PoC is for
 
-- Show that Helm-chart complexity can be expressed as **YAML 1.2 + local tags** (`!bind`, `!emit`, `!ref`, …), without embedding templates in strings.
+- Show that parameterized YAML (Helm charts, Compose files, CRDs, app config, CI pipelines, …) can be expressed as **YAML 1.2 + local tags**, without embedding templates in strings.
 - Freeze a small, declarative language so a future Rust CLI (`knarr render`) has a target.
-- Give authors a [Getting Started](docs/getting-started.md) path and a construct-by-construct [guide](docs/README.md) (including Helm comparisons).
+- Give authors a [Getting Started](docs/getting-started.md) path and a construct-by-construct [guide](docs/README.md) (Helm is compared because it is the usual baseline, not because knarr is Kubernetes-only).
 
 ## What this PoC is not
 
@@ -36,34 +38,18 @@ Do not use knarr to ship cluster config today. There is nothing to install.
 ---
 !bind
 $Values:
-  name: demo
-  image: ghcr.io/acme/demo:1.2.3
-  replicas: 2
-  port: 8080
+  name: api
+  region: eu-west
+  replicas: 3
 ---
 !emit
-apiVersion: apps/v1
-kind: Deployment
-metadata:
+service:
   name: !ref $Values.name
-spec:
+  region: !ref $Values.region
   replicas: !ref $Values.replicas
-  selector:
-    matchLabels:
-      app: !ref $Values.name
-  template:
-    metadata:
-      labels:
-        app: !ref $Values.name
-    spec:
-      containers:
-        - name: app
-          image: !ref $Values.image
-          ports:
-            - containerPort: !ref $Values.port
 ```
 
-Bindings use `$Name`. Lookup is `!ref`. There is no `{{ .Values.name }}`.
+Bindings use `$Name`. Lookup is `!ref`. There is no `{{ .Values.name }}`. The output is a YAML document of any shape — a Deployment, a Compose service, or your own schema.
 
 ## Planned CLI
 
@@ -81,8 +67,8 @@ One input file, local files only. No stdin, no `-f` / `--set`. Values live in th
 
 | Document | What it is |
 |----------|------------|
-| [Getting Started](docs/getting-started.md) | Smallest chart: values → Deployment + Service |
-| [Language guide](docs/README.md) | Every construct: syntax, Kubernetes examples, Helm mapping |
+| [Getting Started](docs/getting-started.md) | Smallest program: values → YAML documents |
+| [Language guide](docs/README.md) | Every construct: syntax, examples, Helm mapping |
 | [Tips and Tricks](docs/tips-and-tricks.md) | Everyday patterns |
 | [General Conventions](docs/best-practices/general-conventions.md) | Naming, `$` keys, omit, bind vs emit |
 
@@ -98,8 +84,8 @@ One input file, local files only. No stdin, no `-f` / `--set`. Values live in th
 
 This is an early public sketch. Useful input:
 
-- Does the [guide](docs/README.md) match how you would rewrite a real chart?
-- Which Helm patterns are still awkward or missing from the docs?
+- Does the [guide](docs/README.md) match how you would generate real YAML (Helm charts or otherwise)?
+- Which patterns are still awkward or missing from the docs?
 
 Please open an issue. Language syntax is intentionally conservative: it is better to forbid a construct than to ship it and take it back.
 

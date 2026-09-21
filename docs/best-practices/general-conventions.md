@@ -20,7 +20,7 @@ These rules apply to every knarr file. They are the same laws as [SPEC.md](../..
 | Type tag | `!$` + BindingName | `$Values: !$ValuesType` |
 
 - Bare `when:`, `over:`, `sep:`, `of:` on knarr meta mappings is an **error**, not a synonym.
-- Kubernetes keys in `!emit` / `$yield` / `$then` stay unprefixed: `apiVersion:`, `metadata:`.
+- Keys in `!emit` / `$yield` / `$then` stay unprefixed. They are ordinary YAML keys of your schema (`apiVersion:`, `services:`, `metadata:`, …), not knarr `$` keys.
 - **`$Release`**, **`$Chart`**, **`$Capabilities`** are reserved. Do not bind or reference them in v1.
 
 ## One tag per node

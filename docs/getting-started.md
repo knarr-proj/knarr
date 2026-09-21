@@ -1,6 +1,6 @@
 # Getting Started
 
-This page is enough to render a Deployment and a Service. Everything else lives in the [guide](README.md#language-guide).
+This page is enough to emit YAML from values. The walkthrough uses a Deployment and a Service; the same tags work for any schema. Everything else lives in the [guide](README.md#language-guide).
 
 ## What knarr is
 
@@ -9,7 +9,7 @@ A knarr file is **YAML 1.2** with several documents (`---`). Each document has a
 | Tag | Role |
 |-----|------|
 | `!bind` | Name values (`$Values`, `$AppName`, …). Not printed. |
-| `!emit` | One Kubernetes manifest in stdout. |
+| `!emit` | One YAML document on stdout (any schema). |
 
 Look up a value with **`!ref $Name`**. There is no `{{ }}`.
 

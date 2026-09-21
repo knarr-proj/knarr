@@ -1,8 +1,8 @@
 # `!emit-foreach`
 
-Emit **N manifests** — one YAML document per item (Helm `range` at the top of a template file).
+Emit **N YAML documents** — one document per item (Helm `range` at the top of a template file).
 
-For lists **inside** one spec (env, ports), use [`!foreach`](foreach.md), not this tag.
+For lists **inside** one mapping (env, ports, extra hosts), use [`!foreach`](foreach.md), not this tag.
 
 **Helm:** `{{- range .Values.workers }}` around a whole resource — [vs Helm](emit-foreach-vs-helm.md).
 
