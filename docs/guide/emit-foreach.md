@@ -10,7 +10,7 @@ For lists **inside** one mapping (env, ports, extra hosts), use [`!foreach`](for
 !emit-foreach
 $over: !ref $Values.workers
 $as: $Worker
-$filter: !expr "$Worker.enabled"    # optional
+$filter: !ref $Worker.enabled    # optional
 $key: $Kind                       # optional; only if $over is a mapping
 $when: !ref $Values.deployWorkers ?? false  # optional gate
 $yield:

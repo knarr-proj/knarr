@@ -62,7 +62,7 @@ Optional mappings: every child key uses `?:` if and only if the parent does. An 
 
 - [`!expr`](../guide/expr.md) is a knarr grammar (CEL-shaped tokens, not the CEL spec).
 - **No function calls:** `len()`, `printf()`, `size()`, `has()` are parse errors.
-- One `??` defaults a whole [`!ref`](../guide/ref.md) or whole `!expr`. Write `!ref` when there is no operator.
+- One `??` defaults a whole [`!ref`](../guide/ref.md) or whole `!expr` that computes. A bare path in `!expr` is an error.
 - String glue is [`!format`](../guide/format.md) or [`!join`](../guide/join.md), not `+`.
 - `+` on two ints is addition; if either side is float, both become float.
 - List/map literals in `!expr` use knarr/CEL shape: `[80, 443]`, `{'app': $Values.name}` — not YAML `{app: 1}`.

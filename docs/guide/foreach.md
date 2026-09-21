@@ -10,7 +10,7 @@ Many resources: [`!emit-foreach`](emit-foreach.md).
 field: !foreach
   $over: !ref $Values.env
   $as: $E
-  $filter: !expr "$E.enabled"   # optional
+  $filter: !ref $E.enabled   # optional
   $key: $K                      # optional; maps only
   $yield:
     name: !ref $E.name

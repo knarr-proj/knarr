@@ -43,7 +43,7 @@ Document-level `if`:
 
 ```yaml
 !emit
-$when: !expr "$Values.service.enabled"
+$when: !ref $Values.service.enabled
 $then:
   apiVersion: v1
   kind: Service

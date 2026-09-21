@@ -53,7 +53,7 @@ $Msg: !format
   - !ref $Values.name
 !validation
 $rules:
-  - !expr "$Values?.image"
+  - !ref $Values?.image
 $warning: !ref $Msg
 ```
 
@@ -211,7 +211,7 @@ image: {{ .Values.image }}
 ```yaml
 !validation
 $rules:
-  - !expr "$Values?.image"
+  - !ref $Values?.image
 $warning: "using default image"
 ```
 

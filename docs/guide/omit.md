@@ -41,7 +41,7 @@ $when: !expr "$Values?.a || $Values?.b ?? false"
 $sum: !expr "$Values?.a + $Values?.b ?? 0"
 ```
 
-`true || omit` is true. Write [`!ref`](ref.md) when there is no operator.
+`true || omit` is true. A path with no operator is [`!ref`](ref.md) (not `!expr`).
 
 ### Optional bind
 

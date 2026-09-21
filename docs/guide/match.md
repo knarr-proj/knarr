@@ -71,7 +71,7 @@ type: !match
 
 ```yaml
 !emit
-replicas !if: !expr "$Values.ha"
+replicas !if: !ref $Values.ha
 # tags belong on the value, not on the key
 ```
 

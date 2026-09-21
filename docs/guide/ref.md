@@ -22,7 +22,7 @@ Tagged scalar, `RefScalar`:
 - `.ident` steps, `[n]` indexes, `['key']` for non-idents.
 - Quote the YAML scalar when it contains `[`, `{`, or a quoted string default.
 - One `??` for the **whole** scalar. N-way is [`!pick`](pick.md). The same `??` exists on [`!expr`](expr.md) for a formula.
-- A path with `??` and no operator: write **`!ref`**, even though `!expr` would match.
+- A path with `??` and no operator is **`!ref`**. The same text in `!expr` is an error (no computation).
 - Dynamic `$Map[$Key]` is **`!expr` only**, not `!ref`.
 - One tag per node. Not `!!ref`.
 
@@ -102,7 +102,7 @@ replicas: !expr "$Values.replicas + 1"
 ```yaml
 !emit
 host: !expr "$Values?.tls?.host ?? 'localhost'"
-# legal, but a field default is !ref
+# no computation: use !ref
 ```
 
 </td><td>
@@ -110,7 +110,7 @@ host: !expr "$Values?.tls?.host ?? 'localhost'"
 ```yaml
 !emit
 host: !ref "$Values?.tls?.host ?? 'localhost'"
-# no operator → !ref
+# path + default is !ref
 ```
 
 </td></tr>
@@ -174,7 +174,7 @@ name: !ref $Values.name
 
 ## Comparison with Helm
 
-`!ref` is field access: path, `?.`, one `??` on the whole scalar. Missing without `?.` is an error, not empty. Sprig `dig` is nested `?.`; a non-empty default is `??`. The same path+`??` in `!expr` matches; write `!ref`.
+`!ref` is field access: path, `?.`, one `??` on the whole scalar. Missing without `?.` is an error, not empty. Sprig `dig` is nested `?.`; a non-empty default is `??`. The same path in `!expr` is an error — no computation.
 
 <table>
 <tr><th>Helm</th><td>

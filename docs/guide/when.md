@@ -68,7 +68,7 @@ $when: !and
 ```yaml
 !emit
 replicas:
-  $when: !expr "$Values.ha"
+  $when: !ref $Values.ha
   $then: 3
   $else: 1
 # $when is not allowed on a field

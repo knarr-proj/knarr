@@ -16,7 +16,7 @@ name: !ref $Values.name
 
 ```yaml
 !emit
-$when: !expr "$Values.service.enabled"
+$when: !ref $Values.service.enabled
 $then:
   kind: Service
   name: !ref $Values.name
@@ -72,7 +72,7 @@ $else: ""
 
 ```yaml
 !emit
-$when: !expr "$Values.useJob"
+$when: !ref $Values.useJob
 $then:
   kind: Job
   name: !ref $Values.name
@@ -271,7 +271,7 @@ kind: Deployment
 
 ```yaml
 !emit
-$when: !expr "$Values.useJob"
+$when: !ref $Values.useJob
 $then:
   kind: Job
 $else:

@@ -12,7 +12,7 @@ Tagged **scalar** only (not `{ }` / `[ ]` as the tag body).
 
 The lexer strips `$` from binding names outside quotes. You still **write** `$Values`.
 
-Allowed: literals (including `[80, 443]` and `{'app': $X}`), `$Name` paths, `&&` `||` `!` `==` `!=` `<` `>` `<=` `>=`, `+ - * /` (int, or float with promotion). One top-level `??` defaults the **whole** formula if it has no result (omit). A field without operators: write [`!ref`](ref.md).
+Allowed: literals (including `[80, 443]` and `{'app': $X}`), `$Name` paths **inside** a formula, `&&` `||` `!` `==` `!=` `<` `>` `<=` `>=`, `+ - * /` (int, or float with promotion). One top-level `??` defaults the **whole** formula if it has no result (omit). A path with no operator (even with `??`) is an error — use [`!ref`](ref.md).
 
 Forbidden: `ident(`, ternary `c ? t : f`, string/list `+`.
 
@@ -42,7 +42,7 @@ $when: !expr "$Values?.ingress.enabled || $Values?.mesh.enabled ?? false"
 $when: !expr "$Values?.a || $Values?.b || $Values?.c ?? false"
 ```
 
-A path with no operator and `??` is the same as [`!ref`](ref.md). Write `!ref`.
+A path with no operator and `??` is an error. Write [`!ref`](ref.md).
 
 ### Labels map literal
 
@@ -92,7 +92,7 @@ $n: !len $Values.workers
 ```yaml
 !bind
 $Ports: !expr "$Values?.ports ?? [80, 443]"
-# a field default: write !ref (same result)
+# no computation: use !ref
 ```
 
 </td><td>
@@ -100,7 +100,7 @@ $Ports: !expr "$Values?.ports ?? [80, 443]"
 ```yaml
 !bind
 $Ports: !ref "$Values?.ports ?? [80, 443]"
-# no operator → !ref
+# path + default is !ref
 ```
 
 </td></tr>
@@ -172,8 +172,8 @@ replicas: !expr "Values.replicas"
 
 ```yaml
 !emit
-replicas: !expr "$Values.replicas"
-# $Values.replicas is the path
+replicas: !ref $Values.replicas
+# a path with no operator is !ref
 ```
 
 </td></tr>
@@ -189,7 +189,7 @@ replicas: !expr "$Values.replicas"
 
 ## Comparison with Helm
 
-`!expr` is operators. One `??` may default the whole formula. No `len()`, `printf()`, `int()`.
+`!expr` is operators, dyn-index, or list/map literals. One `??` may default the whole formula. A bare path is [`!ref`](ref.md). No `len()`, `printf()`, `int()`.
 
 <table>
 <tr><th>Helm</th><td>
