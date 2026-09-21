@@ -79,14 +79,14 @@ The last must exist.
 `!pick` skips **omit** only. `""` / `0` / `false` win and do not fall through (`coalesce` would skip them).
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 name: {{ coalesce .Values.fullnameOverride .Values.name "app" }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -98,18 +98,23 @@ metadata:
     - app
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 `coalesce` skips `""` / `false` / `0`; `!pick` skips omit only.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 image: {{ .Values.image.full | default .Values.image.repository | default "ghcr.io/acme/app:latest" }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -121,18 +126,23 @@ spec:
     - ghcr.io/acme/app:latest
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `| default` skips empty strings; knarr `!pick` keeps `""`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 containerPort: {{ .Values.port | default 8080 }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -144,7 +154,8 @@ spec:
         - 8080
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 `0` is empty for Helm `default`; knarr keeps `0`.
 

@@ -68,15 +68,15 @@ Pair omit markers.
 `!b64enc` is a tagged scalar on a **string** (RFC 4648, no newlines).
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 data:
   password: {{ .Values.password | b64enc }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -86,18 +86,23 @@ data:
   username: !b64enc $Values.user
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 token: {{ .Values.token | b64enc }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -109,18 +114,23 @@ data:
   token?: !ref $Tok?
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Missing `.Values.token` is empty in Helm; knarr omit pair drops the key.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 tls.crt: {{ .Values.certPem | b64enc }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -129,9 +139,10 @@ data:
   tls.crt: !b64enc $Values.certPem
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
 </table>

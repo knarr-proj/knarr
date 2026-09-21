@@ -77,8 +77,7 @@ Missing `tls` errors.
 `!empty` is true for omit, `""`, `[]`, `{}`, `false`, `0`. Missing without `?.` still errors.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if empty .Values.tls }}
@@ -86,7 +85,8 @@ kind: ConfigMap
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -100,12 +100,16 @@ $then:
 $else: ""
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `empty` is a function in `if`; knarr `!empty` is a bool tag. Missing without `?.` still errors.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 deprecated: {{ .Values.deprecated }}
@@ -114,7 +118,8 @@ deprecated: {{ .Values.deprecated }}
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -124,12 +129,16 @@ $rules:
 $fail: "remove deprecated"
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `fail` is inline; knarr `$fail` is on the validation document.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 env:
@@ -140,7 +149,8 @@ env:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -155,9 +165,10 @@ spec:
           name: !ref $E.name
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
 </table>

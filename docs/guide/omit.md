@@ -121,8 +121,7 @@ Parent `?:` requires every child `?:` as well.
 Absence is written: key `?:` **and** path `?.`. `??` keeps the key with a default.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- with .Values.affinity }}
@@ -131,7 +130,8 @@ affinity:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -140,18 +140,23 @@ spec:
   affinity?: !ref $Values?.affinity
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `with` skips empty/nil; knarr `?:` + `?.` omit missing/omit, not a present `{}`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 host: {{ .Values.tls.host | default "localhost" }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -160,18 +165,23 @@ spec:
   host: !expr "$Values.tls?.host ?? 'localhost'"
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `| default` replaces `""`; knarr `??` fills omit only, not `""`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 cert: {{ dig "tls" "cert" "" .Values }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -180,18 +190,23 @@ spec:
   cert?: !ref $Values?.tls?.cert
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `dig` with `""` still emits `cert:` as an empty string; knarr `?:` omits the key.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 name: {{ coalesce .Values.fullnameOverride .Values.name "app" }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -203,12 +218,16 @@ metadata:
     - app
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 `coalesce` skips `""` / `false` / `0`; `!pick` skips omit only.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if .Values.tls }}
@@ -217,7 +236,8 @@ spec:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -229,7 +249,8 @@ spec:
   tls?: !ref $Tls?
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `if` is truthiness; knarr optional bind is omit.
 

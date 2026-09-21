@@ -80,14 +80,14 @@ Either is valid; `!join` is simpler for one delimiter.
 `!join` is bind-only: `$sep` + `$over` → string.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 hosts: {{ join "," .Values.hosts }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -101,18 +101,23 @@ data:
   hosts: !ref $HostList
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 name: {{ .Values.name }}.svc.cluster.local
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -126,18 +131,23 @@ $Name: !join
     - local
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm concatenates in the template; knarr `!join` is bind-only.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 pull: {{ join "," .Values.pullSecrets }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -147,9 +157,10 @@ $Pull: !join
   $over: !ref $Values.pullSecrets
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
 </table>

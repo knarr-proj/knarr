@@ -97,14 +97,14 @@ Pick one.
 `!validation` is `required` / `fail` as a document, not a pipeline function.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 name: {{ required "set name" .Values.name }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -114,12 +114,16 @@ $rules:
 $fail: "set Values.name"
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm fails at that pipe; knarr `!validation` is a document that runs `$rules`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 legacy: {{ .Values.legacy }}
@@ -128,7 +132,8 @@ legacy: {{ .Values.legacy }}
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -138,12 +143,16 @@ $rules:
 $fail: "remove Values.legacy"
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `fail` is inline; knarr `$fail` is on the validation document. Helm `if .Values.legacy` is truthiness; knarr uses a bool `!expr`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 image: {{ .Values.image }}
@@ -152,7 +161,8 @@ image: {{ .Values.image }}
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -162,7 +172,8 @@ $rules:
 $warning: "using default image"
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm has no first-class warning from `if`; knarr `$warning` does not fail the render.
 

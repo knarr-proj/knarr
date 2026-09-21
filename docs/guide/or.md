@@ -58,8 +58,7 @@ Rewrite with `!and` + `!not-empty`, or `!expr`.
 Tag `!or` is boolean only (not coalesce). All children run.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if or .Values.ingress.enabled .Values.mesh.enabled }}
@@ -67,7 +66,8 @@ kind: Ingress
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -83,18 +83,23 @@ $then:
 $else: ""
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `or` short-circuits; knarr `!or` evaluates every child.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 host: {{ or .Values.host "localhost" }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -103,12 +108,16 @@ spec:
   host: !expr "$Values?.host ?? 'localhost'"
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `or` treats `""` as false and takes the default; knarr `??` fills omit only (`""` wins).
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if or .Values.ingress.enabled .Values.mesh.enabled }}
@@ -116,7 +125,8 @@ kind: Ingress
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -130,7 +140,8 @@ $then:
 $else: ""
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Missing nested keys are empty in Helm; knarr needs `?.` and `?? false` for a bool.
 

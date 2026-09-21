@@ -102,8 +102,7 @@ $Labels: !expr "{'app': $Values.name}"
 `!expr` is operators only — no `len()`, `printf()`, `int()`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if and .Values.service.enabled (gt .Values.replicas 1) }}
@@ -112,7 +111,8 @@ kind: Service
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -129,18 +129,23 @@ $then:
 $else: ""
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `and` / `gt` live in `if`; knarr operators live in `!expr` (no `len()` / `printf()`).
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 replicas: {{ add .Values.replicas 1 }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -149,18 +154,23 @@ spec:
   replicas: !expr "$Values.replicas + 1"
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 ports: {{ .Values.ports | default (list 80 443) }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -168,18 +178,23 @@ ports: {{ .Values.ports | default (list 80 443) }}
 $Ports: !expr "$Values?.ports ?? [80, 443]"
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `| default` replaces an empty list; knarr `??` fills omit only.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 image: {{ index .Values.images .name }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -188,18 +203,23 @@ spec:
   image: !expr "$Values.images[$Worker.name]"
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 name: {{ .Values.name }}-svc
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -209,7 +229,8 @@ $Name: !format
   - !ref $Values.name
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm concatenates strings in the template; knarr `+` is not string concat — use `!format` in bind.
 

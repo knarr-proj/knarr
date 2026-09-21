@@ -87,14 +87,14 @@ $N: !expr "$Values.replicas + $One"
 `!int` does not truncate floats. No `int()` in `!expr`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 containerPort: {{ int .Values.port }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -107,18 +107,23 @@ spec:
     - containerPort: !ref $Port
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 port: {{ atoi .Values.port }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -126,18 +131,23 @@ port: {{ atoi .Values.port }}
 $Port: !int $Values.port
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `atoi` and knarr `!int` both parse decimal strings; knarr `"+1"` is an error (`"08"` → 8).
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 name: {{ printf "%s-%d" .Values.env (int .Values.port) }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -149,18 +159,23 @@ $Name: !format
   - !ref $Port
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `int()` in `printf`; knarr no `int()` in `!expr` — `!int` in bind, then `!format`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 n: {{ int 1.9 }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -169,7 +184,8 @@ $N: !int 1
 # !int 1.9 is an error
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `int` truncates `1.9` → `1`; knarr `!int` of a float is an error.
 

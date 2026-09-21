@@ -166,8 +166,7 @@ Use `$else: ""` to skip.
 Each `!emit` is one output document (one file under `templates/`).
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 # templates/deploy.yaml
@@ -177,7 +176,8 @@ metadata:
   name: {{ .Values.name }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -188,12 +188,16 @@ metadata:
   name: !ref $Values.name
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if .Values.service.enabled }}
@@ -204,7 +208,8 @@ metadata:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -218,12 +223,16 @@ $then:
 $else: ""
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `if` with no else just skips; knarr `$when` requires `$then` and `$else` (`$else: ""` to skip).
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if .Values.useJob }}
@@ -233,7 +242,8 @@ kind: Deployment
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -251,19 +261,24 @@ $else:
     name: !ref $Values.name
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm can swap one field; knarr `$then` / `$else` are whole documents. Field-level if is `!match`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 affinity:
 {{ toYaml .Values.affinity | nindent 2 }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -272,7 +287,8 @@ spec:
   affinity?: !ref $Values?.affinity
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `toYaml` keeps the `affinity:` key (null/empty); knarr `?:` omits the key.
 

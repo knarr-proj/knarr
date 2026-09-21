@@ -103,14 +103,14 @@ cpu: "500m"
 YAML `0.5` is float; `"500m"` stays a string. Int+float in `!expr` promotes.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 cpu: {{ .Values.cpu }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -120,18 +120,23 @@ spec:
     cpu: !ref $Values.cpu
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 cpu: {{ float64 .Values.cpuStr }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -139,18 +144,23 @@ cpu: {{ float64 .Values.cpuStr }}
 $Cpu: !float $Values.cpuStr
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `float64()` is in the template; knarr `!float` is a tag (no `float64()` in `!expr`).
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 limit: {{ add .Values.replicas 0.5 }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -158,18 +168,23 @@ limit: {{ add .Values.replicas 0.5 }}
 $Limit: !expr "$Values.replicas + 0.5"
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```yaml
 cpu: 500m
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -179,7 +194,8 @@ spec:
     cpu: "500m"
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm may treat `500m` as a string Quantity; knarr keep Quantity quoted. `!float "500m"` is an error.
 

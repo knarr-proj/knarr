@@ -79,8 +79,7 @@ Use `&&`.
 Tag `!and` evaluates **every** child. Short-circuit bools use `&&` in `!expr`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if and .Values.service.enabled (gt .Values.replicas 1) }}
@@ -88,7 +87,8 @@ kind: Service
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -104,12 +104,16 @@ $then:
 $else: ""
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `and` short-circuits; knarr `!and` evaluates every child. Use `&&` in `!expr` to short-circuit.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 env:
@@ -120,7 +124,8 @@ env:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -137,18 +142,23 @@ spec:
           name: !ref $W.name
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `and` is truthiness; knarr `!and` is boolean only (`!not-empty` for a list).
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 name: {{ and .Values.name .Values.image }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -159,12 +169,16 @@ $rules:
     - !not-empty $Values?.image
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `and` of strings returns the last truthy value; knarr `!and` is boolean only.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if and .Values.service.enabled .Values.tls }}
@@ -172,7 +186,8 @@ kind: Service
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -186,7 +201,8 @@ $then:
 $else: ""
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `and` vs knarr `&&` in `!expr` (short-circuit). `$Values.tls` must be a bool here.
 

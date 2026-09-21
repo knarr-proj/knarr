@@ -66,14 +66,14 @@ That would break checksums that depend on this canon.
 Canon is Go `json.Marshal`: compact, **sorted** keys, HTML-escape `& < >` — same as `toJson`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 config.json: {{ toJson .Values.config }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -82,19 +82,24 @@ data:
   config.json: !to-json-str $Values.config
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 checksum: {{ toJson .Values.config | sha256sum }}
 config.json: {{ toJson .Values.config }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -106,18 +111,23 @@ data:
   config.json: !to-json-str $Values.config
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 note.json: {{ toJson (dict "note" "a&b") }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -127,9 +137,10 @@ data:
     note: a&b
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
 </table>

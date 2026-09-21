@@ -83,14 +83,14 @@ That nests a list. Use `!concat`.
 `!concat` is bind-only. `+` never concatenates lists.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 args: {{ concat (list "--verbose") .Values.extraArgs }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -105,18 +105,23 @@ spec:
     - args: !ref $Args
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `concat` is in the template; knarr `!concat` is bind-only, then `!ref`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 ports: {{ concat .Values.fixedPorts .Values.dynamicPorts }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -126,12 +131,16 @@ $Ports: !concat
   - !ref $Values.dynamicPorts
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `concat` is in the template; knarr `!concat` is bind-only.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 args:
@@ -141,7 +150,8 @@ args:
   {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -151,7 +161,8 @@ $Args: !concat
   - !expr "$Values?.extraArgs ?? []"
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `range` appends in the template; knarr fills omit with `[]` then concatenates in bind.
 

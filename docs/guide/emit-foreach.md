@@ -146,8 +146,7 @@ $over: !expr "$Values?.workers ?? []"
 `!emit-foreach` is `range` around a **whole resource**. Lists inside one spec use `!foreach`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- range .Values.workers }}
@@ -159,7 +158,8 @@ metadata:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -173,12 +173,16 @@ $yield:
     name: !ref $Worker.name
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm prints `---` between items; knarr emits one document per item.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- range .Values.workers }}
@@ -191,7 +195,8 @@ metadata:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -206,12 +211,16 @@ $yield:
     name: !ref $Worker.name
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- range $comp, $image := .Values.images }}
@@ -222,7 +231,8 @@ metadata:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -237,12 +247,16 @@ $yield:
     name: !ref $Comp
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if .Values.deployWorkers }}
@@ -255,7 +269,8 @@ metadata:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -270,9 +285,10 @@ $yield:
     name: !ref $Worker.name
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
 </table>

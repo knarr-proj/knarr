@@ -101,8 +101,7 @@ Pick one.
 `$until` is exclusive (like `until`). `$to` is **inclusive**. Bind, then `!ref`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 idx:
@@ -111,7 +110,8 @@ idx:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -120,12 +120,16 @@ $Idx: !range
   $until: 3
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `until` is used in `range` in the template; knarr `!range` is bind-only. Both are exclusive: `0,1,2`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 idx:
@@ -134,7 +138,8 @@ idx:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -145,12 +150,16 @@ $Idx: !range
   $step: 1
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `untilStep` end is exclusive (`0,1,2`); knarr `$to` is inclusive (`$until` is exclusive).
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- range until .Values.completions }}
@@ -161,7 +170,8 @@ metadata:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -179,7 +189,8 @@ $yield:
     name: !str $I
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm prints the int as the name; knarr needs `!str` for a name string.
 

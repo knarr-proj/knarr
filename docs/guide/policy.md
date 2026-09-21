@@ -92,14 +92,14 @@ Either drop `!policy` or type a bind.
 `!policy` is schema mode for `!$Type` only. Missing `!ref` without `?.` always errors.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```json
 { "required": ["name"] }
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -110,18 +110,23 @@ $ValuesType:
   name: string
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm schema is often a sidecar `values.schema.json`; knarr `!policy` + `!typedef` live in the program.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 name: {{ required "name" .Values.name }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -130,12 +135,16 @@ metadata:
   name: !ref $Values.name
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `required` is a function; knarr missing `!ref` without `?.` is always an error (no `!policy` needed).
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```yaml
 # extra keys in values.yaml are kept
@@ -143,7 +152,8 @@ name: api
 extra: true
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -155,7 +165,8 @@ $Values: !$ValuesType
   extra: true
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm keeps extra keys unless a JSON schema forbids them; knarr `strict` rejects them, `soft` keeps them.
 

@@ -73,14 +73,14 @@ No `split()` function.
 `!split` returns a **list**. Sprig `split` returns a dict of `_0`, `_1`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 hosts: {{ splitList "," .Values.hostCsv }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -90,18 +90,23 @@ $Hosts: !split
   $of: !ref $Values.hostCsv
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 bits: {{ split ":" .Values.image }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -111,18 +116,23 @@ $Bits: !split
   $of: !ref $Values.image
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `split` returns a dict `_0`, `_1`; knarr `!split` returns a list.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 lines: {{ splitList "\n" .Values.allowlist }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -132,9 +142,10 @@ $Lines: !split
   $of: !ref $Values.allowlist
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
 </table>

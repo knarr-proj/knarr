@@ -105,15 +105,15 @@ $Values: !$ValuesType !read values.yaml
 Defaults live in `!typedef`. Apply with `$Name: !$Type`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```yaml
 # values.yaml
 replicas: 1
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -126,12 +126,16 @@ $Values: !$ValuesType
   name: api
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm default is a value in `values.yaml`; knarr default is in `!typedef` and applied by `!$Type`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```yaml
 resources:
@@ -139,7 +143,8 @@ resources:
     cpu: 100m
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -151,12 +156,16 @@ $ValuesType:
       memory: string
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 `!typedef` declares types; it does not emit a resource.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 containers:
@@ -166,7 +175,8 @@ containers:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -179,7 +189,8 @@ $Containers: !foreach
     image: !ref $S.image
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `range` is in the template; knarr `!$SidecarType` applies per item in bind.
 

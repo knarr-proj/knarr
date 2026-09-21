@@ -85,14 +85,14 @@ Not allowed.
 `!merge` is bind-only. Nested maps merge; sequences are replaced.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 resources: {{ merge .Values.resources (dict "requests" (dict "cpu" "100m")) }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -104,18 +104,23 @@ $Res: !merge
   - !ref $Values.resources
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `merge` gives precedence to the first (dest) map; knarr later mapping wins.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 livenessProbe: {{ merge .Values.livenessProbe (dict "timeoutSeconds" 1) }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -129,18 +134,23 @@ $Probe: !merge
   - !ref $UserProbe
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `merge` dest-first; knarr later mapping wins. Missing probe is empty in Helm; knarr uses `?? {}`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 args: {{ merge (dict "args" (list "--a")) (dict "args" (list "--b")) }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -150,7 +160,8 @@ $M: !merge
   - args: ["--b"]
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Both replace sequences (`args` is `["--b"]`). Use `!concat` to glue lists.
 

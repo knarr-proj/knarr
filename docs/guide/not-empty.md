@@ -70,8 +70,7 @@ For a **field** omit, `nodeSelector?: !ref $Values?.nodeSelector` is simpler.
 `!not-empty` is the usual `if .Values.foo` / `required` test.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if .Values.sidecars }}
@@ -79,7 +78,8 @@ kind: ConfigMap
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -93,18 +93,23 @@ $then:
 $else: ""
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `if .Values.sidecars` is truthiness; knarr `$when` needs a bool (`!not-empty`).
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 name: {{ required "set name" .Values.name }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -114,12 +119,16 @@ $rules:
 $fail: "set name"
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `required` is a pipe; knarr `!validation` is a document.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 ports:
@@ -130,7 +139,8 @@ ports:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -145,12 +155,16 @@ spec:
           name: !ref $W.name
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- with .Values.nodeSelector }}
@@ -159,7 +173,8 @@ nodeSelector:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -168,7 +183,8 @@ spec:
   nodeSelector?: !ref $Values?.nodeSelector
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `with` skips empty/nil; knarr `?:` omits missing/omit only.
 

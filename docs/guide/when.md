@@ -96,8 +96,7 @@ If `enabled` is missing, omit is not a bool. Use `?? false`.
 `$when` gates a whole `!emit` (needs `$then` / `$else`). Field-level if is `!match`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if .Values.service.enabled }}
@@ -106,7 +105,8 @@ kind: Service
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -120,12 +120,16 @@ $then:
 $else: ""
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `if` with no else just skips; knarr `$when` requires `$then` and `$else`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if .Values.sidecars }}
@@ -134,7 +138,8 @@ kind: ConfigMap
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -148,12 +153,16 @@ $then:
 $else: ""
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `if .Values.sidecars` is a truthiness test (empty list is false); knarr `$when` needs a bool (`!not-empty`).
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if and .Values.service.enabled (gt .Values.replicas 1) }}
@@ -162,7 +171,8 @@ kind: Service
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -178,12 +188,16 @@ $then:
 $else: ""
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `and` / `gt` live in `if`; knarr `$when` is a bool from `!and` + `!expr`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if .Values.deployWorkers }}
@@ -196,7 +210,8 @@ metadata:
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -211,9 +226,10 @@ $yield:
     name: !ref $Worker.name
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
 </table>

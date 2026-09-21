@@ -151,8 +151,7 @@ host?: !ref $Tls?.host
 Values are named in `!bind`. There is no sidecar `values.yaml` plus `{{ $x := }}`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 # values.yaml
@@ -161,7 +160,8 @@ name: api
 {{- $full := printf "%s-%s" .Values.env .Values.name -}}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -175,18 +175,23 @@ $FullName: !format
   - !ref $Values.name
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm splits `values.yaml` and `_helpers.tpl`; knarr names everything in one `!bind`. `printf` stays in the template; `!format` is bind-only.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 replicas: {{ .Values.replicas }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -199,12 +204,16 @@ spec:
   replicas: !ref $Values.replicas
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Missing `.Values.replicas` is empty in Helm; knarr `!ref` without `?.` is an error.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- $tls := .Values.tls -}}
@@ -212,7 +221,8 @@ spec:
   tls: {{ toYaml $tls | nindent 4 }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -224,19 +234,24 @@ spec:
   tls?: !ref $Tls?
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm assigns even when `.Values.tls` is nil; knarr `$Tls?:` is omit and must be paired with `?:` / `?.`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 metadata:
   name: {{ .Release.Name }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -248,7 +263,8 @@ metadata:
   name: !ref $Rel
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 No `.Release` inject. `$Release` is reserved and unused in v1; pass the instance name as `$Rel`.
 

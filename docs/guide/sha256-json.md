@@ -68,14 +68,14 @@ The tag uses the frozen Go JSON canon (sorted keys, HTML-escape).
 `!sha256-json` is `toJson | sha256sum` (sorted keys, HTML-escape).
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 checksum/config: {{ toJson .Values.config | sha256sum }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -85,18 +85,23 @@ metadata:
     checksum/config: !sha256-json $Values.config
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 checksum/config: {{ toJson .Values.config | sha256sum }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -106,18 +111,23 @@ $Sum: !sha256
   $of: !ref $Json
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Two-step `!to-json-str` + `!sha256` matches `!sha256-json` if you hash the canon JSON string.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 checksum/secret: {{ toJson .Values.secretData | sha256sum }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -127,9 +137,10 @@ metadata:
     checksum/secret: !sha256-json $Values.secretData
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
 </table>

@@ -96,8 +96,7 @@ $On: !bool $Values.ha
 `!bool` accepts a bool or lowercase `"true"` / `"false"` only — not `yes` / `1`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if eq .Values.ha "true" }}
@@ -105,7 +104,8 @@ kind: PodDisruptionBudget
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -122,18 +122,23 @@ $then:
 $else: ""
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `eq ... "true"` compares strings; knarr `!bool` then `$when`.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 enabled: {{ .Values.service.enabled }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -142,12 +147,16 @@ spec:
   enabled: !ref $Values.service.enabled
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 {{- if .Values.ingress.tls }}
@@ -155,7 +164,8 @@ kind: Ingress
 {{- end }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -163,7 +173,8 @@ kind: Ingress
 $TlsOn: !bool $Values.ingress.tls
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `if` is truthiness (any non-empty); knarr `!bool` only accepts a bool or `"true"` / `"false"`.
 

@@ -59,14 +59,14 @@ knarr has no null.
 `!from-json-str` parses a JSON **string**. `null` is an error.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 replicas: {{ ( .Values.extraJson | fromJson ).replicas }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -80,18 +80,23 @@ spec:
   replicas: !ref $Extra.replicas
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 extra: {{ .Files.Get "x.json" | fromJson }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -99,18 +104,23 @@ extra: {{ .Files.Get "x.json" | fromJson }}
 $Extra: !read x.json
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `Files.Get` + `fromJson`; knarr `!read` of a `.json` file (YAML parse, JSON subset).
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 n: {{ fromJson "{"n":1}" }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -118,7 +128,8 @@ n: {{ fromJson "{"n":1}" }}
 $N: !from-json-str '{"n":1}'
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Helm `fromJson` numbers are float64; knarr JSON numbers without `.` are int.
 

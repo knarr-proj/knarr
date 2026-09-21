@@ -56,14 +56,14 @@ RFC 4648 standard alphabet; invalid input fails the render.
 `!b64dec` yields UTF-8 text. Invalid alphabet fails the render.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
-<tr><td>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 ca.crt: {{ .Values.caB64 | b64dec }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -75,18 +75,23 @@ data:
   ca.crt: !ref $Ca
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 token: {{ .Values.tokenB64 | b64dec }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -95,18 +100,23 @@ data:
   token?: !b64dec $Values?.tokenB64
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
 Missing value is empty in Helm; knarr `?:` omits the key.
 
 </td></tr>
-<tr><td>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
 
 ```gotemplate
 token: {{ b64enc (b64dec .Values.wrapped) }}
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Knarr</th><td>
 
 ```yaml
 ---
@@ -115,9 +125,10 @@ $Raw: !b64dec $Values.wrapped
 $Again: !b64enc $Raw
 ```
 
-</td><td>
+</td></tr>
+<tr><th>Difference</th><td>
 
-—
+Same behavior.
 
 </td></tr>
 </table>
