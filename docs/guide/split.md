@@ -73,50 +73,68 @@ No `split()` function.
 `!split` returns a **list**. Sprig `split` returns a dict of `_0`, `_1`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
-{{ splitList "," .Values.hostCsv }}
+hosts: {{ splitList "," .Values.hostCsv }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Hosts: !split
   $sep: ","
   $of: !ref $Values.hostCsv
 ```
 
+</td><td>
+
+—
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ split ":" .Values.image }}
+bits: {{ split ":" .Values.image }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Bits: !split
   $sep: ":"
   $of: !ref $Values.image
 ```
 
+</td><td>
+
+Helm `split` returns a dict `_0`, `_1`; knarr `!split` returns a list.
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ splitList "\n" .Values.allowlist }}
+lines: {{ splitList "\n" .Values.allowlist }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Lines: !split
   $sep: "\n"
   $of: !ref $Values.allowlist
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 </table>

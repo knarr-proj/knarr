@@ -92,7 +92,7 @@ Either drop `!policy` or type a bind.
 `!policy` is schema mode for `!$Type` only. Missing `!ref` without `?.` always errors.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```json
@@ -110,24 +110,37 @@ $ValuesType:
   name: string
 ```
 
+</td><td>
+
+Helm schema is often a sidecar `values.schema.json`; knarr `!policy` + `!typedef` live in the program.
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ required "name" .Values.name }}
+name: {{ required "name" .Values.name }}
 ```
 
 </td><td>
 
 ```yaml
-# missing !ref $Values.name without ?. is always an error
+---
+!emit
+metadata:
+  name: !ref $Values.name
 ```
+
+</td><td>
+
+Helm `required` is a function; knarr missing `!ref` without `?.` is always an error (no `!policy` needed).
 
 </td></tr>
 <tr><td>
 
-```gotemplate
-# extra keys often ignored
+```yaml
+# extra keys in values.yaml are kept
+name: api
+extra: true
 ```
 
 </td><td>
@@ -141,6 +154,10 @@ $Values: !$ValuesType
   name: api
   extra: true
 ```
+
+</td><td>
+
+Helm keeps extra keys unless a JSON schema forbids them; knarr `strict` rejects them, `soft` keeps them.
 
 </td></tr>
 </table>

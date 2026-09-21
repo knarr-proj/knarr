@@ -80,11 +80,11 @@ Either is valid; `!join` is simpler for one delimiter.
 `!join` is bind-only: `$sep` + `$over` → string.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
-{{ join "," .Values.hosts }}
+hosts: {{ join "," .Values.hosts }}
 ```
 
 </td><td>
@@ -101,16 +101,22 @@ data:
   hosts: !ref $HostList
 ```
 
+</td><td>
+
+—
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ .Values.name }}.svc.cluster.local
+name: {{ .Values.name }}.svc.cluster.local
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Name: !join
   $sep: "."
   $over:
@@ -120,20 +126,30 @@ $Name: !join
     - local
 ```
 
+</td><td>
+
+Helm concatenates in the template; knarr `!join` is bind-only.
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ join "," .Values.pullSecrets }}
+pull: {{ join "," .Values.pullSecrets }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Pull: !join
   $sep: ","
   $over: !ref $Values.pullSecrets
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 </table>

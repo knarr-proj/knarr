@@ -87,7 +87,7 @@ $N: !expr "$Values.replicas + $One"
 `!int` does not truncate floats. No `int()` in `!expr`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
@@ -107,30 +107,41 @@ spec:
     - containerPort: !ref $Port
 ```
 
+</td><td>
+
+—
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ atoi .Values.port }}
+port: {{ atoi .Values.port }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Port: !int $Values.port
-# "08" → 8; "+1" errors
 ```
+
+</td><td>
+
+Helm `atoi` and knarr `!int` both parse decimal strings; knarr `"+1"` is an error (`"08"` → 8).
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ printf "%s-%d" .Values.env (int .Values.port) }}
+name: {{ printf "%s-%d" .Values.env (int .Values.port) }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Port: !int $Values.port
 $Name: !format
   - "%s-%d"
@@ -138,18 +149,29 @@ $Name: !format
   - !ref $Port
 ```
 
+</td><td>
+
+Helm `int()` in `printf`; knarr no `int()` in `!expr` — `!int` in bind, then `!format`.
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ int 1.9 }}
+n: {{ int 1.9 }}
 ```
 
 </td><td>
 
 ```yaml
-# !int of 1.9 is an error (no truncation)
+---
+!bind
+$N: !int 1
+# !int 1.9 is an error
 ```
+
+</td><td>
+
+Helm `int` truncates `1.9` → `1`; knarr `!int` of a float is an error.
 
 </td></tr>
 </table>

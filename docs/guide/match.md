@@ -101,7 +101,7 @@ Use `$if`.
 `!match` is `if` / `else` on a **value**. Document-level if is `$when`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
@@ -111,11 +111,18 @@ replicas: {{ if gt .Values.replicas 0 }}{{ .Values.replicas }}{{ else }}1{{ end 
 </td><td>
 
 ```yaml
-replicas: !match
-  $if: !expr "$Values.replicas > 0"
-  $then: !ref $Values.replicas
-  $else: 1
+---
+!emit
+spec:
+  replicas: !match
+    $if: !expr "$Values.replicas > 0"
+    $then: !ref $Values.replicas
+    $else: 1
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 <tr><td>
@@ -130,12 +137,19 @@ topologySpreadConstraints:
 </td><td>
 
 ```yaml
-topologySpreadConstraints?: !match
-  $if: !expr "$Values.replicas > 1"
-  $then:
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
+---
+!emit
+spec:
+  topologySpreadConstraints?: !match
+    $if: !expr "$Values.replicas > 1"
+    $then:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
 ```
+
+</td><td>
+
+Helm `if` just does not print the key; knarr `!match` without `$else` is omit (pair with `?:`).
 
 </td></tr>
 <tr><td>
@@ -147,14 +161,21 @@ type: {{ if .Values.ingress.enabled }}ClusterIP{{ else if .Values.loadBalancer }
 </td><td>
 
 ```yaml
-type: !match
-  $if: !ref $Values.ingress.enabled
-  $then: ClusterIP
-  $else: !match
-    $if: !ref $Values.loadBalancer
-    $then: LoadBalancer
-    $else: ClusterIP
+---
+!emit
+spec:
+  type: !match
+    $if: !ref $Values.ingress.enabled
+    $then: ClusterIP
+    $else: !match
+      $if: !ref $Values.loadBalancer
+      $then: LoadBalancer
+      $else: ClusterIP
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 </table>

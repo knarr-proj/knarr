@@ -109,7 +109,7 @@ One sort per loop.
 `!foreach` fills a **sequence field**. One document per item is `!emit-foreach`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
@@ -123,13 +123,21 @@ env:
 </td><td>
 
 ```yaml
-env: !foreach
-  $over: !ref $Values.env
-  $as: $E
-  $yield:
-    name: !ref $E.name
-    value: !ref $E.value
+---
+!emit
+spec:
+  containers:
+    - env: !foreach
+        $over: !ref $Values.env
+        $as: $E
+        $yield:
+          name: !ref $E.name
+          value: !ref $E.value
 ```
+
+</td><td>
+
+Helm `| quote` adds quotes in the rendered text; knarr `value` is a YAML string.
 
 </td></tr>
 <tr><td>
@@ -144,17 +152,26 @@ ports:
 </td><td>
 
 ```yaml
-ports: !foreach
-  $over: !ref $Values.ports
-  $as: $P
-  $yield:
-    containerPort: !ref $P
+---
+!emit
+spec:
+  containers:
+    - ports: !foreach
+        $over: !ref $Values.ports
+        $as: $P
+        $yield:
+          containerPort: !ref $P
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
+env:
 {{- range $k, $v := .Values.labels }}
   - name: {{ $k }}
     value: {{ $v | quote }}
@@ -164,33 +181,55 @@ ports: !foreach
 </td><td>
 
 ```yaml
-env: !foreach
-  $over: !ref $Values.labels
-  $as: $V
-  $key: $K
-  $yield:
-    name: !ref $K
-    value: !ref $V
+---
+!emit
+spec:
+  containers:
+    - env: !foreach
+        $over: !ref $Values.labels
+        $as: $V
+        $key: $K
+        $yield:
+          name: !ref $K
+          value: !ref $V
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{- range .Values.env }}{{- if .enabled }}...{{- end }}{{- end }}
+env:
+{{- range .Values.env }}
+{{- if .enabled }}
+  - name: {{ .name }}
+    value: {{ .value | quote }}
+{{- end }}
+{{- end }}
 ```
 
 </td><td>
 
 ```yaml
-env: !foreach
-  $over: !ref $Values.env
-  $as: $E
-  $filter: !ref $E.enabled
-  $yield:
-    name: !ref $E.name
-    value: !ref $E.value
+---
+!emit
+spec:
+  containers:
+    - env: !foreach
+        $over: !ref $Values.env
+        $as: $E
+        $filter: !ref $E.enabled
+        $yield:
+          name: !ref $E.name
+          value: !ref $E.value
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 </table>

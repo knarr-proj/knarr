@@ -68,7 +68,7 @@ The tag uses the frozen Go JSON canon (sorted keys, HTML-escape).
 `!sha256-json` is `toJson | sha256sum` (sorted keys, HTML-escape).
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
@@ -78,23 +78,37 @@ checksum/config: {{ toJson .Values.config | sha256sum }}
 </td><td>
 
 ```yaml
-checksum/config: !sha256-json $Values.config
+---
+!emit
+metadata:
+  annotations:
+    checksum/config: !sha256-json $Values.config
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ toJson .Values.config | sha256sum }}
+checksum/config: {{ toJson .Values.config | sha256sum }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Json: !to-json-str $Values.config
 $Sum: !sha256
   $of: !ref $Json
 ```
+
+</td><td>
+
+Two-step `!to-json-str` + `!sha256` matches `!sha256-json` if you hash the canon JSON string.
 
 </td></tr>
 <tr><td>
@@ -106,8 +120,16 @@ checksum/secret: {{ toJson .Values.secretData | sha256sum }}
 </td><td>
 
 ```yaml
-checksum/secret: !sha256-json $Values.secretData
+---
+!emit
+metadata:
+  annotations:
+    checksum/secret: !sha256-json $Values.secretData
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 </table>

@@ -101,35 +101,53 @@ Pick one.
 `$until` is exclusive (like `until`). `$to` is **inclusive**. Bind, then `!ref`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
-{{- range until 3 }}  {{/* 0,1,2 */}}
+idx:
+{{- range until 3 }}
+  - {{ . }}
+{{- end }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Idx: !range
   $until: 3
 ```
+
+</td><td>
+
+Helm `until` is used in `range` in the template; knarr `!range` is bind-only. Both are exclusive: `0,1,2`.
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
+idx:
 {{- range untilStep 0 3 1 }}
+  - {{ . }}
+{{- end }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Idx: !range
   $from: 0
   $to: 2
   $step: 1
 ```
+
+</td><td>
+
+Helm `untilStep` end is exclusive (`0,1,2`); knarr `$to` is inclusive (`$until` is exclusive).
 
 </td></tr>
 <tr><td>
@@ -160,6 +178,10 @@ $yield:
   metadata:
     name: !str $I
 ```
+
+</td><td>
+
+Helm prints the int as the name; knarr needs `!str` for a name string.
 
 </td></tr>
 </table>

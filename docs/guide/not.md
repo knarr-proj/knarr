@@ -62,44 +62,90 @@ $when: !not !empty $X
 `!not` negates a path scalar, not another tag.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
 {{- if not .Values.service.enabled }}
+kind: Service
+{{- end }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!emit
 $when: !not $Values.service.enabled
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
 ```
+
+</td><td>
+
+Helm `not` is truthiness; knarr `!not` needs a bool.
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
 {{- if not .Values.debug }}
+kind: Deployment
+{{- end }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!emit
 $when: !expr "!($Values?.debug ?? false)"
+$then:
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: !ref $Values.name
+$else: ""
 ```
+
+</td><td>
+
+Missing `.Values.debug` makes Helm `not` true; knarr needs `?.` and `?? false`.
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
+env:
+{{- range .Values.workers }}
 {{- if not .disabled }}
+  - name: {{ .name }}
+{{- end }}
+{{- end }}
 ```
 
 </td><td>
 
 ```yaml
-$filter: !not $Worker.disabled
+---
+!emit
+spec:
+  containers:
+    - env: !foreach
+        $over: !ref $Values.workers
+        $as: $Worker
+        $filter: !not $Worker.disabled
+        $yield:
+          name: !ref $Worker.name
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 </table>

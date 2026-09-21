@@ -121,7 +121,7 @@ Parent `?:` requires every child `?:` as well.
 Absence is written: key `?:` **and** path `?.`. `??` keeps the key with a default.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
@@ -134,8 +134,15 @@ affinity:
 </td><td>
 
 ```yaml
-affinity?: !ref $Values?.affinity
+---
+!emit
+spec:
+  affinity?: !ref $Values?.affinity
 ```
+
+</td><td>
+
+Helm `with` skips empty/nil; knarr `?:` + `?.` omit missing/omit, not a present `{}`.
 
 </td></tr>
 <tr><td>
@@ -147,43 +154,67 @@ host: {{ .Values.tls.host | default "localhost" }}
 </td><td>
 
 ```yaml
-host: !expr "$Values.tls?.host ?? 'localhost'"
+---
+!emit
+spec:
+  host: !expr "$Values.tls?.host ?? 'localhost'"
 ```
+
+</td><td>
+
+Helm `| default` replaces `""`; knarr `??` fills omit only, not `""`.
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ dig "tls" "cert" "" .Values }}
+cert: {{ dig "tls" "cert" "" .Values }}
 ```
 
 </td><td>
 
 ```yaml
-cert?: !ref $Values?.tls?.cert
+---
+!emit
+spec:
+  cert?: !ref $Values?.tls?.cert
 ```
+
+</td><td>
+
+Helm `dig` with `""` still emits `cert:` as an empty string; knarr `?:` omits the key.
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ coalesce .Values.fullnameOverride .Values.name "app" }}
+name: {{ coalesce .Values.fullnameOverride .Values.name "app" }}
 ```
 
 </td><td>
 
 ```yaml
-name: !pick
-  - !ref $Values?.fullnameOverride
-  - !ref $Values?.name
-  - app
+---
+!emit
+metadata:
+  name: !pick
+    - !ref $Values?.fullnameOverride
+    - !ref $Values?.name
+    - app
 ```
+
+</td><td>
+
+`coalesce` skips `""` / `false` / `0`; `!pick` skips omit only.
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{- if .Values.tls }}tls: ...{{- end }}
+{{- if .Values.tls }}
+spec:
+  tls: ...
+{{- end }}
 ```
 
 </td><td>
@@ -197,6 +228,10 @@ $Tls?: !ref $Values?.tls
 spec:
   tls?: !ref $Tls?
 ```
+
+</td><td>
+
+Helm `if` is truthiness; knarr optional bind is omit.
 
 </td></tr>
 </table>

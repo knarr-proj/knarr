@@ -79,21 +79,28 @@ The last must exist.
 `!pick` skips **omit** only. `""` / `0` / `false` win and do not fall through (`coalesce` would skip them).
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
-{{ coalesce .Values.fullnameOverride .Values.name "app" }}
+name: {{ coalesce .Values.fullnameOverride .Values.name "app" }}
 ```
 
 </td><td>
 
 ```yaml
-name: !pick
-  - !ref $Values?.fullnameOverride
-  - !ref $Values?.name
-  - app
+---
+!emit
+metadata:
+  name: !pick
+    - !ref $Values?.fullnameOverride
+    - !ref $Values?.name
+    - app
 ```
+
+</td><td>
+
+`coalesce` skips `""` / `false` / `0`; `!pick` skips omit only.
 
 </td></tr>
 <tr><td>
@@ -105,11 +112,18 @@ image: {{ .Values.image.full | default .Values.image.repository | default "ghcr.
 </td><td>
 
 ```yaml
-image: !pick
-  - !ref $Values?.image.full
-  - !ref $Values?.image.repository
-  - ghcr.io/acme/app:latest
+---
+!emit
+spec:
+  image: !pick
+    - !ref $Values?.image.full
+    - !ref $Values?.image.repository
+    - ghcr.io/acme/app:latest
 ```
+
+</td><td>
+
+Helm `| default` skips empty strings; knarr `!pick` keeps `""`.
 
 </td></tr>
 <tr><td>
@@ -121,10 +135,18 @@ containerPort: {{ .Values.port | default 8080 }}
 </td><td>
 
 ```yaml
-containerPort: !pick
-  - !ref $Values?.port
-  - 8080
+---
+!emit
+spec:
+  ports:
+    - containerPort: !pick
+        - !ref $Values?.port
+        - 8080
 ```
+
+</td><td>
+
+`0` is empty for Helm `default`; knarr keeps `0`.
 
 </td></tr>
 </table>

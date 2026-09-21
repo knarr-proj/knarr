@@ -66,7 +66,7 @@ That would break checksums that depend on this canon.
 Canon is Go `json.Marshal`: compact, **sorted** keys, HTML-escape `& < >` — same as `toJson`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
@@ -76,37 +76,60 @@ config.json: {{ toJson .Values.config }}
 </td><td>
 
 ```yaml
+---
+!emit
 data:
-  runtime.json: !to-json-str $Values.runtime
+  config.json: !to-json-str $Values.config
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
 checksum: {{ toJson .Values.config | sha256sum }}
+config.json: {{ toJson .Values.config }}
 ```
 
 </td><td>
 
 ```yaml
-checksum/config: !sha256-json $Values.config
+---
+!emit
+metadata:
+  annotations:
+    checksum/config: !sha256-json $Values.config
 data:
   config.json: !to-json-str $Values.config
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ toJson (dict "note" "a&b") }}
+note.json: {{ toJson (dict "note" "a&b") }}
 ```
 
 </td><td>
 
 ```yaml
-# note a&b → JSON "a\u0026b"
+---
+!emit
+data:
+  note.json: !to-json-str
+    note: a&b
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 </table>

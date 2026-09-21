@@ -105,7 +105,7 @@ $Values: !$ValuesType !read values.yaml
 Defaults live in `!typedef`. Apply with `$Name: !$Type`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```yaml
@@ -125,6 +125,10 @@ $ValuesType:
 $Values: !$ValuesType
   name: api
 ```
+
+</td><td>
+
+Helm default is a value in `values.yaml`; knarr default is in `!typedef` and applied by `!$Type`.
 
 </td></tr>
 <tr><td>
@@ -147,16 +151,26 @@ $ValuesType:
       memory: string
 ```
 
+</td><td>
+
+`!typedef` declares types; it does not emit a resource.
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
+containers:
 {{- range .Values.sidecars }}
+  - name: {{ .name }}
+    image: {{ .image }}
+{{- end }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Containers: !foreach
   $over: !ref $Values.sidecars
   $as: $S
@@ -164,6 +178,10 @@ $Containers: !foreach
     name: !ref $S.name
     image: !ref $S.image
 ```
+
+</td><td>
+
+Helm `range` is in the template; knarr `!$SidecarType` applies per item in bind.
 
 </td></tr>
 </table>

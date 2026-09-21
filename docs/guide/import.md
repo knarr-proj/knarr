@@ -98,24 +98,37 @@ Document splice only. Named fragments with `$as` scope are not in v1.
 `!import` splices **documents**. Named `define` / `include` of snippets is not v1.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
-{{ include "mychart.labels" . }}
+labels:
+{{ include "mychart.labels" . | nindent 2 }}
 ```
 
 </td><td>
 
 ```yaml
-# not v1 as include — emit the mapping, or !read data and !ref
+---
+!emit
+metadata:
+  labels:
+    app: !ref $Values.name
 ```
+
+</td><td>
+
+Named `define` / `include` is not v1. Emit the mapping, or `!read` data and `!ref`.
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ define "mychart.worker" }}kind: Pod{{ end }}
+{{ define "mychart.worker" }}
+apiVersion: v1
+kind: Pod
+{{ end }}
+{{ include "mychart.worker" . }}
 ```
 
 </td><td>
@@ -123,13 +136,20 @@ Document splice only. Named fragments with `$as` scope are not in v1.
 ```yaml
 ---
 !import workers.knarr
+# workers.knarr emits:
+# kind: Pod
 ```
+
+</td><td>
+
+Helm `define` is a named snippet; knarr `!import` splices a whole file of documents.
 
 </td></tr>
 <tr><td>
 
-```gotemplate
-# helm -f values.yaml
+```yaml
+# helm template -f values.yaml
+name: api
 ```
 
 </td><td>
@@ -139,6 +159,10 @@ Document splice only. Named fragments with `$as` scope are not in v1.
 !bind
 $Values: !read values.yaml
 ```
+
+</td><td>
+
+Helm `-f` is CLI merge into `.Values`; knarr loads a tree in `!bind`.
 
 </td></tr>
 <tr><td>
@@ -159,6 +183,10 @@ $Labels: !read labels.yaml
 metadata:
   labels: !ref $Labels
 ```
+
+</td><td>
+
+`include` runs a template; `!read` loads data only (no tags in that file).
 
 </td></tr>
 </table>

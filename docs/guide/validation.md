@@ -97,11 +97,11 @@ Pick one.
 `!validation` is `required` / `fail` as a document, not a pipeline function.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
-{{ required "set name" .Values.name }}
+name: {{ required "set name" .Values.name }}
 ```
 
 </td><td>
@@ -114,11 +114,18 @@ $rules:
 $fail: "set Values.name"
 ```
 
+</td><td>
+
+Helm fails at that pipe; knarr `!validation` is a document that runs `$rules`.
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{- if .Values.legacy }}{{ fail "remove legacy" }}{{- end }}
+legacy: {{ .Values.legacy }}
+{{- if .Values.legacy }}
+{{- fail "remove legacy" }}
+{{- end }}
 ```
 
 </td><td>
@@ -131,10 +138,15 @@ $rules:
 $fail: "remove Values.legacy"
 ```
 
+</td><td>
+
+Helm `fail` is inline; knarr `$fail` is on the validation document. Helm `if .Values.legacy` is truthiness; knarr uses a bool `!expr`.
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
+image: {{ .Values.image }}
 {{- if not .Values.image }}
 {{- /* warn */}}
 {{- end }}
@@ -149,6 +161,10 @@ $rules:
   - !expr "$Values?.image"
 $warning: "using default image"
 ```
+
+</td><td>
+
+Helm has no first-class warning from `if`; knarr `$warning` does not fail the render.
 
 </td></tr>
 </table>

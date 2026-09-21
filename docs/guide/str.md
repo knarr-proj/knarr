@@ -87,7 +87,7 @@ Use [`!to-json-str`](to-json-str.md) if you need JSON text, or emit the mapping 
 `!str` stringifies scalars. Seq/map is an error (not `toYaml`).
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
@@ -97,9 +97,16 @@ replicas: {{ .Values.replicas | toString | quote }}
 </td><td>
 
 ```yaml
-labels:
-  replicas: !str $Values.replicas
+---
+!emit
+metadata:
+  labels:
+    replicas: !str $Values.replicas
 ```
+
+</td><td>
+
+Helm `quote` adds quotes in the rendered text; knarr `!str` is a typed string in YAML.
 
 </td></tr>
 <tr><td>
@@ -111,23 +118,42 @@ ha: {{ .Values.ha | toString }}
 </td><td>
 
 ```yaml
-annotations:
-  ha: !str $Values.ha
+---
+!emit
+metadata:
+  annotations:
+    ha: !str $Values.ha
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
-name: {{ . }}
+{{- range until .Values.completions }}
+metadata:
+  name: {{ . }}
+{{- end }}
 ```
 
 </td><td>
 
 ```yaml
-metadata:
-  name: !str $I
+---
+!emit-foreach
+$over: !ref $Idx
+$as: $I
+$yield:
+  metadata:
+    name: !str $I
 ```
+
+</td><td>
+
+Helm prints the int; knarr needs `!str` for a name string.
 
 </td></tr>
 <tr><td>
@@ -139,8 +165,16 @@ prometheus.io/port: {{ .Values.port | quote }}
 </td><td>
 
 ```yaml
-prometheus.io/port: !str $Values.port
+---
+!emit
+metadata:
+  annotations:
+    prometheus.io/port: !str $Values.port
 ```
+
+</td><td>
+
+Helm `quote` adds quotes in the rendered text; knarr `!str` is a typed string.
 
 </td></tr>
 </table>

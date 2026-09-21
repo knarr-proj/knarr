@@ -54,6 +54,15 @@ app: !ref "$Values.labels['app.kubernetes.io/name']"
 livenessProbe?: !ref $Values?.livenessProbe
 ```
 
+### Nested optional path
+
+```yaml
+cert?: !ref $Values?.tls?.cert
+host: !expr "$Values?.env?.database?.host ?? 'localhost'"
+```
+
+A missing step with `?.` is omit, not an error. `??` fills a default and keeps the key.
+
 ## Common mistakes
 
 **Wrong — operators in `!ref`**
@@ -95,10 +104,10 @@ Removed. Use `!ref` / `!expr`.
 
 ## Comparison with Helm
 
-`!ref` is a path. Missing without `?.` is an error, not empty.
+`!ref` is a path. Missing without `?.` is an error, not empty. Sprig `dig` is nested `?.`; a default argument is `??` in [`!expr`](expr.md).
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
@@ -108,8 +117,15 @@ name: {{ .Values.name }}
 </td><td>
 
 ```yaml
-name: !ref $Values.name
+---
+!emit
+metadata:
+  name: !ref $Values.name
 ```
+
+</td><td>
+
+Missing `.Values.name` is empty in Helm; knarr `!ref` without `?.` is an error.
 
 </td></tr>
 <tr><td>
@@ -121,8 +137,95 @@ host: {{ .Values.env.database.host }}
 </td><td>
 
 ```yaml
-host: !ref $Values.env.database.host
+---
+!emit
+spec:
+  host: !ref $Values.env.database.host
 ```
+
+</td><td>
+
+A missing intermediate key is empty in Helm; knarr is an error unless each step is `?.`.
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+cert: {{ dig "tls" "cert" "" .Values }}
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+spec:
+  cert?: !ref $Values?.tls?.cert
+```
+
+</td><td>
+
+`dig` with default `""` still emits `cert:` as an empty string; knarr `?:` omits the key.
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+host: {{ dig "env" "database" "host" "localhost" .Values }}
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+spec:
+  host: !expr "$Values?.env?.database?.host ?? 'localhost'"
+```
+
+</td><td>
+
+—
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+tag: {{ dig "image" "tag" "latest" .Values }}
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+spec:
+  tag: !expr "$Values?.image?.tag ?? 'latest'"
+```
+
+</td><td>
+
+—
+
+</td></tr>
+<tr><td>
+
+```gotemplate
+secretName: {{ dig "server" "tls" "secretName" "" .Values.config }}
+```
+
+</td><td>
+
+```yaml
+---
+!emit
+spec:
+  secretName?: !ref $Values.config?.server?.tls?.secretName
+```
+
+</td><td>
+
+Empty-string `dig` default keeps the key; knarr `?:` omits it.
 
 </td></tr>
 <tr><td>
@@ -134,21 +237,36 @@ name: {{ index .Values.workers 0 "name" }}
 </td><td>
 
 ```yaml
-name: !ref "$Workers[0].name"
+---
+!emit
+metadata:
+  name: !ref "$Workers[0].name"
 ```
+
+</td><td>
+
+Helm `index` of a missing key is empty; knarr `[0]` without `?.` is an error.
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ index .Values.labels "app.kubernetes.io/name" }}
+app: {{ index .Values.labels "app.kubernetes.io/name" }}
 ```
 
 </td><td>
 
 ```yaml
-app: !ref "$Values.labels['app.kubernetes.io/name']"
+---
+!emit
+metadata:
+  labels:
+    app: !ref "$Values.labels['app.kubernetes.io/name']"
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 <tr><td>
@@ -163,8 +281,15 @@ livenessProbe:
 </td><td>
 
 ```yaml
-livenessProbe?: !ref $Values?.livenessProbe
+---
+!emit
+spec:
+  livenessProbe?: !ref $Values?.livenessProbe
 ```
+
+</td><td>
+
+Helm `with` skips empty/nil; knarr `?:` omits missing/omit only.
 
 </td></tr>
 </table>

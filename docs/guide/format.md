@@ -106,7 +106,7 @@ That is the string `"$X"`. Use `!ref $X`.
 `!format` is bind-only Go `fmt`. Type mismatch is an error, not `%!s`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
@@ -128,51 +128,73 @@ metadata:
   name: !ref $FullName
 ```
 
+</td><td>
+
+Helm `printf` is in the template; knarr `!format` is bind-only.
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ printf "%s:%d" .Values.host .Values.port }}
+addr: {{ printf "%s:%d" .Values.host .Values.port }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Addr: !format
   - "%s:%d"
   - !ref $Values.host
   - !ref $Port
 ```
 
+</td><td>
+
+Helm `printf` is in the template; knarr `!format` is bind-only. Wrong operand type is `%!s` in Helm, an error in knarr.
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ printf "app=%q" .Values.name }}
+ann: {{ printf "app=%q" .Values.name }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Ann: !format
   - "app=%q"
   - !ref $Values.name
 ```
 
+</td><td>
+
+—
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ printf "w-%04d" $i }}
+name: {{ printf "w-%04d" $i }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $WorkerId: !format
   - "w-%04d"
   - !ref $I
 ```
+
+</td><td>
+
+Helm `$i` comes from `range`; knarr `$I` comes from `!range`.
 
 </td></tr>
 </table>

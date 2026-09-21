@@ -146,7 +146,7 @@ $over: !expr "$Values?.workers ?? []"
 `!emit-foreach` is `range` around a **whole resource**. Lists inside one spec use `!foreach`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
@@ -172,6 +172,10 @@ $yield:
   metadata:
     name: !ref $Worker.name
 ```
+
+</td><td>
+
+Helm prints `---` between items; knarr emits one document per item.
 
 </td></tr>
 <tr><td>
@@ -202,11 +206,17 @@ $yield:
     name: !ref $Worker.name
 ```
 
+</td><td>
+
+—
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
 {{- range $comp, $image := .Values.images }}
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: {{ $comp }}
 {{- end }}
@@ -227,12 +237,21 @@ $yield:
     name: !ref $Comp
 ```
 
+</td><td>
+
+—
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
 {{- if .Values.deployWorkers }}
-{{- range .Values.workers }} ... {{- end }}
+{{- range .Values.workers }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ .name }}
+{{- end }}
 {{- end }}
 ```
 
@@ -250,6 +269,10 @@ $yield:
   metadata:
     name: !ref $Worker.name
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 </table>

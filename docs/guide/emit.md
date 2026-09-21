@@ -166,7 +166,7 @@ Use `$else: ""` to skip.
 Each `!emit` is one output document (one file under `templates/`).
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
@@ -187,6 +187,10 @@ kind: Deployment
 metadata:
   name: !ref $Values.name
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 <tr><td>
@@ -213,6 +217,10 @@ $then:
     name: !ref $Values.name
 $else: ""
 ```
+
+</td><td>
+
+Helm `if` with no else just skips; knarr `$when` requires `$then` and `$else` (`$else: ""` to skip).
 
 </td></tr>
 <tr><td>
@@ -243,6 +251,10 @@ $else:
     name: !ref $Values.name
 ```
 
+</td><td>
+
+Helm can swap one field; knarr `$then` / `$else` are whole documents. Field-level if is `!match`.
+
 </td></tr>
 <tr><td>
 
@@ -254,8 +266,15 @@ affinity:
 </td><td>
 
 ```yaml
-affinity?: !ref $Values?.affinity
+---
+!emit
+spec:
+  affinity?: !ref $Values?.affinity
 ```
+
+</td><td>
+
+Helm `toYaml` keeps the `affinity:` key (null/empty); knarr `?:` omits the key.
 
 </td></tr>
 </table>

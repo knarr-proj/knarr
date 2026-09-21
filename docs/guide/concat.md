@@ -83,7 +83,7 @@ That nests a list. Use `!concat`.
 `!concat` is bind-only. `+` never concatenates lists.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
@@ -105,20 +105,30 @@ spec:
     - args: !ref $Args
 ```
 
+</td><td>
+
+Helm `concat` is in the template; knarr `!concat` is bind-only, then `!ref`.
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ append .Values.fixedPorts .Values.dynamicPorts }}
+ports: {{ concat .Values.fixedPorts .Values.dynamicPorts }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Ports: !concat
   - !ref $Values.fixedPorts
   - !ref $Values.dynamicPorts
 ```
+
+</td><td>
+
+Helm `concat` is in the template; knarr `!concat` is bind-only.
 
 </td></tr>
 <tr><td>
@@ -134,10 +144,16 @@ args:
 </td><td>
 
 ```yaml
+---
+!bind
 $Args: !concat
   - ["--verbose"]
   - !expr "$Values?.extraArgs ?? []"
 ```
+
+</td><td>
+
+Helm `range` appends in the template; knarr fills omit with `[]` then concatenates in bind.
 
 </td></tr>
 </table>

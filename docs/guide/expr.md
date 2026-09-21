@@ -102,18 +102,36 @@ $Labels: !expr "{'app': $Values.name}"
 `!expr` is operators only — no `len()`, `printf()`, `int()`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
 {{- if and .Values.service.enabled (gt .Values.replicas 1) }}
+apiVersion: v1
+kind: Service
+{{- end }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $ShowSvc: !expr "$Values.service.enabled && $Values.replicas > 1"
+---
+!emit
+$when: !ref $ShowSvc
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
 ```
+
+</td><td>
+
+Helm `and` / `gt` live in `if`; knarr operators live in `!expr` (no `len()` / `printf()`).
 
 </td></tr>
 <tr><td>
@@ -125,8 +143,15 @@ replicas: {{ add .Values.replicas 1 }}
 </td><td>
 
 ```yaml
-replicas: !expr "$Values.replicas + 1"
+---
+!emit
+spec:
+  replicas: !expr "$Values.replicas + 1"
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 <tr><td>
@@ -138,21 +163,34 @@ ports: {{ .Values.ports | default (list 80 443) }}
 </td><td>
 
 ```yaml
+---
+!bind
 $Ports: !expr "$Values?.ports ?? [80, 443]"
 ```
+
+</td><td>
+
+Helm `| default` replaces an empty list; knarr `??` fills omit only.
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ index .Values.images .name }}
+image: {{ index .Values.images .name }}
 ```
 
 </td><td>
 
 ```yaml
-image: !expr "$Values.images[$Worker.name]"
+---
+!emit
+spec:
+  image: !expr "$Values.images[$Worker.name]"
 ```
+
+</td><td>
+
+—
 
 </td></tr>
 <tr><td>
@@ -164,10 +202,16 @@ name: {{ .Values.name }}-svc
 </td><td>
 
 ```yaml
+---
+!bind
 $Name: !format
   - "%s-svc"
   - !ref $Values.name
 ```
+
+</td><td>
+
+Helm concatenates strings in the template; knarr `+` is not string concat — use `!format` in bind.
 
 </td></tr>
 </table>

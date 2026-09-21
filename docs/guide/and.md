@@ -79,64 +79,116 @@ Use `&&`.
 Tag `!and` evaluates **every** child. Short-circuit bools use `&&` in `!expr`.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
 {{- if and .Values.service.enabled (gt .Values.replicas 1) }}
+kind: Service
+{{- end }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!emit
 $when: !and
   - !ref $Values.service.enabled
   - !expr "$Values.replicas > 1"
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
 ```
+
+</td><td>
+
+Helm `and` short-circuits; knarr `!and` evaluates every child. Use `&&` in `!expr` to short-circuit.
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
+env:
+{{- range .Values.workers }}
 {{- if and .ports .enabled }}
+  - name: {{ .name }}
+{{- end }}
+{{- end }}
 ```
 
 </td><td>
 
 ```yaml
-$filter: !and
-  - !not-empty $W?.ports
-  - !ref $W.enabled
+---
+!emit
+spec:
+  containers:
+    - env: !foreach
+        $over: !ref $Values.workers
+        $as: $W
+        $filter: !and
+          - !not-empty $W?.ports
+          - !ref $W.enabled
+        $yield:
+          name: !ref $W.name
 ```
+
+</td><td>
+
+Helm `and` is truthiness; knarr `!and` is boolean only (`!not-empty` for a list).
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ and .Values.name .Values.image }}
+name: {{ and .Values.name .Values.image }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!validation
 $rules:
   - !and
     - !not-empty $Values?.name
     - !not-empty $Values?.image
 ```
 
+</td><td>
+
+Helm `and` of strings returns the last truthy value; knarr `!and` is boolean only.
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
 {{- if and .Values.service.enabled .Values.tls }}
+kind: Service
+{{- end }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!emit
 $when: !expr "$Values.service.enabled && $Values.tls"
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
 ```
+
+</td><td>
+
+Helm `and` vs knarr `&&` in `!expr` (short-circuit). `$Values.tls` must be a bool here.
 
 </td></tr>
 </table>

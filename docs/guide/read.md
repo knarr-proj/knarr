@@ -81,37 +81,49 @@ inside `!bind`, then `!ref` on the Deployment.
 `!read` loads one YAML **tree**. It does not execute templates in that file.
 
 <table>
-<tr><th>Helm</th><th>Knarr</th></tr>
+<tr><th>Helm</th><th>Knarr</th><th>Difference</th></tr>
 <tr><td>
 
 ```gotemplate
-{{ .Files.Get "values.yaml" | fromYaml }}
+values: {{ .Files.Get "values.yaml" | fromYaml }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Values: !read values.yaml
 ```
 
+</td><td>
+
+Helm `Files.Get` is a string, then `fromYaml`; knarr `!read` is already a YAML tree.
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ .Files.Get "files/app.yaml" }}
+app.yaml: {{ .Files.Get "files/app.yaml" }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $AppCfg: !read files/app.yaml
 ```
+
+</td><td>
+
+Helm `Get` is raw text; knarr YAML-parses the file.
 
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ .Files.Get "probes/http.yaml" | fromYaml }}
+livenessProbe: {{ .Files.Get "probes/http.yaml" | fromYaml }}
 ```
 
 </td><td>
@@ -126,18 +138,28 @@ spec:
   livenessProbe: !ref $Probe
 ```
 
+</td><td>
+
+—
+
 </td></tr>
 <tr><td>
 
 ```gotemplate
-{{ .Files.Get "overrides.json" | fromJson }}
+extra: {{ .Files.Get "overrides.json" | fromJson }}
 ```
 
 </td><td>
 
 ```yaml
+---
+!bind
 $Extra: !read overrides.json
 ```
+
+</td><td>
+
+Helm `fromJson` parses JSON; knarr `!read` parses YAML (JSON is a subset).
 
 </td></tr>
 </table>
