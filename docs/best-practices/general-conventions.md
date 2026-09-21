@@ -1,0 +1,92 @@
+# General Conventions
+
+These rules apply to every knarr file. They are the same laws as [SPEC.md](../../lang/SPEC.md); this page is the checklist for authors.
+
+## Files and documents
+
+- The program is **YAML 1.2**, multiple documents separated by `---`.
+- Every document has a **local tag**: `!bind`, `!emit`, `!emit-foreach`, `!import`, `!validation`, or prelude `!policy` / `!typedef`.
+- After `!import` flattening, order is: optional `!policy` (must be first), optional `!typedef`, then `!bind` / `!validation` / `!emit` / `!emit-foreach` mixed.
+- **No anchors** (`&`, `*`, `<<`) in knarr documents. Data files loaded with [`!read`](../guide/read.md) may use them; knarr sees the expanded tree.
+- **No `!!` tags** in knarr documents (`!!str`, `!!int`, `!!null` included). Core YAML tags are allowed **inside** a `!read` file.
+- **No `null`**. YAML `null` / `~` in values is “key missing”, not a value.
+
+## Names
+
+| Kind | Form | Examples |
+|------|------|----------|
+| Your bindings | `$` + Capital | `$Values`, `$AppName`, `$Worker` |
+| Language keys | `$` + lowercase word | `$when`, `$over`, `$yield`, `$sep` |
+| Type tag | `!$` + BindingName | `$Values: !$ValuesType` |
+
+- Bare `when:`, `over:`, `sep:`, `of:` on knarr meta mappings is an **error**, not a synonym.
+- Kubernetes keys in `!emit` / `$yield` / `$then` stay unprefixed: `apiVersion:`, `metadata:`.
+- **`$Release`**, **`$Chart`**, **`$Capabilities`** are reserved. Do not bind or reference them in v1.
+
+## One tag per node
+
+```yaml
+# Wrong
+port: !int !expr "$Values.port"
+$when: !not !empty $Values?.x
+
+# Right
+$Port: !int $Values.port
+port: !ref $Port
+$when: !not-empty $Values?.x
+```
+
+[`!not`](../guide/not.md) takes a path scalar, not another tagged node.
+
+## Bind vs emit
+
+- **Compute in `!bind`.** Tags such as `!format`, `!concat`, `!join`, `!merge`, `!range`, `!sha256` are bind-only.
+- **Print with `!ref`.** Manifest fields hold paths, `!match`, `!foreach`, literals, or omit — not those bind-only tags.
+- Forward references between `$Name`s are allowed. Cycles are errors. A bind is **atomic**: `$A.y` cannot see `$A.x`.
+
+## Explicit omit
+
+knarr never drops a key because a value “looks empty”.
+
+| Intent | Write |
+|--------|--------|
+| Field may vanish | `affinity?: !ref $Values?.affinity` |
+| Field always present, default | `host: !expr "$Values.tls?.host ?? 'localhost'"` |
+| N candidates | [`!pick`](../guide/pick.md) |
+
+Both markers are required for omit: key `?:` **and** an omit-capable value (`?.` / `$Name?`). See [Omit](../guide/omit.md).
+
+Optional mappings: every child key uses `?:` if and only if the parent does. An optional mapping that evaluates to `{}` is omitted (no `spec: {}`).
+
+## Expressions
+
+- [`!expr`](../guide/expr.md) is a knarr grammar (CEL-shaped tokens, not the CEL spec).
+- **No function calls:** `len()`, `printf()`, `size()`, `has()` are parse errors.
+- String glue is [`!format`](../guide/format.md) or [`!join`](../guide/join.md), not `+`.
+- `+` on two ints is addition; if either side is float, both become float.
+- List/map literals in `!expr` use knarr/CEL shape: `[80, 443]`, `{'app': $Values.name}` — not YAML `{app: 1}`.
+
+## Types
+
+Scalar sorts: `string`, `int`, `bool`, `float` (IEEE f64). YAML `1` is int; `0.5` / `1.0` is float. `.nan` / `.inf` are errors.
+
+Coerce with tags, not YAML `!!int` and not functions inside `!expr`: [`!int`](../guide/int.md), [`!str`](../guide/str.md), [`!bool`](../guide/bool.md), [`!float`](../guide/float.md).
+
+Kubernetes quantities like `"500m"` stay **strings**.
+
+## Output
+
+- Key order in a mapping is **source order**, not sorted (JSON checksums are the exception: sorted keys, Helm `toJson` canon).
+- Stdout is YAML 1.2, UTF-8, LF, 2-space block style.
+- Zero manifests (all `$else: ""`, empty loops, false `$when` on `!emit-foreach`) → empty stdout, exit 0.
+
+## Helm habits to drop
+
+| Helm | knarr |
+|------|--------|
+| `{{ }}` in YAML text | Tags on YAML nodes |
+| `-f` / `--set` | Files only |
+| `with` / `.` scope | `field?: !ref $X?.obj` |
+| `define` / `include` of snippets | Not in v1; split files with [`!import`](../guide/import.md) (documents, not values) |
+| `toYaml .` | Emit the mapping, or JSON via [`!to-json-str`](../guide/to-json-str.md) |
+| Silent `null` | Error or explicit omit |

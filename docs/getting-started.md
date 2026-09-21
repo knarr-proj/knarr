@@ -1,0 +1,191 @@
+# Getting Started
+
+This page is enough to render a Deployment and a Service. Everything else lives in the [guide](README.md#language-guide).
+
+## What knarr is
+
+A knarr file is **YAML 1.2** with several documents (`---`). Each document has a **local tag**:
+
+| Tag | Role |
+|-----|------|
+| `!bind` | Name values (`$Values`, `$AppName`, …). Not printed. |
+| `!emit` | One Kubernetes manifest in stdout. |
+
+Look up a value with **`!ref $Name`**. There is no `{{ }}`.
+
+Render:
+
+```text
+knarr render app.knarr
+```
+
+No `-f` / `--set`. Put values in the file or load them with [`!read`](guide/read.md).
+
+## 1. Bind values
+
+```yaml
+---
+!bind
+$Values:
+  name: demo
+  image: ghcr.io/acme/demo:1.2.3
+  replicas: 2
+  port: 8080
+```
+
+- Keys that you invent start with **`$` and a capital letter**: `$Values`, `$AppName`.
+- `$when`, `$over`, `$yield` are **language** keys, also with `$`.
+- `$Release`, `$Chart`, and `$Capabilities` are reserved. Do not declare them.
+
+## 2. Emit a Deployment
+
+```yaml
+---
+!emit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: !ref $Values.name
+spec:
+  replicas: !ref $Values.replicas
+  selector:
+    matchLabels:
+      app: !ref $Values.name
+  template:
+    metadata:
+      labels:
+        app: !ref $Values.name
+    spec:
+      containers:
+        - name: app
+          image: !ref $Values.image
+          ports:
+            - containerPort: !ref $Values.port
+```
+
+`!ref` is a tagged **scalar**. If the path contains `[`, quote the YAML scalar:
+
+```yaml
+name: !ref "$Workers[0].name"
+```
+
+## 3. Emit a Service
+
+A second `!emit` is a second document on stdout (order = source order).
+
+```yaml
+---
+!emit
+apiVersion: v1
+kind: Service
+metadata:
+  name: !ref $Values.name
+spec:
+  selector:
+    app: !ref $Values.name
+  ports:
+    - port: !ref $Values.port
+      targetPort: !ref $Values.port
+```
+
+## 4. Optional field (no silent empty maps)
+
+Helm often writes nothing when `.Values.affinity` is missing. knarr never drops a key unless you mark **both** the key and the path:
+
+```yaml
+spec:
+  affinity?: !ref $Values?.affinity
+```
+
+- `affinity?:` — the **stdout key** may be absent.
+- `$Values?.affinity` — missing `affinity` is omit, not an error.
+
+A required key with a missing path is always an error. See [Omit](guide/omit.md).
+
+## 5. A formula
+
+Use [`!expr`](guide/expr.md) for operators. There are **no functions** in the string (`len()`, `printf()`, `size()` are errors).
+
+```yaml
+---
+!bind
+$ShowSvc: !expr "$Values.service.enabled && $Values.replicas > 1"
+```
+
+Service on/off is a document [`$when`](guide/when.md), not an `if` inside YAML text:
+
+```yaml
+---
+!emit
+$when: !ref $ShowSvc
+$then:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: !ref $Values.name
+$else: ""
+```
+
+`$else: ""` means **emit nothing**.
+
+## 6. Names you will reuse
+
+| Need | Construct |
+|------|-----------|
+| Path, no operators | [`!ref`](guide/ref.md) |
+| `&&` `>` `+` list/map literals | [`!expr`](guide/expr.md) |
+| `printf` / `%s-%s` | [`!format`](guide/format.md) in `!bind`, then `!ref` |
+| Loop **fields** (env, ports) | [`!foreach`](guide/foreach.md) |
+| Loop **resources** (one Pod per worker) | [`!emit-foreach`](guide/emit-foreach.md) |
+| `b64enc` for Secrets | [`!b64enc`](guide/b64enc.md) |
+| Schema + defaults | [`!typedef`](guide/typedef.md) |
+
+## Wrong vs right
+
+**Wrong — Go templates in YAML**
+
+```yaml
+name: {{ .Values.name }}
+```
+
+**Right**
+
+```yaml
+name: !ref $Values.name
+```
+
+**Wrong — untagged document**
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+```
+
+**Right — every document has a knarr tag**
+
+```yaml
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: !ref $Values.name
+```
+
+**Wrong — `when:` without `$`**
+
+```yaml
+!emit
+when: !ref $ShowSvc
+```
+
+**Right**
+
+```yaml
+!emit
+$when: !ref $ShowSvc
+$then: { ... }
+$else: ""
+```
+
+Next: [Tips and Tricks](tips-and-tricks.md) and [General Conventions](best-practices/general-conventions.md).
