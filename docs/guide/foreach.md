@@ -17,13 +17,19 @@ field: !foreach
     value: !ref $E.value
 ```
 
+`$filter` is an optional bool (same family as `$when`: tags or YAML `true` / `false`).
+
 `$yield` may be scalar, sequence, or mapping — **one sort** for the whole loop.
 
-`$yield?:` — if the value omits, **skip the iteration** (list shrinks). `$yield:` + omit is an error.
+One `$over` for a sequence **or** a mapping (`?? []` or `?? {}` — you pick the literal). Wrong sort is a `$over` error. There is no `$map` / `$seq`.
 
-`env?: !foreach` + result `[]` → omit the key. `env: !foreach` + `[]` → empty list `[]`.
+`env?: !foreach` / `$Items?: !foreach` ↔ omit-capable `$over` (`?.`) **or** `$yield?:`. Missing collection → no key / omit bind. `env?:` + `$yield:` + a live `$over` → `[]`. `env?:` + `$yield?:` + nothing to print (`[]` / `{}` / all `$filter` false / all yields omit) → no key / omit bind. `env?:` + `$yield?:` + `$over: … ?? []` is allowed (missing becomes `[]`, then nothing to print). `env: !foreach` / `$Items: !foreach` ↔ `$over` always a value (`?? []` or a required path): empty → `[]`. Pair error: `?:` + `?? []` + `$yield:`; `?:` + required `$over` + `$yield:`.
 
-`$over` must be present (not `$over?:`). Nil collection: `?? []` / `?? {}`.
+`$yield?:` — if the value omits, **skip the iteration** (list shrinks). On `env?:` / `$Items?:`, a fully empty result also **omits the key / bind**. `$yield:` + omit is an error. `$yield?` without `:` is an error.
+
+An empty list **value** (`[]` in values) stays `[]` unless the field is `?:` **and** the loop uses `$yield?:`. Otherwise skip empty lists with [`!not-empty`](not-empty.md) + [`!match`](match.md) on a `?:` key.
+
+`$over?:` is an error. Omit **value** of `$over` is allowed with `key?:`, `$Name?:` in bind, or on [`!emit-foreach`](emit-foreach.md) → zero documents.
 
 No `$index`.
 
@@ -66,6 +72,37 @@ env: !foreach
 
 ```yaml
 env?: !foreach
+  $over: !ref $Values?.env
+  $as: $E
+  $yield:
+    name: !ref $E.name
+    value: !ref $E.value
+```
+
+Missing `env` → no key. `env: []` in values → `env: []` (`$yield:`). Nothing to print (empty `$over`, all filters false, all yields omit) → no key:
+
+```yaml
+env?: !foreach
+  $over: !ref $Values.env
+  $as: $E
+  $yield?:
+    name: !ref $E?.name
+```
+
+Missing filled to empty, then the same omit:
+
+```yaml
+env?: !foreach
+  $over: !ref "$Values?.env ?? []"
+  $as: $E
+  $yield?:
+    name: !ref $E?.name
+```
+
+Always print a list (possibly empty):
+
+```yaml
+env: !foreach
   $over: !ref "$Values?.env ?? []"
   $as: $E
   $yield:
@@ -73,7 +110,30 @@ env?: !foreach
     value: !ref $E.value
 ```
 
-Empty list + `env?:` → key omitted.
+### Optional bind list
+
+```yaml
+!bind
+$Items?: !foreach
+  $over: !ref $Values?.env
+  $as: $E
+  $yield:
+    name: !ref $E.name
+    value: !ref $E.value
+!emit
+env?: !ref $Items?
+```
+
+Missing `env` → no `$Items` → no key. `env: []` + `$yield:` → `$Items: []`. `$Items?:` + `$yield?:` + nothing to print → no `$Items`. `$Items?:` + `$yield?:` + `$over: … ?? []` is allowed. `$Items?:` + `$yield:` + `?? []` is a pair error. Always keep a list in the graph:
+
+```yaml
+!bind
+$Items: !foreach
+  $over: !ref "$Values?.env ?? []"
+  $as: $E
+  $yield:
+    name: !ref $E.name
+```
 
 ### Skip disabled sidecars
 
@@ -119,7 +179,7 @@ containers: !foreach
   $as: $W
   $yield:
     name: !ref $W.name
-# omit $over is an error
+# required key + omit-capable $over is a pair error
 ```
 
 </td><td>
@@ -131,7 +191,94 @@ containers: !foreach
   $as: $W
   $yield:
     name: !ref $W.name
-# missing list becomes []
+# always a list; missing becomes []
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!emit
+env?: !foreach
+  $over: !ref "$Values?.env ?? []"
+  $as: $E
+  $yield:
+    name: !ref $E.name
+# ?: + ?? [] : key cannot vanish
+```
+
+```yaml
+!emit
+env?: !foreach
+  $over: !ref $Values.env
+  $as: $E
+  $yield:
+    name: !ref $E.name
+# ?: + required $over + $yield: : key cannot vanish
+```
+
+</td><td>
+
+```yaml
+!emit
+env?: !foreach
+  $over: !ref $Values?.env
+  $as: $E
+  $yield:
+    name: !ref $E.name
+# missing env omits the key
+```
+
+```yaml
+!emit
+env?: !foreach
+  $over: !ref $Values.env
+  $as: $E
+  $yield?:
+    name: !ref $E?.name
+# required $over + $yield?: : nothing to print omits the key
+```
+
+```yaml
+!emit
+env?: !foreach
+  $over: !ref "$Values?.env ?? []"
+  $as: $E
+  $yield?:
+    name: !ref $E?.name
+# ?? [] + $yield?: : missing becomes [] then the key omits
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!bind
+$Items: !foreach
+  $over: !ref $Values?.env
+  $as: $E
+  $yield: !ref $E
+# required bind + omit-capable $over is a pair error
+```
+
+</td><td>
+
+```yaml
+!bind
+$Items?: !foreach
+  $over: !ref $Values?.env
+  $as: $E
+  $yield: !ref $E
+# $Name?: omits when env is missing
+```
+
+```yaml
+!bind
+$Items: !foreach
+  $over: !ref "$Values?.env ?? []"
+  $as: $E
+  $yield: !ref $E
+# required bind: fill omit so $over is a list
 ```
 
 </td></tr>
@@ -171,6 +318,7 @@ env: !foreach
 
 - [`!emit-foreach`](emit-foreach.md)
 - [Omit](omit.md)
+- [`!join`](join.md)
 
 ## Comparison with Helm
 
@@ -302,6 +450,40 @@ env: !foreach
 <tr><th>Difference</th><td>
 
 Same behavior.
+
+</td></tr>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
+
+```gotemplate
+{{- if .Values.env }}
+env:
+{{- range .Values.env }}
+  - name: {{ .name }}
+    value: {{ .value | quote }}
+{{- end }}
+{{- end }}
+```
+
+</td></tr>
+<tr><th>Knarr</th><td>
+
+```yaml
+!emit
+env?: !foreach
+  $over: !ref $Values?.env
+  $as: $E
+  $yield?:
+    name: !ref $E.name
+    value: !ref $E.value
+```
+
+</td></tr>
+<tr><th>Difference</th><td>
+
+Missing or empty `env` → no key in both. Helm `if` is truthiness; knarr writes both `?:` markers.
 
 </td></tr>
 </table>

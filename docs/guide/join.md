@@ -10,9 +10,13 @@ $Csv: !join
   $over: !ref $Values.hosts
 ```
 
-- Tagged **mapping**: `$sep` (non-empty string) + `$over` (sequence of strings).
-- Empty `$over` → `""`.
-- Only `$Name:` in `!bind`.
+- Tagged **mapping**: `$sep` (non-empty string) + `$over` (sequence of **strings** only). Optional `$prefix` / `$suffix`: if the key is written, same as `$sep` (non-empty string; omit / `""` is an error). Missing key → no wrap on that side. Result is prefix + joined + suffix. A mapping / `?? {}` on `$over` is a sort error. Map keys or values: [`!foreach`](foreach.md) first, then join.
+- `$prefix?:` / `$suffix?:` are errors. They are not part of the `$Name?:` pair.
+- `$Name?: !join` ↔ omit-capable `$over` (`?.`, no `?? []`): missing collection → omit bind.
+- `$Name: !join` ↔ `$over` always a value (`?? []` or a required path): empty → `""`, or just the wrap if `$prefix` / `$suffix` are set.
+- Pair error: `$Name?:` + `?? []` on `$over`, or `$Name:` + omit-capable `$over` without `??`.
+- Empty list value (`[]` in values) is still a string (empty or wrap), not omit bind. Omit bind only if `$over` itself omits.
+- `$over?:` is an error. Not in `!emit`.
 
 ## Examples
 
@@ -40,6 +44,43 @@ $Name: !join
 ```
 
 `$over` must be a sequence of strings — build it with `!foreach` in bind if needed.
+
+### Wrap after join
+
+```yaml
+!bind
+$Csv: !join
+  $sep: ","
+  $prefix: "["
+  $suffix: "]"
+  $over: !ref $Values.hosts
+```
+
+`hosts: [a, b]` → `[a,b]`. `hosts: []` → `[]`. Omit `$over` on `$Name?:` still omits the bind (no wrap). Only `$prefix` or only `$suffix` is allowed. Do not write `$prefix: ""`.
+
+### Optional hosts annotation
+
+```yaml
+!bind
+$HostList?: !join
+  $sep: ","
+  $over: !ref $Values?.hosts
+!emit
+metadata:
+  annotations:
+    hosts?: !ref $HostList?
+```
+
+Missing `hosts` → no `$HostList` → no annotation key. `hosts: []` in values → `hosts: ""`. Always print a string (possibly empty):
+
+```yaml
+!bind
+$HostList: !join
+  $sep: ","
+  $over: !ref "$Values?.hosts ?? []"
+!emit
+hosts: !ref $HostList
+```
 
 ### Image pull secrets annotation
 
@@ -101,6 +142,98 @@ $HostList: !join
 
 ```yaml
 !bind
+$HostList: !join
+  $sep: ","
+  $over: !ref $Values?.hosts
+# required bind + omit-capable $over is a pair error
+```
+
+</td><td>
+
+```yaml
+!bind
+$HostList?: !join
+  $sep: ","
+  $over: !ref $Values?.hosts
+# $Name?: omits when hosts is missing
+```
+
+```yaml
+!bind
+$HostList: !join
+  $sep: ","
+  $over: !ref "$Values?.hosts ?? []"
+# required bind: fill omit so $over is a list
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!bind
+$HostList?: !join
+  $sep: ","
+  $over: !ref "$Values?.hosts ?? []"
+# ?: + ?? [] : the bind cannot vanish
+```
+
+</td><td>
+
+```yaml
+!bind
+$HostList?: !join
+  $sep: ","
+  $over: !ref $Values?.hosts
+# omit $over omits the bind
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!bind
+$HostList: !join
+  $sep: ","
+  $over: !ref $Values.labels
+# mapping is not a sequence of strings
+```
+
+```yaml
+!bind
+$HostList: !join
+  $sep: ","
+  $over: !ref "$Values?.hosts ?? {}"
+# ?? {} is a mapping; join $over is a list
+```
+
+</td><td>
+
+```yaml
+!bind
+$Keys: !foreach
+  $over: !ref $Values.labels
+  $as: $V
+  $key: $K
+  $yield: !ref $K
+$HostList: !join
+  $sep: ","
+  $over: !ref $Keys
+# map keys: foreach first
+```
+
+```yaml
+!bind
+$HostList: !join
+  $sep: ","
+  $over: !ref "$Values?.hosts ?? []"
+# list default is ?? []
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!bind
 $Ports: !join
   $sep: ","
   $over: !ref $Values.ports
@@ -152,10 +285,12 @@ $Name: !join
 
 - [`!split`](split.md)
 - [`!format`](format.md)
+- [`!foreach`](foreach.md)
+- [Omit](omit.md)
 
 ## Comparison with Helm
 
-`!join` is bind-only: `$sep` + `$over` → string.
+`!join` is bind-only: `$sep` + `$over` → string. `$Name?:` follows the same omit pair as [`!foreach`](foreach.md).
 
 <table>
 <tr><th>Helm</th><td>

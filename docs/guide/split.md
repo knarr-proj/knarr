@@ -10,8 +10,12 @@ $Parts: !split
   $of: !ref $Values.hostCsv
 ```
 
-- `$sep` non-empty string; `$of` string (may be `""` → `[]`).
-- Only `$Name:` in `!bind`.
+- `$sep` non-empty string; `$of` string (`""` → `[]`). Not `$over` (that key is a collection: [`!join`](join.md) / [`!foreach`](foreach.md)).
+- `$Name?: !split` ↔ omit-capable `$of` (`?.`, no `?? ''`): missing string → omit bind.
+- `$Name: !split` ↔ `$of` always a value (`?? ''` or a required path): empty → `[]`.
+- Pair error: `$Name?:` + `?? ''` on `$of`, or `$Name:` + omit-capable `$of` without `??`.
+- Empty string value stays `[]` even on `$Name?:`. Omit bind only if `$of` itself omits.
+- `$of?:` is an error. Not in `!emit`.
 
 ## Examples
 
@@ -50,6 +54,31 @@ $Lines: !split
   $of: !ref $Values.allowlist
 ```
 
+### Optional CSV
+
+```yaml
+!bind
+$Hosts?: !split
+  $sep: ","
+  $of: !ref $Values?.hostCsv
+!emit
+hostAliases?: !foreach
+  $over: !ref $Hosts?
+  $as: $H
+  $yield:
+    hostnames:
+      - !ref $H
+```
+
+Missing `hostCsv` → no `$Hosts` → no key. `hostCsv: ""` → `$Hosts: []`. Always keep a list:
+
+```yaml
+!bind
+$Hosts: !split
+  $sep: ","
+  $of: !ref "$Values?.hostCsv ?? ''"
+```
+
 ## Common mistakes
 
 <table>
@@ -79,6 +108,77 @@ $Hosts: !split
 
 ```yaml
 !bind
+$Hosts: !split
+  $sep: ","
+  $over: !ref $Values.hostCsv
+# $over is a collection; split input is $of
+```
+
+</td><td>
+
+```yaml
+!bind
+$Hosts: !split
+  $sep: ","
+  $of: !ref $Values.hostCsv
+# string operand is $of
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!bind
+$Hosts: !split
+  $sep: ","
+  $of: !ref $Values?.hostCsv
+# required bind + omit-capable $of is a pair error
+```
+
+</td><td>
+
+```yaml
+!bind
+$Hosts?: !split
+  $sep: ","
+  $of: !ref $Values?.hostCsv
+# $Name?: omits when hostCsv is missing
+```
+
+```yaml
+!bind
+$Hosts: !split
+  $sep: ","
+  $of: !ref "$Values?.hostCsv ?? ''"
+# required bind: fill omit so $of is a string
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!bind
+$Hosts?: !split
+  $sep: ","
+  $of: !ref "$Values?.hostCsv ?? ''"
+# ?: + ?? '' : the bind cannot vanish
+```
+
+</td><td>
+
+```yaml
+!bind
+$Hosts?: !split
+  $sep: ","
+  $of: !ref $Values?.hostCsv
+# omit $of omits the bind
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!bind
 $Hosts: !expr "split(',', $Values.hostCsv)"
 # no split() in !expr
 ```
@@ -100,10 +200,11 @@ $Hosts: !split
 
 - [`!join`](join.md)
 - [`!foreach`](foreach.md)
+- [Omit](omit.md)
 
 ## Comparison with Helm
 
-`!split` returns a **list**. Sprig `split` returns a dict of `_0`, `_1`.
+`!split` returns a **list**. Sprig `split` returns a dict of `_0`, `_1`. `$Name?:` follows the same omit pair as [`!join`](join.md), on `$of` not `$over`.
 
 <table>
 <tr><th>Helm</th><td>

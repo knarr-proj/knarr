@@ -23,7 +23,7 @@ $then:
 $else: ""
 ```
 
-- `$when` is a bool predicate (`!ref`, `!not`, `!expr`, `!empty`, `!not-empty`, `!and`, `!or`).
+- `$when` is a bool predicate (`!ref`, `!not`, `!expr`, `!empty`, `!not-empty`, `!and`, `!or`, or YAML `true` / `false`).
 - `$then` is a mapping (the manifest).
 - `$else: ""` skips the document. `$else:` may instead be another mapping.
 - `$Name: !emit` is an error.

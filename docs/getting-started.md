@@ -63,7 +63,7 @@ spec:
             - containerPort: !ref $Values.port
 ```
 
-`!ref` is a tagged **scalar**. If the path contains `[`, quote the YAML scalar:
+`!ref` is a tagged **scalar**. Quotes follow YAML 1.2: `[` `{` `,` and `: ` need quotes **anywhere** in the scalar, not only at line start. `/` does not.
 
 ```yaml
 name: !ref "$Workers[0].name"
@@ -107,7 +107,7 @@ A required key with a missing path is always an error. See [Omit](guide/omit.md)
 
 ## 5. A formula
 
-Use [`!expr`](guide/expr.md) for operators. There are **no functions** in the string (`len()`, `printf()`, `size()` are errors). A field default is [`!ref`](guide/ref.md) `??`. A formula default is `??` on that `!expr`. A path with no operator in `!expr` is an error.
+Use [`!expr`](guide/expr.md) for operators. There are **no functions** in the string (`len()`, `printf()`, `size()` are errors). A field default is [`!ref`](guide/ref.md) `??`. A formula default is `??` on that `!expr`. A path with no operator in `!expr` is an error. A constant (`true`, `[80, 443]`) is YAML, not `!expr`.
 
 ```yaml
 ---

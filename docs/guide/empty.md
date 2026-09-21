@@ -47,6 +47,16 @@ $fail: "remove deprecated"
 $filter: !empty $E?.optionalNote
 ```
 
+### Do not put `!empty` on a field
+
+`[]` stays in output. `!empty` is a bool. To drop an empty list, use [`!not-empty`](not-empty.md) with [`!match`](match.md):
+
+```yaml
+initContainers?: !match
+  $if: !not-empty $Values?.init
+  $then: !ref $Values.init
+```
+
 ## Common mistakes
 
 <table>
@@ -96,6 +106,25 @@ $then:
   name: sidecars
 $else: ""
 # use !not-empty
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!emit
+initContainers?: !empty $Values?.init
+# !empty is bool, not omit of []
+```
+
+</td><td>
+
+```yaml
+!emit
+initContainers?: !match
+  $if: !not-empty $Values?.init
+  $then: !ref $Values.init
+# skip missing and []
 ```
 
 </td></tr>

@@ -35,7 +35,7 @@ host: !ref "$Values.tls?.host ?? 'localhost'"
 host?: !ref $Values.tls?.host
 ```
 
-`??` is one default on the whole `!ref` or `!expr`. A field with no operator: [`!ref`](guide/ref.md). A formula: [`!expr`](guide/expr.md). More than two candidates: [`!pick`](guide/pick.md).
+`??` is one default on the whole `!ref` or `!expr`. A field with no operator: [`!ref`](guide/ref.md). A formula: [`!expr`](guide/expr.md). A constant (`true`, `[80, 443]`): YAML. More than two candidates: [`!pick`](guide/pick.md).
 
 ## One Service, maybe
 

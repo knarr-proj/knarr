@@ -1,6 +1,6 @@
 # `!not`
 
-Boolean negation of a **path**. Same `RefScalar` as [`!ref`](ref.md).
+Boolean negation of a **path**. Path only — no `??` on this tag.
 
 ## Syntax
 
@@ -9,7 +9,7 @@ $when: !not $Values.service.enabled
 $Hide: !not $ShowSvc
 ```
 
-One tag, one scalar path. Does **not** wrap `!empty` / `!and` / `!or` (those have [`!not-empty`](not-empty.md) / De Morgan / `!expr`).
+One tag, one scalar path. Does **not** wrap `!empty` / `!and` / `!or` (those have [`!not-empty`](not-empty.md) / De Morgan / `!expr`). `??` on `!not` is an error.
 
 ## Examples
 
@@ -26,11 +26,16 @@ $else: ""
 
 ### Optional bool
 
+Default the path first, then negate:
+
 ```yaml
-$when: !not $Values?.debug ?? false
+!bind
+$Debug: !ref $Values?.debug ?? false
+!emit
+$when: !not $Debug
 ```
 
-Need a bool: missing without `??` is omit, not false. `?? false` sits on the path (`!not` uses the same `RefScalar` as [`!ref`](ref.md)): missing debug → **true**. `!expr "!$Values?.debug ?? false"` defaults the **not-result**: missing debug → **false**.
+Missing debug → `false` → not → **true**. `!expr "!$Values?.debug ?? false"` defaults the **not-result**: missing debug → **false**.
 
 ### Hide workers
 
@@ -90,16 +95,44 @@ $else: ""
 ```
 
 </td></tr>
+<tr><td>
+
+```yaml
+!emit
+$when: !not $Values?.debug ?? false
+$then:
+  kind: Deployment
+$else: ""
+# no ?? on !not
+```
+
+</td><td>
+
+```yaml
+!bind
+$Debug: !ref $Values?.debug ?? false
+!emit
+$when: !not $Debug
+$then:
+  kind: Deployment
+  name: !ref $Values.name
+$else: ""
+# default the path, then !not
+```
+
+</td></tr>
 </table>
 
 ## See also
 
 - [`!not-empty`](not-empty.md)
 - [`$when`](when.md)
+- [`!ref`](ref.md)
+- [`!expr`](expr.md)
 
 ## Comparison with Helm
 
-`!not` negates a path scalar, not another tag.
+`!not` negates a path scalar, not another tag. It does not take `??`.
 
 <table>
 <tr><th>Helm</th><td>
@@ -143,8 +176,10 @@ kind: Deployment
 <tr><th>Knarr</th><td>
 
 ```yaml
+!bind
+$Debug: !ref $Values?.debug ?? false
 !emit
-$when: !not $Values?.debug ?? false
+$when: !not $Debug
 $then:
   kind: Deployment
   name: !ref $Values.name
@@ -154,7 +189,7 @@ $else: ""
 </td></tr>
 <tr><th>Difference</th><td>
 
-Missing `.Values.debug` makes Helm `not` true; knarr needs `?.` and `?? false`.
+Missing `.Values.debug` makes Helm `not` true; knarr defaults with `!ref` `?? false`, then `!not`.
 
 </td></tr>
 </table>

@@ -5,6 +5,7 @@ These rules apply to every knarr file. This page is the checklist for authors.
 ## Files and documents
 
 - The program is **YAML 1.2**, multiple documents separated by `---`.
+- Tagged scalars (`!ref`, `!expr`, `!not`, coerce) quote as YAML 1.2: `[` `{` `]` `}` `,`, `: ` (colon+space), and ` #` need quotes **anywhere**, not only at line start. `/` and `?? false` / `||` do not. A parser that accepts `?? [80, 443]` unquoted is not the knarr rule.
 - Every document has a **local tag**: `!bind`, `!emit`, `!emit-foreach`, `!import`, `!validation`, or prelude `!policy` / `!typedef`.
 - After `!import` flattening, order is: optional `!policy` (must be first), optional `!typedef`, then `!bind` / `!validation` / `!emit` / `!emit-foreach` mixed.
 - **No anchors** (`&`, `*`, `<<`) in knarr documents. Data files loaded with [`!read`](../guide/read.md) may use them; knarr sees the expanded tree.
@@ -52,20 +53,20 @@ knarr never drops a key because a value “looks empty”.
 |--------|--------|
 | Field may vanish | `affinity?: !ref $Values?.affinity` |
 | Field always present, default | `host: !ref "$Values.tls?.host ?? 'localhost'"` |
-| N candidates | [`!pick`](../guide/pick.md) |
+| N candidates | [`!pick`](../guide/pick.md) — not `\|\|` in [`!expr`](../guide/expr.md) |
 
 Both markers are required for omit: key `?:` **and** an omit-capable value (`?.` / `$Name?`). See [Omit](../guide/omit.md).
 
-Optional mappings: every child key uses `?:` if and only if the parent does. An optional mapping that evaluates to `{}` is omitted (no `spec: {}`).
+Optional mappings: every child key uses `?:` if and only if the parent does. An optional mapping that evaluates to `{}` is omitted (no `spec: {}`). An empty list `[]` stays, except [`!foreach`](../guide/foreach.md) on a `?:` key with `$yield?:` and nothing to print. To drop other empty lists, [`!not-empty`](../guide/not-empty.md) with [`!match`](../guide/match.md) on a `?:` key.
 
 ## Expressions
 
 - [`!expr`](../guide/expr.md) is a knarr grammar (CEL-shaped tokens, not the CEL spec).
 - **No function calls:** `len()`, `printf()`, `size()`, `has()` are parse errors.
-- One `??` defaults a whole [`!ref`](../guide/ref.md) or whole `!expr` that computes. A bare path in `!expr` is an error.
+- One `??` defaults a whole [`!ref`](../guide/ref.md) or whole `!expr` that computes. A bare path or constant in `!expr` is an error.
 - String glue is [`!format`](../guide/format.md) or [`!join`](../guide/join.md), not `+`.
 - `+` on two ints is addition; if either side is float, both become float.
-- List/map literals in `!expr` use knarr/CEL shape: `[80, 443]`, `{'app': $Values.name}` — not YAML `{app: 1}`.
+- List/map literals in `!expr` need `$Name` or an operator: `[80, $Port]`, `{'app': $Values.name}` — not YAML `{app: 1}`. A constant `[80, 443]` is a YAML list.
 
 ## Types
 

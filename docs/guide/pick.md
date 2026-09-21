@@ -1,6 +1,6 @@
 # `!pick`
 
-N-way **omit** default: first child that is present wins. An empty string does **not** fall through.
+N-way **omit** default: first child that is present wins. An empty string does **not** fall through. Two candidates: [`!ref`](ref.md) `??`. Do not replace `!pick` with `||` or a stack of `??`.
 
 ## Syntax
 
@@ -11,10 +11,10 @@ name: !pick
   - app
 ```
 
-- Tagged sequence, ≥2 elements.
+- Tagged sequence, ≥2 elements (two is legal; the shorter 2-way is still `??`). No warning.
 - All but the last must be omit-capable (`?.` / `$Name?`).
 - Last is a concrete value (not omit).
-- First non-omit wins. Always a value: `$Name?: !pick` is an error.
+- First non-omit wins. Always a value: `$Name?: !pick` / `$Res?: !pick` is an error (the last child is concrete, so `?:` cannot fire).
 - Non-omit children share one YAML sort.
 - `??` is one default on the whole [`!ref`](ref.md) / [`!expr`](expr.md). Use `!pick` instead of `a ?? b ?? c`.
 
@@ -75,6 +75,47 @@ name: !pick
   - !ref $Values?.fullnameOverride
   - app
 # only omit falls through; "", 0, and false win. Skip "" with !match if needed
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!bind
+$Res?: !pick
+  - !ref $Values?.name
+  - app
+# !pick always has a value; ?: cannot fire
+```
+
+</td><td>
+
+```yaml
+!bind
+$Res: !pick
+  - !ref $Values?.name
+  - app
+# last child is concrete; the bind is required
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!emit
+name: !expr "$Values?.fullnameOverride || $Values?.name ?? 'app'"
+# || is bool, not coalesce; use !pick
+```
+
+</td><td>
+
+```yaml
+!emit
+name: !pick
+  - !ref $Values?.fullnameOverride
+  - !ref $Values?.name
+  - app
+# n-way omit default is !pick
 ```
 
 </td></tr>

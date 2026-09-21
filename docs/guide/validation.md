@@ -38,9 +38,11 @@ $fail: "set Values.name"
 Rules are **must-true**. When the flag should be absent:
 
 ```yaml
+!bind
+$Legacy: !ref $Values?.legacy ?? false
 !validation
 $rules:
-  - !not $Values?.legacy ?? false
+  - !not $Legacy
 $fail: "remove Values.legacy"
 ```
 
@@ -181,16 +183,18 @@ legacy: {{ .Values.legacy }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!bind
+$Legacy: !ref $Values?.legacy ?? false
 !validation
 $rules:
-  - !not $Values?.legacy ?? false
+  - !not $Legacy
 $fail: "remove Values.legacy"
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `fail` is inline; knarr `$fail` is on the validation document. Helm `if .Values.legacy` is truthiness; knarr uses `!not` plus `?? false`.
+Helm `fail` is inline; knarr `$fail` is on the validation document. Helm `if .Values.legacy` is truthiness; knarr defaults with `!ref` `??`, then `!not`.
 
 </td></tr>
 </table>

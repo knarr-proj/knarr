@@ -20,12 +20,12 @@ $yield:
 
 | Key | Meaning |
 |-----|---------|
-| `$over` | Sequence or mapping (required). Not omit; use `?? []` / `?? {}` if missing. |
+| `$over` | Sequence or mapping. **`$over?:` is an error.** Omit value (`$over: !ref $Values?.workers`) → **zero documents**. Empty `[]` / `{}` → zero documents. `?? []` / `?? {}` also fine (missing becomes empty). |
 | `$as` | Binding for the element (value if `$over` is a map). |
 | `$yield` | Mapping = one manifest. Or `$yield?:` to skip that iteration on omit. |
-| `$filter` | Bool; false → no document for that item. |
+| `$filter` | Bool; false → no document for that item. Tags or YAML `true` / `false`. |
 | `$key` | Extra binding for the map key (maps only). |
-| `$when` | Bool gate for the **whole** loop. False → zero documents; `$over` is not evaluated. **No** `$then` / `$else`. |
+| `$when` | Bool gate for the **whole** loop. False → zero documents; `$over` is not evaluated. **No** `$then` / `$else`. Tags or YAML `true` / `false`. |
 
 There is no `$index`. `$yield` on `!emit-foreach` must be a **mapping**.
 
@@ -150,12 +150,12 @@ $yield:
 
 ```yaml
 !emit-foreach
-$over: !ref "$Values?.workers ?? []"
+$over: !ref $Values?.workers
 $as: $W
 $yield:
   kind: Pod
   name: !ref $W.name
-# missing list becomes [] so the loop runs over nothing
+# omit $over → zero documents
 ```
 
 </td></tr>

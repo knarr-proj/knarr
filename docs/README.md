@@ -44,14 +44,14 @@ Each construct page has a **Comparison with Helm** section at the bottom.
 | Construct | Guide |
 |-----------|-------|
 | `!ref` | [ref](guide/ref.md) — path, `?.`, one `??` |
-| `!expr` | [expr](guide/expr.md) — operators / dyn-index / literals; `??` on the whole formula |
+| `!expr` | [expr](guide/expr.md) — operators / dyn-index / `$` in list-map; `??` on the whole formula |
 | `!not` | [not](guide/not.md) |
 | `!read` | [read](guide/read.md) |
 | `!pick` | [pick](guide/pick.md) |
 
 ### Bind-only transforms
 
-These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where noted) inside `!bind`. Use `!ref` in the manifest.
+These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where noted) inside `!bind`. Use `!ref` in the manifest. `!join` may take `$prefix` / `$suffix` (non-empty strings, like `$sep`). `!join` / `!foreach` may be `$Name?:` when `$over` is omit-capable; `!foreach` also when `$yield?:` is used (empty result omits the bind; `?? []` on that `$over` is then allowed); `!split` / `!sha256` when `$of` is omit-capable; `!concat` / `!format` when a child is omit-capable; `!merge` when **every** child is omit-capable; `!range` when `$from` / `$to` / `$until` can omit. `!pick` is always a value (`$Name?: !pick` is an error).
 
 | Construct | Guide |
 |-----------|-------|

@@ -11,8 +11,11 @@ $Args: !concat
 ```
 
 - Tagged sequence of children; each child evaluates to a **sequence**.
-- Only `$Name:` in `!bind` (not `$Name?:`, not `!emit`).
-- Nested `!concat` is an error; list siblings instead.
+- `$Name?: !concat` ↔ an omit-capable child (`?.`, no `?? []`): any omit child → omit **the whole bind** (siblings are not skipped).
+- `$Name: !concat` ↔ every child is a value (`?? []` or a required path): empty / all `[]` → `[]`.
+- Pair error: `$Name?:` without an omit path (or every child has `?? []`), or `$Name:` + an omit child.
+- An empty list **value** (`[]`) still concatenates, even on `$Name?:`. Omit bind only if a child itself omits.
+- Nested `!concat` is an error; list siblings instead. Not in `!emit`.
 - `+` does not concatenate lists.
 
 ## Examples
@@ -43,6 +46,19 @@ $Ports: !concat
   - !ref $Values.fixedPorts
   - !ref $Values.dynamicPorts
 ```
+
+### Optional whole concat
+
+```yaml
+!bind
+$Args?: !concat
+  - ["--verbose"]
+  - !ref $Values?.extraArgs
+!emit
+args?: !ref $Args?
+```
+
+Missing `extraArgs` → no `$Args` (the `"--verbose"` base is dropped too). Keep the base when extra is missing: `$Name:` + `?? []` on that child (see Default extra list).
 
 ## Common mistakes
 
@@ -98,6 +114,56 @@ args: !ref $Args
 
 ```yaml
 !bind
+$Args: !concat
+  - ["--verbose"]
+  - !ref $Values?.extraArgs
+# required bind + omit child is a pair error
+```
+
+</td><td>
+
+```yaml
+!bind
+$Args?: !concat
+  - ["--verbose"]
+  - !ref $Values?.extraArgs
+# $Name?: omits the whole concat if extraArgs is missing
+```
+
+```yaml
+!bind
+$Args: !concat
+  - ["--verbose"]
+  - !ref "$Values?.extraArgs ?? []"
+# required bind: fill omit so every child is a list
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!bind
+$Args?: !concat
+  - ["--verbose"]
+  - !ref "$Values?.extraArgs ?? []"
+# ?: + ?? [] : the bind cannot vanish
+```
+
+</td><td>
+
+```yaml
+!bind
+$Args?: !concat
+  - ["--verbose"]
+  - !ref $Values?.extraArgs
+# omit child omits the bind
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!bind
 $Args: !expr "$Fixed + $Extra"
 # + never concatenates lists
 ```
@@ -119,10 +185,12 @@ $Args: !concat
 
 - [`!join`](join.md)
 - [`!foreach`](foreach.md)
+- [`!format`](format.md)
+- [Omit](omit.md)
 
 ## Comparison with Helm
 
-`!concat` is bind-only. `+` never concatenates lists.
+`!concat` is bind-only. `+` never concatenates lists. `$Name?:` follows the same omit pair as [`!format`](format.md): any omit child drops the whole bind. A literal sibling on `$Name?:` is allowed (unlike [`!merge`](merge.md), where every child must be omit-capable).
 
 <table>
 <tr><th>Helm</th><td>

@@ -9,11 +9,11 @@ knarr never drops a key because a value is empty-looking. Absence is always **wr
 | `key?:` | stdout / `$yield` mapping key | This **key** may be absent in output |
 | `?.` / `?[` | path in `!ref` / `!expr` / `!not` / coerce tags | Missing step → **omit value**, not error |
 | `$Name?:` | bind key | Optional bind; elsewhere write **`$Name?`** |
-| `??` | one on the whole `!ref` or `!expr` | Default of that value; key stays |
+| `??` | one on the whole `!ref` or `!expr` (not `!not`) | Default of that value; key stays |
 
 Leaf omit needs **both** `?:` on the key and an omit-capable value.
 
-Optional mapping: every child is `?:` iff the parent is. Empty optional `{}` → parent omitted (no `spec: {}`).
+Optional mapping: every child is `?:` iff the parent is. Empty optional `{}` → parent omitted (no `spec: {}`). An empty list `[]` is a **value** (the key stays), except [`!foreach`](foreach.md) on `имя?:` with `$yield?:` and nothing to print — then the key is absent. To skip other empty lists the Helm way, use [`!not-empty`](not-empty.md) with [`!match`](match.md) on a `?:` key, or `$when` / `$filter` — not `!empty` as the field value.
 
 ## Examples
 
@@ -41,7 +41,7 @@ $when: !expr "$Values?.a || $Values?.b ?? false"
 $sum: !expr "$Values?.a + $Values?.b ?? 0"
 ```
 
-`true || omit` is true. A path with no operator is [`!ref`](ref.md) (not `!expr`).
+`true || omit` is true. A path with no operator is [`!ref`](ref.md) (not `!expr`). A constant is YAML.
 
 ### Optional bind
 
@@ -76,12 +76,149 @@ $yield?: !ref $Worker?.sidecar
 
 ```yaml
 env?: !foreach
+  $over: !ref $Values?.env
+  $as: $E
+  $yield:
+    name: !ref $E.name
+    value: !ref $E.value
+```
+
+Missing `env` → no key. `env: []` in values → `env: []` (`$yield:`). Nothing to print on `env?:` + `$yield?:` → no key:
+
+```yaml
+env?: !foreach
+  $over: !ref $Values.env
+  $as: $E
+  $yield?:
+    name: !ref $E?.name
+```
+
+`env?:` + `$yield?:` + `$over: … ?? []` is allowed (missing → `[]` → no key). `env?:` + `$yield:` + `?? []` is a pair error. Always keep the key:
+
+```yaml
+env: !foreach
   $over: !ref "$Values?.env ?? []"
   $as: $E
   $yield:
     name: !ref $E.name
     value: !ref $E.value
 ```
+
+`[]` from [`!ref`](ref.md) is not omitted. Drop an empty list with [`!not-empty`](not-empty.md):
+
+```yaml
+initContainers?: !match
+  $if: !not-empty $Values?.init
+  $then: !ref $Values.init
+```
+
+No `$else` + `?:` → no key when `init` is missing or `[]`. Do not write `initContainers?: !empty $Values?.init` — that is a bool.
+
+### Optional join bind
+
+```yaml
+!bind
+$HostList?: !join
+  $sep: ","
+  $over: !ref $Values?.hosts
+!emit
+hosts?: !ref $HostList?
+```
+
+Missing `hosts` → no `$HostList`. `hosts: []` → `$HostList` is `""`. Same pair as foreach: do not write `$HostList?:` with `$over: … ?? []`. Always keep a string:
+
+```yaml
+!bind
+$HostList: !join
+  $sep: ","
+  $over: !ref "$Values?.hosts ?? []"
+```
+
+### Optional foreach bind
+
+```yaml
+!bind
+$Items?: !foreach
+  $over: !ref $Values?.env
+  $as: $E
+  $yield:
+    name: !ref $E.name
+!emit
+env?: !ref $Items?
+```
+
+Missing `env` → no `$Items`. `env: []` + `$yield:` → `$Items: []`. `$Items?:` + `$yield?:` + nothing to print → no `$Items`. `$Items?:` + `$yield?:` + `?? []` is allowed. `$Items?:` + `$yield:` + `?? []` is a pair error.
+
+### Optional split bind
+
+```yaml
+!bind
+$Hosts?: !split
+  $sep: ","
+  $of: !ref $Values?.hostCsv
+!emit
+hostAliases?: !ref $Hosts?
+```
+
+Missing `hostCsv` → no `$Hosts`. `hostCsv: ""` → `$Hosts: []`. Same pair on `$of` (not `$over`): do not write `$Hosts?:` with `$of: … ?? ''`.
+
+### Optional sha256 bind
+
+```yaml
+!bind
+$PwHash?: !sha256
+  $of: !ref $Values?.password
+!emit
+checksum/secret?: !ref $PwHash?
+```
+
+Missing `password` → no `$PwHash`. `password: ""` → hash of `""` (a real hex). Same pair: do not write `$PwHash?:` with `$of: … ?? ''`.
+
+### Optional concat bind
+
+```yaml
+!bind
+$Args?: !concat
+  - ["--verbose"]
+  - !ref $Values?.extraArgs
+!emit
+args?: !ref $Args?
+```
+
+Missing `extraArgs` → no `$Args` (the base list is dropped too). Same pair as [`!format`](format.md): do not write `$Args?:` when every child has `?? []`. Keep a list:
+
+```yaml
+!bind
+$Args: !concat
+  - ["--verbose"]
+  - !ref "$Values?.extraArgs ?? []"
+```
+
+### Optional merge bind
+
+```yaml
+!bind
+$Res?: !merge
+  - !ref $Values?.requests
+  - !ref $Values?.limits
+!emit
+resources?: !ref $Res?
+```
+
+Every child must be omit-capable. A literal defaults map on `$Res?:` is a pair error (`?:` would never fire). Defaults + overlay: `$Name:` + `?? {}`.
+
+`!pick` always has a value (`$Res?: !pick` is an error).
+
+### Optional range bind
+
+```yaml
+!bind
+$Idx?: !range
+  $from: 0
+  $until: !ref $Values?.replicas
+```
+
+`$from: 0` may sit on `$Name?:` (same as a literal sibling of [`!concat`](concat.md)). Missing `replicas` → no `$Idx`. No `$from` key is an error, not `0`. A missing `$step` key is `1`; a written `$step` that omits is an error.
 
 ## Common mistakes
 
@@ -142,7 +279,42 @@ env: !foreach
   $as: $E
   $yield:
     name: !ref $E.name
-# fill omit with [] so $over is a list
+# required key: fill omit so $over is a list
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!emit
+env?: !foreach
+  $over: !ref "$Values?.env ?? []"
+  $as: $E
+  $yield:
+    name: !ref $E.name
+# ?: + ?? [] : the key cannot vanish
+```
+
+</td><td>
+
+```yaml
+!emit
+env?: !foreach
+  $over: !ref $Values?.env
+  $as: $E
+  $yield:
+    name: !ref $E.name
+# omit $over omits the key
+```
+
+```yaml
+!emit
+env?: !foreach
+  $over: !ref "$Values?.env ?? []"
+  $as: $E
+  $yield?:
+    name: !ref $E?.name
+# ?? [] + $yield?: : missing becomes [] then the key omits
 ```
 
 </td></tr>
@@ -191,10 +363,17 @@ replicas?: !ref $Values?.replicas
 - [`!match`](match.md)
 - [`!ref`](ref.md)
 - [`!expr`](expr.md)
+- [`!foreach`](foreach.md)
+- [`!join`](join.md)
+- [`!split`](split.md)
+- [`!sha256`](sha256.md)
+- [`!concat`](concat.md)
+- [`!merge`](merge.md)
+- [`!range`](range.md)
 
 ## Comparison with Helm
 
-Absence is written: key `?:` **and** path `?.`. One `??` on [`!ref`](ref.md) (a field) or [`!expr`](expr.md) (a formula) keeps a value. Write `!ref` when there is no operator.
+Absence is written: key `?:` **and** path `?.`. One `??` on [`!ref`](ref.md) (a field) or [`!expr`](expr.md) (a formula) keeps a value. Write `!ref` when there is no operator. Write YAML for a constant (`true`, `[80, 443]`).
 
 <table>
 <tr><th>Helm</th><td>

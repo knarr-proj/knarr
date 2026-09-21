@@ -1,6 +1,6 @@
 # `!ref`
 
-Read a path. Optional steps (`?.`). Binary default (`??`) keeps the key. Arithmetic and `&&` / `||` / `!` are [`!expr`](expr.md).
+Read a path. Optional steps (`?.`). Binary default (`??`) keeps the key. Arithmetic and `&&` / `||` / `!` are [`!expr`](expr.md). Both tags stay: do not put operators on `!ref`.
 
 ## Syntax
 
@@ -20,9 +20,10 @@ Tagged scalar, `RefScalar`:
 
 - Leading `$BindingName` (capital).
 - `.ident` steps, `[n]` indexes, `['key']` for non-idents.
-- Quote the YAML scalar when it contains `[`, `{`, or a quoted string default.
+- Quotes follow **YAML 1.2**, not “start of line”. Quote when the scalar contains `[` `{` `]` `}` `,`, `: ` (colon+space), a nested quoted string, or `#` after a space. `/` and `?? false` need no quotes.
 - One `??` for the **whole** scalar. N-way is [`!pick`](pick.md). The same `??` exists on [`!expr`](expr.md) for a formula.
 - A path with `??` and no operator is **`!ref`**. The same text in `!expr` is an error (no computation).
+- A constant (`true`, `[80, 443]`) is YAML, not `!expr`.
 - Dynamic `$Map[$Key]` is **`!expr` only**, not `!ref`.
 - One tag per node. Not `!!ref`.
 
@@ -136,7 +137,8 @@ image: !expr "$Values.images[$Worker.name]"
 ```yaml
 !emit
 name: !ref $Workers[0].name
-# unquoted [ is two YAML tokens
+$Ports: !ref $Values?.ports ?? [80, 443]
+# [ ] , are YAML flow indicators anywhere, not only at line start
 ```
 
 </td><td>
@@ -144,7 +146,8 @@ name: !ref $Workers[0].name
 ```yaml
 !emit
 name: !ref "$Workers[0].name"
-# quote the path when it contains [
+$Ports: !ref "$Values?.ports ?? [80, 443]"
+# quote the YAML 1.2 scalar
 ```
 
 </td></tr>

@@ -17,7 +17,7 @@ $Other?: <omit-capable value>
 - `$Name: !bind` is an error (bind is a document, not a field).
 - Empty `!bind` is an error.
 
-Optional bind (`$Name?:`) requires an omit-capable value (`?.` / `$Other?`). Elsewhere the name is written `$Name?`. See [Omit](omit.md).
+Optional bind (`$Name?:`) requires an omit-capable value (`?.` / `$Other?`, `$over` of [`!foreach`](foreach.md) / [`!join`](join.md) without `?? []`, **or** [`!foreach`](foreach.md) with `$yield?:` — `?? []` on that `$over` is allowed, `$of` of [`!split`](split.md) / [`!sha256`](sha256.md) without `?? ''`, an omit child of [`!concat`](concat.md) / [`!format`](format.md), or **every** child of [`!merge`](merge.md) omit-capable, or at least one of `$from` / `$to` / `$until` on [`!range`](range.md)). [`!pick`](pick.md) is always a value: `$Name?: !pick` is an error. Elsewhere the name is written `$Name?`. See [Omit](omit.md).
 
 ## Examples
 

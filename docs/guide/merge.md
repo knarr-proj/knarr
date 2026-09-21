@@ -11,9 +11,13 @@ $Cfg: !merge
 ```
 
 - Tagged sequence of mappings.
-- Empty `[]` → `{}`.
+- `$Name?: !merge` ↔ **every** child is omit-capable (`?.`, no `?? {}`): merge the live children; all omit → omit bind. Not the [`!concat`](concat.md) / [`!format`](format.md) law (one omit child + a literal).
+- A literal or required path on `$Name?:` is a pair error (the result would always be a mapping, so `?:` cannot fire).
+- `$Name: !merge` ↔ every child is a value (`?? {}` or a required path). Empty `[]` → `{}`.
+- Pair error: `$Name?:` + `?? {}` on a child, or `$Name:` + an omit child.
+- A live `{}` on `$Name?:` stays `{}`. Omit bind only if **all** children omit.
 - Map vs non-map on the same path is an error.
-- No `!merge-overwrite` tag; later mapping already overwrites.
+- No `!merge-overwrite` tag; later mapping already overwrites. Not in `!emit`.
 
 ## Examples
 
@@ -58,6 +62,19 @@ $M: !merge
 ```
 
 Use [`!concat`](concat.md) for lists.
+
+### Optional merge of optional maps
+
+```yaml
+!bind
+$Res?: !merge
+  - !ref $Values?.requests
+  - !ref $Values?.limits
+!emit
+resources?: !ref $Res?
+```
+
+Both missing → no `$Res`. Only `requests` present → `$Res` is that mapping. Defaults plus an optional overlay stay on `$Name:` with `?? {}` (see Default probe).
 
 ## Common mistakes
 
@@ -117,19 +134,26 @@ $Res?: !merge
   - requests:
       cpu: "100m"
   - !ref $Values?.resources
-# $Name?: !merge is not allowed
+# literal child: result always exists; ?: cannot fire
 ```
 
 </td><td>
 
 ```yaml
 !bind
-$User: !ref "$Values?.resources ?? {}"
 $Res: !merge
   - requests:
       cpu: "100m"
-  - !ref $User
-# fill omit, then !merge
+  - !ref "$Values?.resources ?? {}"
+# defaults stay: required bind, fill omit
+```
+
+```yaml
+!bind
+$Res?: !merge
+  - !ref $Values?.requests
+  - !ref $Values?.limits
+# ?: only when every child can omit
 ```
 
 </td></tr>
@@ -138,6 +162,9 @@ $Res: !merge
 ## See also
 
 - [`!concat`](concat.md)
+- [Omit](omit.md)
+- [`!pick`](pick.md)
+- [`!pick`](pick.md)
 - [Omit](omit.md)
 
 ## Comparison with Helm

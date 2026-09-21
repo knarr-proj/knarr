@@ -13,7 +13,7 @@ replicas: !match
 
 - Mapping with `$if` + `$then`, optional `$else`.
 - Not a sequence of branches. Else-if = `$else: !match`.
-- `$if` is a bool predicate (same family as `$when`).
+- `$if` is a bool predicate (same family as `$when`): tags or YAML `true` / `false`. Omit from `?.` without `??` is an error (not `false`); use `?? false` or [`!empty`](empty.md) / [`!not-empty`](not-empty.md).
 - Short-circuit: false `$if` does not evaluate `$then`.
 - One sort: `$then` and `$else` (when present) must match.
 - **Omit the key:** `affinity?: !match` **without** `$else` — false `$if` omits.
@@ -46,6 +46,18 @@ topologySpreadConstraints?: !match
 ```
 
 No `$else` + `?:` → key absent when replicas ≤ 1.
+
+### Drop empty list
+
+An empty `[]` is a value. To omit the key when the list is missing **or** `[]`:
+
+```yaml
+initContainers?: !match
+  $if: !not-empty $Values?.init
+  $then: !ref $Values.init
+```
+
+Use [`!not-empty`](not-empty.md), not `initContainers?: !empty …`.
 
 ### Else-if (Ingress vs ClusterIP)
 

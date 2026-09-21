@@ -36,6 +36,18 @@ $fail: "set name"
 $filter: !not-empty $W?.ports
 ```
 
+### Drop a field when the list is empty
+
+`[]` in stdout is a value. This tag and [`!empty`](empty.md) are **bool**, not omit. Pair with [`!match`](match.md) on a `?:` key (no `$else`):
+
+```yaml
+initContainers?: !match
+  $if: !not-empty $Values?.init
+  $then: !ref $Values.init
+```
+
+Missing or `[]` → no key. Non-empty → the list. For a loop, [`!foreach`](foreach.md) on `имя?:` with `$yield?:` omits the key when there is nothing to print.
+
 ### replicas from a non-empty map
 
 ```yaml

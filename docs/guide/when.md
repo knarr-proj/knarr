@@ -13,7 +13,7 @@ $then:
 $else: ""
 ```
 
-Predicate: `!ref`, `!not`, `!expr`, `!empty`, `!not-empty`, `!and`, `!or`. Not `!len` (that is int).
+Predicate: `!ref`, `!not`, `!expr`, `!empty`, `!not-empty`, `!and`, `!or`, or YAML `true` / `false`. Not `!len` (that is int). Not `!expr "true"` — that is no computation.
 
 `$else: ""` → emit nothing. `$else:` may be another mapping.
 
@@ -131,6 +131,30 @@ $then:
   name: !ref $Values.name
 $else: ""
 # missing enabled becomes false
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!emit
+$when: !expr "true"
+$then:
+  kind: Service
+$else: ""
+# no computation: use YAML
+```
+
+</td><td>
+
+```yaml
+!emit
+$when: true
+$then:
+  kind: Service
+  name: !ref $Values.name
+$else: ""
+# a constant bool is YAML
 ```
 
 </td></tr>

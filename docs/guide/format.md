@@ -12,7 +12,7 @@ $Name: !format
 ```
 
 - Tagged **sequence**: first element is the format **string**; the rest are arguments in order.
-- Only `$Name` or `$Name?:` in `!bind` (omit children require `$Name?:`).
+- Only `$Name` or `$Name?:` in `!bind` (omit children require `$Name?:`). A literal format string on `$Name?:` is allowed; one omit argument drops the whole bind (unlike [`!merge`](merge.md)).
 - Dialect ≡ Go `fmt.Sprintf` for knarr scalars (string, int64, bool, float64).
 - Type mismatch is a **render error**, not a `%!s(int=…)` insertion.
 - seq/map arguments are errors (JSON-string first).
