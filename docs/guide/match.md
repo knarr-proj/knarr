@@ -63,10 +63,10 @@ Use [`!not-empty`](not-empty.md), not `initContainers?: !empty …`.
 
 ```yaml
 type: !match
-  $if: !ref $Values.ingress.enabled
+  $if: !not-empty $Values?.ingress?.enabled
   $then: ClusterIP
   $else: !match
-    $if: !ref $Values.loadBalancer
+    $if: !not-empty $Values?.loadBalancer
     $then: LoadBalancer
     $else: ClusterIP
 ```
@@ -104,9 +104,9 @@ replicas: !match
 ```yaml
 !emit
 type: !match
-  - $if: !ref $Values.ingress.enabled
+  - $if: !not-empty $Values?.ingress?.enabled
     $then: ClusterIP
-  - $if: !ref $Values.loadBalancer
+  - $if: !not-empty $Values?.loadBalancer
     $then: LoadBalancer
 # !match is not a list of $if entries
 ```
@@ -116,10 +116,10 @@ type: !match
 ```yaml
 !emit
 type: !match
-  $if: !ref $Values.ingress.enabled
+  $if: !not-empty $Values?.ingress?.enabled
   $then: ClusterIP
   $else: !match
-    $if: !ref $Values.loadBalancer
+    $if: !not-empty $Values?.loadBalancer
     $then: LoadBalancer
     $else: ClusterIP
 # nest $else: !match
@@ -220,12 +220,21 @@ type: {{ if .Values.ingress.enabled }}ClusterIP{{ else if .Values.loadBalancer }
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+type: !match
+  $if: !not-empty $Values?.ingress?.enabled
+  $then: ClusterIP
+  $else: !match
+    $if: !not-empty $Values?.loadBalancer
+    $then: LoadBalancer
+    $else: ClusterIP
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` is truthiness. Knarr `$if` needs a bool; missing path is an error.
+Same result. Helm `if` is truthiness; knarr writes [`!not-empty`](not-empty.md) (omit / `""` / `[]` / `{}` / `false` / `0`). Each path step needs `?.` — a missing step without `?.` is still an error.
 
 </td></tr>
 </table>
