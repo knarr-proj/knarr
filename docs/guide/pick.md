@@ -16,7 +16,7 @@ name: !pick
 - Last is a concrete value (not omit).
 - First non-omit wins. Always a value: `$Name?: !pick` is an error.
 - Non-omit children share one YAML sort.
-- `??` in `!expr` stays **binary**. Use `!pick` instead of `a ?? b ?? c`.
+- `??` is one default on the whole [`!ref`](ref.md) / [`!expr`](expr.md). Use `!pick` instead of `a ?? b ?? c`.
 
 ## Examples
 
@@ -43,9 +43,12 @@ The last element must be a concrete fallback, not omit.
 ### Optional vs default port
 
 ```yaml
+# default — key stays
 containerPort: !pick
   - !ref $Values?.port
   - 8080
+# omit
+containerPort?: !ref $Values?.port
 ```
 
 If `port` is `0`, you get `0` — not 8080. Zero is a value.
@@ -79,8 +82,8 @@ name: !pick
 
 ```yaml
 !emit
-name: !expr "$Values?.fullname ?? $Values?.name ?? 'app'"
-# ?? in !expr is binary only
+name: !ref "$Values?.fullname ?? $Values?.name ?? 'app'"
+# ?? is one default on the whole scalar
 ```
 
 </td><td>
@@ -122,7 +125,7 @@ name: !pick
 ## See also
 
 - [Omit](omit.md)
-- [`!expr`](expr.md) `??`
+- [`!ref`](ref.md) / [`!expr`](expr.md) `??`
 
 ## Comparison with Helm
 
@@ -192,9 +195,12 @@ containerPort: {{ .Values.port | default 8080 }}
 
 ```yaml
 !emit
+# default — key stays
 containerPort: !pick
   - !ref $Values?.port
   - 8080
+# omit
+containerPort?: !ref $Values?.port
 ```
 
 </td></tr>

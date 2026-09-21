@@ -9,7 +9,7 @@ knarr never drops a key because a value is empty-looking. Absence is always **wr
 | `key?:` | stdout / `$yield` mapping key | This **key** may be absent in output |
 | `?.` / `?[` | path in `!ref` / `!expr` / `!not` / coerce tags | Missing step → **omit value**, not error |
 | `$Name?:` | bind key | Optional bind; elsewhere write **`$Name?`** |
-| `??` | only in `!expr`, exactly one | Default; result is always a value (key stays) |
+| `??` | one on the whole `!ref` or `!expr` | Default of that value; key stays |
 
 Leaf omit needs **both** `?:` on the key and an omit-capable value.
 
@@ -23,13 +23,25 @@ Optional mapping: every child is `?:` iff the parent is. Empty optional `{}` →
 affinity?: !ref $Values?.affinity
 ```
 
-### Default host, key always present
+### Default host vs omit
 
 ```yaml
-host: !expr "$Values.tls?.host ?? 'localhost'"
+# default — key stays
+host: !ref "$Values.tls?.host ?? 'localhost'"
+# omit
+host?: !ref $Values.tls?.host
 ```
 
-Do **not** put `?:` on `host` here — `??` already filled the value.
+Do **not** put `?:` on a key that uses `??`.
+
+### Formula default
+
+```yaml
+$when: !expr "$Values?.a || $Values?.b ?? false"
+$sum: !expr "$Values?.a + $Values?.b ?? 0"
+```
+
+`true || omit` is true. Write [`!ref`](ref.md) when there is no operator.
 
 ### Optional bind
 
@@ -64,7 +76,7 @@ $yield?: !ref $Worker?.sidecar
 
 ```yaml
 env?: !foreach
-  $over: !expr "$Values?.env ?? []"
+  $over: !ref "$Values?.env ?? []"
   $as: $E
   $yield:
     name: !ref $E.name
@@ -126,7 +138,7 @@ env: !foreach
 ```yaml
 !emit
 env: !foreach
-  $over: !expr "$Values?.env ?? []"
+  $over: !ref "$Values?.env ?? []"
   $as: $E
   $yield:
     name: !ref $E.name
@@ -138,8 +150,8 @@ env: !foreach
 
 ```yaml
 !emit
-name: !expr "$Values?.fullname ?? $Values?.name ?? 'app'"
-# ?? in !expr is binary only
+name: !ref "$Values?.fullname ?? $Values?.name ?? 'app'"
+# ?? is one default on the whole scalar
 ```
 
 </td><td>
@@ -177,11 +189,12 @@ replicas?: !ref $Values?.replicas
 
 - [`!pick`](pick.md)
 - [`!match`](match.md)
+- [`!ref`](ref.md)
 - [`!expr`](expr.md)
 
 ## Comparison with Helm
 
-Absence is written: key `?:` **and** path `?.`. `??` keeps the key with a default.
+Absence is written: key `?:` **and** path `?.`. One `??` on [`!ref`](ref.md) (a field) or [`!expr`](expr.md) (a formula) keeps a value. Write `!ref` when there is no operator.
 
 <table>
 <tr><th>Helm</th><td>
@@ -221,13 +234,16 @@ host: {{ .Values.tls.host | default "localhost" }}
 
 ```yaml
 !emit
-host: !expr "$Values.tls?.host ?? 'localhost'"
+# default — key stays
+host: !ref "$Values.tls?.host ?? 'localhost'"
+# omit
+host?: !ref $Values.tls?.host
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `| default` replaces `""`; knarr `??` fills omit only, not `""`.
+Helm `| default` replaces `""`; knarr `??` fills omit only, not `""`. `?:` omits the key.
 
 </td></tr>
 </table>
@@ -244,13 +260,16 @@ cert: {{ dig "tls" "cert" "" .Values }}
 
 ```yaml
 !emit
+# default — key stays
+cert: !ref "$Values?.tls?.cert ?? ''"
+# omit
 cert?: !ref $Values?.tls?.cert
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `dig` with `""` still emits `cert:` as an empty string; knarr `?:` omits the key.
+Helm `dig` with `""` still emits `cert:` as an empty string (`?? ''` keeps the key); knarr `?:` omits the key.
 
 </td></tr>
 </table>

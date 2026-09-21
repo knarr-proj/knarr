@@ -12,7 +12,7 @@ Tagged **scalar** only (not `{ }` / `[ ]` as the tag body).
 
 The lexer strips `$` from binding names outside quotes. You still **write** `$Values`.
 
-Allowed: literals (including `[80, 443]` and `{'app': $X}`), `$Name` paths, `&&` `||` `!` `==` `!=` `<` `>` `<=` `>=`, `+ - * /` (int, or float with promotion), binary `??`.
+Allowed: literals (including `[80, 443]` and `{'app': $X}`), `$Name` paths, `&&` `||` `!` `==` `!=` `<` `>` `<=` `>=`, `+ - * /` (int, or float with promotion). One top-level `??` defaults the **whole** formula if it has no result (omit). A field without operators: write [`!ref`](ref.md).
 
 Forbidden: `ident(`, ternary `c ? t : f`, string/list `+`.
 
@@ -32,11 +32,17 @@ $ShowSvc: !expr "$Values.service.enabled && $Values.replicas > 1"
 replicas: !expr "$Values.replicas + 1"
 ```
 
-### Default list of ports
+### Default if a value is missing
+
+`??` applies to the **entire** formula. `+` needs both sides. `||` / `&&` only demand what they need: `true || omit` is `true`, and the default is not used.
 
 ```yaml
-$Ports: !expr "$Values?.ports ?? [80, 443]"
+$sum: !expr "$Values?.a + $Values?.b ?? 0"
+$when: !expr "$Values?.ingress.enabled || $Values?.mesh.enabled ?? false"
+$when: !expr "$Values?.a || $Values?.b || $Values?.c ?? false"
 ```
+
+A path with no operator and `??` is the same as [`!ref`](ref.md). Write `!ref`.
 
 ### Labels map literal
 
@@ -78,6 +84,23 @@ $n: !expr "len($Values.workers)"
 !bind
 $n: !len $Values.workers
 # length is the !len tag
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!bind
+$Ports: !expr "$Values?.ports ?? [80, 443]"
+# a field default: write !ref (same result)
+```
+
+</td><td>
+
+```yaml
+!bind
+$Ports: !ref "$Values?.ports ?? [80, 443]"
+# no operator → !ref
 ```
 
 </td></tr>
@@ -159,13 +182,14 @@ replicas: !expr "$Values.replicas"
 ## See also
 
 - [`!ref`](ref.md)
+- [Omit](omit.md)
 - [`!format`](format.md)
 - [`!len`](len.md)
 - [`!float`](float.md)
 
 ## Comparison with Helm
 
-`!expr` is operators only — no `len()`, `printf()`, `int()`.
+`!expr` is operators. One `??` may default the whole formula. No `len()`, `printf()`, `int()`.
 
 <table>
 <tr><th>Helm</th><td>
@@ -225,21 +249,27 @@ Same behavior.
 <tr><th>Helm</th><td>
 
 ```gotemplate
-ports: {{ .Values.ports | default (list 80 443) }}
+{{- if or .Values.ingress.enabled .Values.mesh.enabled }}
+kind: Ingress
+{{- end }}
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
-!bind
-$Ports: !expr "$Values?.ports ?? [80, 443]"
+!emit
+$when: !expr "$Values?.ingress.enabled || $Values?.mesh.enabled ?? false"
+$then:
+  kind: Ingress
+  name: !ref $Values.name
+$else: ""
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `| default` replaces an empty list; knarr `??` fills omit only.
+Helm `or` of missing is empty/false; knarr omit is not false. `true || omit` is true and does not take `?? false`.
 
 </td></tr>
 </table>

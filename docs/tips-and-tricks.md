@@ -26,13 +26,16 @@ affinity?: !ref $Values?.affinity
 
 Not a `!with` tag. Details: [Omit](guide/omit.md).
 
-## Default that keeps the key
+## Default vs omit
 
 ```yaml
-host: !expr "$Values.tls?.host ?? 'localhost'"
+# default — key stays
+host: !ref "$Values.tls?.host ?? 'localhost'"
+# omit
+host?: !ref $Values.tls?.host
 ```
 
-`??` is binary and only in `!expr`. More than two candidates: [`!pick`](guide/pick.md).
+`??` is one default on the whole `!ref` or `!expr`. A field with no operator: [`!ref`](guide/ref.md). A formula: [`!expr`](guide/expr.md). More than two candidates: [`!pick`](guide/pick.md).
 
 ## One Service, maybe
 

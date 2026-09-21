@@ -23,7 +23,7 @@ No other keys next to `$when`. `when:` without `$` is an error.
 
 ```yaml
 !emit-foreach
-$when: !expr "$Values.deployWorkers ?? false"
+$when: !ref $Values.deployWorkers ?? false
 $over: !ref $Values.workers
 $as: $Worker
 $yield:
@@ -125,7 +125,7 @@ $else: ""
 
 ```yaml
 !emit
-$when: !expr "$Values?.enabled ?? false"
+$when: !ref $Values?.enabled ?? false
 $then:
   kind: Service
   name: !ref $Values.name
@@ -252,7 +252,7 @@ name: {{ .name }}
 
 ```yaml
 !emit-foreach
-$when: !expr "$Values.deployWorkers ?? false"
+$when: !ref $Values.deployWorkers ?? false
 $over: !ref $Values.workers
 $as: $Worker
 $yield:

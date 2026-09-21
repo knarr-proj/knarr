@@ -66,7 +66,7 @@ env: !foreach
 
 ```yaml
 env?: !foreach
-  $over: !expr "$Values?.env ?? []"
+  $over: !ref "$Values?.env ?? []"
   $as: $E
   $yield:
     name: !ref $E.name
@@ -127,7 +127,7 @@ containers: !foreach
 ```yaml
 !emit
 containers: !foreach
-  $over: !expr "$Values?.workers ?? []"
+  $over: !ref "$Values?.workers ?? []"
   $as: $W
   $yield:
     name: !ref $W.name

@@ -12,7 +12,7 @@ $over: !ref $Values.workers
 $as: $Worker
 $filter: !expr "$Worker.enabled"    # optional
 $key: $Kind                       # optional; only if $over is a mapping
-$when: !expr "$Values.deployWorkers ?? false"  # optional gate
+$when: !ref $Values.deployWorkers ?? false  # optional gate
 $yield:
   kind: Deployment
   name: !ref $Worker.name
@@ -72,7 +72,7 @@ Key order follows the source mapping.
 
 ```yaml
 !emit-foreach
-$when: !expr "$Values.deployWorkers ?? false"
+$when: !ref $Values.deployWorkers ?? false
 $over: !ref $Values.workers
 $as: $Worker
 $yield:
@@ -150,7 +150,7 @@ $yield:
 
 ```yaml
 !emit-foreach
-$over: !expr "$Values?.workers ?? []"
+$over: !ref "$Values?.workers ?? []"
 $as: $W
 $yield:
   kind: Pod
@@ -308,7 +308,7 @@ name: {{ .name }}
 
 ```yaml
 !emit-foreach
-$when: !expr "$Values.deployWorkers ?? false"
+$when: !ref $Values.deployWorkers ?? false
 $over: !ref $Values.workers
 $as: $Worker
 $yield:

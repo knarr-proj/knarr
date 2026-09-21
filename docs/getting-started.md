@@ -93,18 +93,21 @@ spec:
 A missing path is an error unless you mark **both** the key and the path:
 
 ```yaml
-spec:
-  affinity?: !ref $Values?.affinity
+# omit
+affinity?: !ref $Values?.affinity
+# default — key stays
+host: !ref "$Values.tls?.host ?? 'localhost'"
 ```
 
 - `affinity?:` — the **stdout key** may be absent.
 - `$Values?.affinity` — missing `affinity` is omit, not an error.
+- `host: !ref … ?? 'localhost'` — the key stays; missing host becomes `"localhost"`.
 
 A required key with a missing path is always an error. See [Omit](guide/omit.md).
 
 ## 5. A formula
 
-Use [`!expr`](guide/expr.md) for operators. There are **no functions** in the string (`len()`, `printf()`, `size()` are errors).
+Use [`!expr`](guide/expr.md) for operators. There are **no functions** in the string (`len()`, `printf()`, `size()` are errors). A field default is [`!ref`](guide/ref.md) `??`. A formula default is `??` on that `!expr`.
 
 ```yaml
 ---
@@ -132,8 +135,8 @@ $else: ""
 
 | Need | Construct |
 |------|-----------|
-| Path, no operators | [`!ref`](guide/ref.md) |
-| `&&` `>` `+` list/map literals | [`!expr`](guide/expr.md) |
+| Path, `?.`, field `??` | [`!ref`](guide/ref.md) |
+| `&&` `>` `+` `||`; formula `??` | [`!expr`](guide/expr.md) |
 | `printf` / `%s-%s` | [`!format`](guide/format.md) in `!bind`, then `!ref` |
 | Loop **fields** (env, ports) | [`!foreach`](guide/foreach.md) |
 | Loop **resources** (one Pod per worker) | [`!emit-foreach`](guide/emit-foreach.md) |

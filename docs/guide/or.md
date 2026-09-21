@@ -35,8 +35,10 @@ $when: !and
 ### Default-on in expr instead
 
 ```yaml
-$when: !expr "$Values?.ingress.enabled ?? false || $Values?.mesh.enabled ?? false"
+$when: !expr "$Values?.ingress.enabled || $Values?.mesh.enabled ?? false"
 ```
+
+`true || omit` is true. The default is used only if the whole `||` has no result.
 
 ## Common mistakes
 
@@ -146,13 +148,16 @@ host: {{ or .Values.host "localhost" }}
 
 ```yaml
 !emit
-host: !expr "$Values?.host ?? 'localhost'"
+# default — key stays
+host: !ref "$Values?.host ?? 'localhost'"
+# omit
+host?: !ref $Values?.host
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `or` treats `""` as false and takes the default; knarr `??` fills omit only (`""` wins).
+Helm `or` treats `""` as false and takes the default; knarr `??` fills omit only (`""` wins). `?:` omits the key.
 
 </td></tr>
 </table>
@@ -171,7 +176,7 @@ kind: Ingress
 
 ```yaml
 !emit
-$when: !expr "$Values?.ingress.enabled ?? false || $Values?.mesh.enabled ?? false"
+$when: !expr "$Values?.ingress.enabled || $Values?.mesh.enabled ?? false"
 $then:
   kind: Ingress
   name: !ref $Values.name
@@ -181,7 +186,7 @@ $else: ""
 </td></tr>
 <tr><th>Difference</th><td>
 
-Missing nested keys are empty in Helm; knarr needs `?.` and `?? false` for a bool.
+Missing nested keys are empty in Helm; knarr omit is not false. `true || omit` is true and does not take `?? false`.
 
 </td></tr>
 </table>

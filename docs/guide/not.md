@@ -27,10 +27,10 @@ $else: ""
 ### Optional bool
 
 ```yaml
-$when: !not $Values?.debug
+$when: !not $Values?.debug ?? false
 ```
 
-Need a bool: missing without `??` is omit, not false. Prefer `!expr "!($Values?.debug ?? false)"` if the flag may be absent.
+Need a bool: missing without `??` is omit, not false. `?? false` sits on the path (`!not` uses the same `RefScalar` as [`!ref`](ref.md)): missing debug → **true**. `!expr "!$Values?.debug ?? false"` defaults the **not-result**: missing debug → **false**.
 
 ### Hide workers
 
@@ -144,7 +144,7 @@ kind: Deployment
 
 ```yaml
 !emit
-$when: !expr "!($Values?.debug ?? false)"
+$when: !not $Values?.debug ?? false
 $then:
   kind: Deployment
   name: !ref $Values.name

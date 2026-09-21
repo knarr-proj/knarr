@@ -21,7 +21,7 @@ $Cfg: !merge
 
 ```yaml
 !bind
-$UserProbe: !expr "$Values?.livenessProbe ?? {}"
+$UserProbe: !ref "$Values?.livenessProbe ?? {}"
 $Probe: !merge
   - httpGet:
       path: /healthz
@@ -124,7 +124,7 @@ $Res?: !merge
 
 ```yaml
 !bind
-$User: !expr "$Values?.resources ?? {}"
+$User: !ref "$Values?.resources ?? {}"
 $Res: !merge
   - requests:
       cpu: "100m"
@@ -183,7 +183,7 @@ livenessProbe: {{ merge .Values.livenessProbe (dict "timeoutSeconds" 1) }}
 
 ```yaml
 !bind
-$UserProbe: !expr "$Values?.livenessProbe ?? {}"
+$UserProbe: !ref "$Values?.livenessProbe ?? {}"
 $Probe: !merge
   - httpGet:
       path: /healthz

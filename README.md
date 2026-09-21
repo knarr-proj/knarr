@@ -78,6 +78,7 @@ One input file, local files only. No stdin, no `-f` / `--set`. Values live in th
 - **No Helm release objects.** `$Release`, `$Chart`, and `$Capabilities` are reserved and unused.
 - **No snippet macros** (`define` / `include`) in v1; split files with `!import`.
 - **Strict omit.** A missing path is an error unless you mark both the key (`?:`) and the path (`?.`).
+- **`??` is one default on the whole `!ref` or `!expr`.** A field without operators: `!ref`. `true || omit` is true.
 - **Expressions have no function calls.** `len()`, `printf()`, `int()` in `!expr` are errors; those are YAML tags (`!len`, `!format`, `!int`).
 
 ## Contributing

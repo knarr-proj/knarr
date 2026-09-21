@@ -1,6 +1,6 @@
 # `!ref`
 
-Read a path. No operators. Sugar over the same paths as [`!expr`](expr.md).
+Read a path. Optional steps (`?.`). Binary default (`??`) keeps the key. Arithmetic and `&&` / `||` / `!` are [`!expr`](expr.md).
 
 ## Syntax
 
@@ -13,11 +13,16 @@ Tagged scalar, `RefScalar`:
 !ref "$Name.labels['app.kubernetes.io/name']"
 !ref $Name?.optional
 !ref $Name?.['dotted.key']
+!ref $Name?.flag ?? false
+!ref "$Name?.host ?? 'localhost'"
+!ref "$Name?.ports ?? [80, 443]"
 ```
 
 - Leading `$BindingName` (capital).
 - `.ident` steps, `[n]` indexes, `['key']` for non-idents.
-- Quote the YAML scalar when it contains `[`.
+- Quote the YAML scalar when it contains `[`, `{`, or a quoted string default.
+- One `??` for the **whole** scalar. N-way is [`!pick`](pick.md). The same `??` exists on [`!expr`](expr.md) for a formula.
+- A path with `??` and no operator: write **`!ref`**, even though `!expr` would match.
 - Dynamic `$Map[$Key]` is **`!expr` only**, not `!ref`.
 - One tag per node. Not `!!ref`.
 
@@ -56,11 +61,20 @@ livenessProbe?: !ref $Values?.livenessProbe
 ### Nested optional path
 
 ```yaml
-cert?: !ref $Values?.tls?.cert
-host: !expr "$Values?.env?.database?.host ?? 'localhost'"
+# default — key stays
+host: !ref "$Values?.env?.database?.host ?? 'localhost'"
+# omit
+host?: !ref $Values?.env?.database?.host
 ```
 
-A missing step with `?.` is omit, not an error. `??` fills a default and keeps the key.
+```yaml
+# default — key stays
+cert: !ref "$Values?.tls?.cert ?? ''"
+# omit
+cert?: !ref $Values?.tls?.cert
+```
+
+A missing step with `?.` is omit, not an error. `??` fills a default and keeps the key. Do not put `?:` on a key that uses `??`.
 
 ## Common mistakes
 
@@ -80,6 +94,23 @@ replicas: !ref $Values.replicas + 1
 !emit
 replicas: !expr "$Values.replicas + 1"
 # arithmetic is !expr
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!emit
+host: !expr "$Values?.tls?.host ?? 'localhost'"
+# legal, but a field default is !ref
+```
+
+</td><td>
+
+```yaml
+!emit
+host: !ref "$Values?.tls?.host ?? 'localhost'"
+# no operator → !ref
 ```
 
 </td></tr>
@@ -143,7 +174,7 @@ name: !ref $Values.name
 
 ## Comparison with Helm
 
-`!ref` is a path. Missing without `?.` is an error, not empty. Sprig `dig` is nested `?.`; a default argument is `??` in [`!expr`](expr.md).
+`!ref` is field access: path, `?.`, one `??` on the whole scalar. Missing without `?.` is an error, not empty. Sprig `dig` is nested `?.`; a non-empty default is `??`. The same path+`??` in `!expr` matches; write `!ref`.
 
 <table>
 <tr><th>Helm</th><td>
@@ -203,13 +234,16 @@ cert: {{ dig "tls" "cert" "" .Values }}
 
 ```yaml
 !emit
+# default — key stays
+cert: !ref "$Values?.tls?.cert ?? ''"
+# omit
 cert?: !ref $Values?.tls?.cert
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-`dig` with default `""` still emits `cert:` as an empty string; knarr `?:` omits the key.
+`dig` with default `""` still emits `cert:` as an empty string. Knarr `?? ''` keeps the key; `?:` omits it.
 
 </td></tr>
 </table>
@@ -226,13 +260,16 @@ host: {{ dig "env" "database" "host" "localhost" .Values }}
 
 ```yaml
 !emit
-host: !expr "$Values?.env?.database?.host ?? 'localhost'"
+# default — key stays
+host: !ref "$Values?.env?.database?.host ?? 'localhost'"
+# omit
+host?: !ref $Values?.env?.database?.host
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+`dig` with `"localhost"` matches knarr `??`. `?:` omits the key instead.
 
 </td></tr>
 </table>
@@ -249,13 +286,16 @@ tag: {{ dig "image" "tag" "latest" .Values }}
 
 ```yaml
 !emit
-tag: !expr "$Values?.image?.tag ?? 'latest'"
+# default — key stays
+tag: !ref "$Values?.image?.tag ?? 'latest'"
+# omit
+tag?: !ref $Values?.image?.tag
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same behavior.
+`dig` with `"latest"` matches knarr `??`. `?:` omits the key instead.
 
 </td></tr>
 </table>
@@ -272,13 +312,16 @@ secretName: {{ dig "server" "tls" "secretName" "" .Values.config }}
 
 ```yaml
 !emit
+# default — key stays
+secretName: !ref "$Values.config?.server?.tls?.secretName ?? ''"
+# omit
 secretName?: !ref $Values.config?.server?.tls?.secretName
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Empty-string `dig` default keeps the key; knarr `?:` omits it.
+Empty-string `dig` default keeps the key (`?? ''`). Knarr `?:` omits it.
 
 </td></tr>
 </table>

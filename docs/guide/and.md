@@ -99,7 +99,7 @@ $else: ""
 
 ```yaml
 !emit
-$when: !expr "$Values?.enabled ?? false"
+$when: !ref $Values?.enabled ?? false
 $then:
   kind: Service
   name: !ref $Values.name

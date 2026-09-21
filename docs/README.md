@@ -43,8 +43,8 @@ Each construct page has a **Comparison with Helm** section at the bottom.
 
 | Construct | Guide |
 |-----------|-------|
-| `!ref` | [ref](guide/ref.md) |
-| `!expr` | [expr](guide/expr.md) |
+| `!ref` | [ref](guide/ref.md) — path, `?.`, one `??` |
+| `!expr` | [expr](guide/expr.md) — operators; one `??` on the whole formula |
 | `!not` | [not](guide/not.md) |
 | `!read` | [read](guide/read.md) |
 | `!pick` | [pick](guide/pick.md) |

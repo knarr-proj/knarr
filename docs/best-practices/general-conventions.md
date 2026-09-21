@@ -51,7 +51,7 @@ knarr never drops a key because a value “looks empty”.
 | Intent | Write |
 |--------|--------|
 | Field may vanish | `affinity?: !ref $Values?.affinity` |
-| Field always present, default | `host: !expr "$Values.tls?.host ?? 'localhost'"` |
+| Field always present, default | `host: !ref "$Values.tls?.host ?? 'localhost'"` |
 | N candidates | [`!pick`](../guide/pick.md) |
 
 Both markers are required for omit: key `?:` **and** an omit-capable value (`?.` / `$Name?`). See [Omit](../guide/omit.md).
@@ -62,6 +62,7 @@ Optional mappings: every child key uses `?:` if and only if the parent does. An 
 
 - [`!expr`](../guide/expr.md) is a knarr grammar (CEL-shaped tokens, not the CEL spec).
 - **No function calls:** `len()`, `printf()`, `size()`, `has()` are parse errors.
+- One `??` defaults a whole [`!ref`](../guide/ref.md) or whole `!expr`. Write `!ref` when there is no operator.
 - String glue is [`!format`](../guide/format.md) or [`!join`](../guide/join.md), not `+`.
 - `+` on two ints is addition; if either side is float, both become float.
 - List/map literals in `!expr` use knarr/CEL shape: `[80, 443]`, `{'app': $Values.name}` — not YAML `{app: 1}`.

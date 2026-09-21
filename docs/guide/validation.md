@@ -40,7 +40,7 @@ Rules are **must-true**. When the flag should be absent:
 ```yaml
 !validation
 $rules:
-  - !expr "!($Values?.legacy ?? false)"
+  - !not $Values?.legacy ?? false
 $fail: "remove Values.legacy"
 ```
 
@@ -183,14 +183,14 @@ legacy: {{ .Values.legacy }}
 ```yaml
 !validation
 $rules:
-  - !expr "!($Values?.legacy ?? false)"
+  - !not $Values?.legacy ?? false
 $fail: "remove Values.legacy"
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `fail` is inline; knarr `$fail` is on the validation document. Helm `if .Values.legacy` is truthiness; knarr uses a bool `!expr`.
+Helm `fail` is inline; knarr `$fail` is on the validation document. Helm `if .Values.legacy` is truthiness; knarr uses `!not` plus `?? false`.
 
 </td></tr>
 </table>

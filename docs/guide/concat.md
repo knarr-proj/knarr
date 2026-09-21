@@ -33,7 +33,7 @@ args: !ref $Args
 ```yaml
 $Args: !concat
   - !ref $Base
-  - !expr "$Values?.extraArgs ?? []"
+  - !ref "$Values?.extraArgs ?? []"
 ```
 
 ### Merge two port lists
@@ -196,7 +196,7 @@ args:
 !bind
 $Args: !concat
   - ["--verbose"]
-  - !expr "$Values?.extraArgs ?? []"
+  - !ref "$Values?.extraArgs ?? []"
 ```
 
 </td></tr>
