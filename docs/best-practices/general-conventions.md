@@ -42,8 +42,8 @@ $when: !is-not-empty $Values.x?
 
 ## Bind vs emit
 
-- **Compute in `!bind`.** Tags such as `!format`, `!concat`, `!join`, `!merge`, `!sha256` are bind-only.
-- **Print with `!ref`.** Manifest fields hold paths, `!match`, `!foreach`, `!range`, literals, or omit — not bind-only tags.
+- **Compute in the field or in `!bind`.** `!format` / `!concat` / `!join` / `!split` / `!merge` / `!sha256` are values.
+- **Print with `!ref` or a value tag.** Manifest fields hold paths, `!match`, `!foreach`, `!range`, combine tags, literals, or omit.
 - Forward references between `$Name`s are allowed. Cycles are errors. A bind is **atomic**: `$A.y` cannot see `$A.x`.
 
 ## Explicit omit

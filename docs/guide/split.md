@@ -1,6 +1,6 @@
 # `!split`
 
-Split a **string** on a separator. Bind-only. Result is a sequence of strings.
+Split a **string** on a separator. A value, like [`!join`](join.md): bind or a field. Result is a sequence of strings.
 
 ## Syntax
 
@@ -13,15 +13,24 @@ $Parts: !split
 ```
 
 - `$sep` non-empty string; `$of` string (`""` → `[]`). Not `$over` (that key is a collection: [`!join`](join.md) / [`!foreach`](foreach.md)).
-- `$Name?: !split` ↔ omit-capable `$of` (`?.`, no `?? ''`): missing string → omit bind.
-- `$Name: !split` ↔ `$of` always a value (`?? ''` or a required path): empty → `[]`.
-- Pair error: `$Name?:` + `?? ''` on `$of`, or `$Name:` + omit-capable `$of` without `??`.
-- Empty string value stays `[]` even on `$Name?:`. Omit bind only if `$of` itself omits.
-- `$of?:` is an error. Not in `!emit`.
+- `$Name?: !split` / `parts?: !split` ↔ omit-capable `$of` (`?.`, no `?? ''`): missing string → omit the value.
+- `$Name: !split` / `parts: !split` ↔ `$of` always a value (`?? ''` or a required path): empty → `[]`.
+- Pair error: `?:` + `?? ''` on `$of`, or a required key + omit-capable `$of` without `??`.
+- Empty string value stays `[]` even on `?:`. Omit only if `$of` itself omits.
+- `$of?:` is an error. Not a document. Not the whole `$then` of `!emit`. Not `$yield` of `!emit-foreach` (not a mapping).
 
 ## Examples
 
 ### CSV hosts → list
+
+```yaml
+# $Values = {hostCsv: "a,b"}
+!emit
+hosts: !split
+  $sep: ","
+  $of: !ref $Values.hostCsv
+# hosts: [a, b]
+```
 
 ```yaml
 # $Values = {hostCsv: "a,b"}
@@ -240,7 +249,7 @@ $Hosts?: !split
 
 ## Comparison with Helm
 
-`!split` returns a **list**. Sprig `split` returns a dict of `_0`, `_1`. `$Name?:` follows the same omit pair as [`!join`](join.md), on `$of` not `$over`.
+`!split` is a value and returns a **list**. Sprig `split` returns a dict of `_0`, `_1`. `?:` follows the same omit pair as [`!join`](join.md), on `$of` not `$over`.
 
 <table>
 <tr><th>Helm</th><td>
@@ -256,13 +265,10 @@ hosts: {{ splitList "," .Values.hostCsv }}
 
 ```yaml
 # $Values = {hostCsv: "a,b"}
-!bind
-$Hosts: !split
+!emit
+hosts: !split
   $sep: ","
   $of: !ref $Values.hostCsv
----
-!emit
-hosts: !ref $Hosts
 # hosts: [a, b]
 ```
 
@@ -310,13 +316,10 @@ lines: {{ splitList "\n" .Values.allowlist }}
 
 ```yaml
 # $Values = {allowlist: "a\nb"}
-!bind
-$Lines: !split
+!emit
+lines: !split
   $sep: "\n"
   $of: !ref $Values.allowlist
----
-!emit
-lines: !ref $Lines
 # lines: [a, b]
 ```
 

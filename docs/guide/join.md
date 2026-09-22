@@ -1,6 +1,6 @@
 # `!join`
 
-Join a **sequence** with a separator. Each item is coerced like [`!str`](str.md). Bind-only. Result is a string. Split: [`!split`](split.md).
+Join a **sequence** with a separator. Each item is coerced like [`!str`](str.md). A value, like [`!format`](format.md): bind or a field. Result is a string. Split: [`!split`](split.md).
 
 ## Syntax
 
@@ -19,7 +19,7 @@ $Csv: !join
 - `$Name: !join` ↔ `$over` always a value (`?? []` or a required path): empty → `""`, or just the wrap if `$prefix` / `$suffix` are set.
 - Pair error: `$Name?:` + `?? []` on `$over`, or `$Name:` + omit-capable `$over` without `??`.
 - Empty list value (`[]` in values) is still a string (empty or wrap), not omit bind. Omit bind only if `$over` itself omits.
-- `$over?:` is an error. Not in `!emit`.
+- `$over?:` is an error. Not a document. Not the whole `$then` of `!emit`. Not `$yield` of `!emit-foreach` (not a mapping).
 
 ## Examples
 
@@ -27,13 +27,10 @@ $Csv: !join
 
 ```yaml
 # $Values = {hosts: [a, b]}
-!bind
-$HostList: !join
+!emit
+hosts: !join
   $sep: ","
   $over: !ref $Values.hosts
----
-!emit
-hosts: !ref $HostList
 # hosts: a,b
 ```
 
@@ -140,24 +137,20 @@ $Pull: !join
 
 ```yaml
 # $Values = {hosts: [a]}
-!emit
-hosts: !join
+!join
   $sep: ","
   $over: !ref $Values.hosts
-# error: !join is bind-only
+# error: !join is not a document
 ```
 
 </td><td>
 
 ```yaml
 # $Values = {hosts: [a]}
-!bind
-$HostList: !join
+!emit
+hosts: !join
   $sep: ","
   $over: !ref $Values.hosts
----
-!emit
-hosts: !ref $HostList
 # hosts: a
 ```
 
@@ -362,7 +355,7 @@ Do not write `$HostList?:` with `$over: … ?? []`.
 
 ## Comparison with Helm
 
-`!join` is bind-only: `$sep` + `$over` → string (`!str` each item). `$Name?:` follows the same omit pair as [`!foreach`](foreach.md). `$filter`/`$as` are optional together; there is no `$yield`.
+`!join` is a value: `$sep` + `$over` → string (`!str` each item). `?:` follows the same omit pair as [`!foreach`](foreach.md) on `$over`. `$filter`/`$as` are optional together; there is no `$yield`.
 
 <table>
 <tr><th>Helm</th><td>
@@ -378,18 +371,15 @@ hosts: {{ join "," (required "hosts" .Values.hosts) }}
 
 ```yaml
 # $Values = {hosts: [a, b]}
-!bind
-$HostList: !join
-  $sep: ","
-  $over: !ref $Values.hosts
----
 !validation
 $rules:
   - !is-not-empty $Values.hosts?
 $fail: "hosts"
 ---
 !emit
-hosts: !ref $HostList
+hosts: !join
+  $sep: ","
+  $over: !ref $Values.hosts
 # hosts: a,b
 ```
 

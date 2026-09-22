@@ -1,6 +1,6 @@
 # `!merge`
 
-Deep-merge mappings. Later wins. Sequences are **replaced**, not concatenated. Bind-only.
+Deep-merge mappings. Later wins. Sequences are **replaced**, not concatenated. A value, like [`!format`](format.md): bind or a field.
 
 ## Syntax
 
@@ -13,13 +13,13 @@ $Cfg: !merge
 ```
 
 - Tagged sequence of mappings.
-- `$Name?: !merge` ↔ **every** child is omit-capable (`?.`, no `?? {}`): merge the live children; all omit → omit bind. Not the [`!concat`](concat.md) / [`!format`](format.md) law (one omit child + a literal).
-- A literal or required path on `$Name?:` is a pair error (the result would always be a mapping, so `?:` cannot fire).
-- `$Name: !merge` ↔ every child is a value (`?? {}` or a required path). Empty `[]` → `{}`.
-- Pair error: `$Name?:` + `?? {}` on a child, or `$Name:` + an omit child.
-- A live `{}` on `$Name?:` stays `{}`. Omit bind only if **all** children omit.
+- `$Name?: !merge` / `resources?: !merge` ↔ **every** child is omit-capable (`?.`, no `?? {}`): merge the live children; all omit → omit the value. Not the [`!concat`](concat.md) / [`!format`](format.md) law (one omit child + a literal).
+- A literal or required path on `?:` is a pair error (the result would always be a mapping, so `?:` cannot fire).
+- `$Name: !merge` / `resources: !merge` ↔ every child is a value (`?? {}` or a required path). Empty `[]` → `{}`.
+- Pair error: `?:` + `?? {}` on a child, or a required key + an omit child.
+- A live `{}` on `?:` stays `{}`. Omit only if **all** children omit.
 - Map vs non-map on the same path is an error.
-- No `!merge-overwrite` tag; later mapping already overwrites. Not in `!emit`.
+- No `!merge-overwrite` tag; later mapping already overwrites. Not a document. Not the whole `$then` of `!emit` (that `$then` is a YAML mapping). Allowed as `$yield` of `!emit-foreach` (result is a mapping).
 
 ## Examples
 
@@ -42,13 +42,12 @@ $Probe: !merge
 
 ```yaml
 # $Values = {resources: {limits: {cpu: "1"}}}
-$Res: !merge
+!emit
+resources: !merge
   - requests:
       cpu: "100m"
       memory: "128Mi"
   - !ref $Values.resources
-!emit
-resources: !ref $Res
 # resources: {requests: {cpu: "100m", memory: "128Mi"}, limits: {cpu: "1"}}
 ```
 
@@ -94,26 +93,22 @@ Both missing → no `$Res`. Only `requests` present → `$Res` is that mapping. 
 
 ```yaml
 # $Values = {resources: {limits: {cpu: "1"}}}
-!emit
-resources: !merge
+!merge
   - requests:
       cpu: "100m"
   - !ref $Values.resources
-# error: !merge is bind-only
+# error: !merge is not a document
 ```
 
 </td><td>
 
 ```yaml
 # $Values = {resources: {}}
-!bind
-$Res: !merge
+!emit
+resources: !merge
   - requests:
       cpu: "100m"
   - !ref $Values.resources
----
-!emit
-resources: !ref $Res
 # resources: {requests: {cpu: "100m"}}
 ```
 
@@ -198,7 +193,7 @@ Keep defaults: `$Name:` + `?? {}` on the overlay.
 
 ## Comparison with Helm
 
-`!merge` is bind-only. Nested maps merge; sequences are replaced.
+`!merge` is a value. Nested maps merge; sequences are replaced. Helm dest-first; knarr later mapping wins — put the dest last to match Helm on the inputs below.
 
 <table>
 <tr><th>Helm</th><td>
@@ -212,12 +207,20 @@ resources: {{ merge .Values.resources (dict "requests" (dict "cpu" "100m")) }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+# $Values = {resources: {limits: {cpu: "1"}}}
+!emit
+resources: !merge
+  - requests:
+      cpu: "100m"
+  - !ref $Values.resources
+# resources: {requests: {cpu: "100m"}, limits: {cpu: "1"}}
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `merge` dest-first. Knarr later mapping wins. Helm prints the merge; knarr `!merge` is bind-only.
+Same result on this input. Helm dest-first; knarr later-wins (user map last). Key order may differ.
 
 </td></tr>
 </table>
@@ -234,12 +237,19 @@ livenessProbe: {{ merge .Values.livenessProbe (dict "timeoutSeconds" 1) }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+# $Values = {livenessProbe: {path: /healthz}}
+!emit
+livenessProbe: !merge
+  - timeoutSeconds: 1
+  - !ref $Values.livenessProbe
+# livenessProbe: {timeoutSeconds: 1, path: /healthz}
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm dest-first and missing probe is empty. Knarr later-wins and `!merge` is bind-only.
+Same keys on this input. Helm dest-first; knarr later-wins (probe last). Key order may differ.
 
 </td></tr>
 </table>
@@ -256,12 +266,19 @@ args: {{ merge (dict "args" (list "--a")) (dict "args" (list "--b")) }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+# $Values = {a: 1}
+!emit
+args: !merge
+  - args: ["--a"]
+  - args: ["--b"]
+# args: {args: [--b]}
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm prints the merge as a template value. Knarr `!merge` is bind-only. Sequences replace in both languages, but this pair is not the same stdout.
+Same result. Sequences replace in both.
 
 </td></tr>
 </table>

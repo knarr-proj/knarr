@@ -14,7 +14,7 @@ $Other?: <omit-capable value>
 
 - Document tag must be `!bind`. A mapping of one or more keys.
 - Keys: `$Name` (capital after `$`) or `$Name?:`.
-- Values: literals, `!$Type`, `!ref`, `!expr`, `!read`, `!match`, `!foreach`, bind-only tags (`!format`, `!concat`, …).
+- Values: literals, `!$Type`, `!ref`, `!expr`, `!read`, `!match`, `!foreach`, `!format`, `!concat`, `!join`, `!split`, `!merge`, `!sha256`.
 - **Not a value:** `!import`, `!emit`, another `!bind`.
 - `$Name: !bind` is an error (bind is a document, not a field).
 - Empty `!bind` is an error.

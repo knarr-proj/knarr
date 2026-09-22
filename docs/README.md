@@ -57,9 +57,9 @@ Purpose is **one sentence**. The construct page is the source of truth; this tab
 | `!read` | Load one local YAML document as a value | [read](guide/read.md) |
 | `!pick` | First non-omit of N candidates | [pick](guide/pick.md) |
 
-### Bind-only transforms
+### Combine
 
-These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where noted) inside `!bind`. Use `!ref` in the manifest. `!join` may take `$prefix` / `$suffix` (non-empty strings, like `$sep`). `!join` may be `$Name?:` when `$over` is omit-capable; `!foreach` / `!range` also as a field (`имя?:` when `$over` / a bound omits or `$yield?:` is used). `!split` / `!sha256` when `$of` is omit-capable; `!concat` when a child is omit-capable; `!merge` when **every** child is omit-capable. `!pick` is always a value (`$Name?: !pick` is an error). Each construct page has an **Omit** section.
+A value: bind or a field (`имя?:` uses the same omit pair as in bind).
 
 | Construct | Purpose | Guide |
 |-----------|---------|-------|
@@ -67,13 +67,13 @@ These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where not
 | `!join` | Join a sequence (`!str` each item) with `$sep`; optional `$filter` | [join](guide/join.md) |
 | `!split` | Split a string into a sequence | [split](guide/split.md) |
 | `!merge` | Deep-merge mappings, later wins | [merge](guide/merge.md) |
+| `!format` | Go `fmt` string from operands | [format](guide/format.md) |
 | `!sha256` | Hex SHA-256 of a string | [sha256](guide/sha256.md) |
 
 ### Strings, JSON, and hashing
 
 | Construct | Purpose | Guide |
 |-----------|---------|-------|
-| `!format` | Go `fmt` string from operands | [format](guide/format.md) |
 | `!b64enc` | Base64-encode a string | [b64enc](guide/b64enc.md) |
 | `!b64dec` | Base64-decode a string | [b64dec](guide/b64dec.md) |
 | `!len` | Length of seq / map / string bytes | [len](guide/len.md) |

@@ -1,6 +1,6 @@
 # `!concat`
 
-Concatenate **sequences**. Bind-only. Result is a sequence.
+Concatenate **sequences**. A value, like [`!foreach`](foreach.md): bind or a field. Result is a sequence.
 
 ## Syntax
 
@@ -13,11 +13,11 @@ $Args: !concat
 ```
 
 - Tagged sequence of children; each child evaluates to a **sequence**.
-- `$Name?: !concat` ↔ an omit-capable child (`?.`, no `?? []`): any omit child → omit **the whole bind** (siblings are not skipped).
-- `$Name: !concat` ↔ every child is a value (`?? []` or a required path): empty / all `[]` → `[]`.
-- Pair error: `$Name?:` without an omit path (or every child has `?? []`), or `$Name:` + an omit child.
-- An empty list **value** (`[]`) still concatenates, even on `$Name?:`. Omit bind only if a child itself omits.
-- Nested `!concat` is an error; list siblings instead. Not in `!emit`.
+- `$Name?: !concat` / `args?: !concat` ↔ an omit-capable child (`?.`, no `?? []`): any omit child → omit **the whole value** (siblings are not skipped).
+- `$Name: !concat` / `args: !concat` ↔ every child is a value (`?? []` or a required path): empty / all `[]` → `[]`.
+- Pair error: `?:` without an omit path (or every child has `?? []`), or a required key + an omit child.
+- An empty list **value** (`[]`) still concatenates, even on `?:`. Omit only if a child itself omits.
+- Nested `!concat` is an error; list siblings instead. Not a document. Not the whole `$then` of `!emit`. Not `$yield` of `!emit-foreach` (not a mapping).
 - `+` does not concatenate lists.
 
 ## Examples
@@ -26,13 +26,10 @@ $Args: !concat
 
 ```yaml
 # $Values = {extraArgs: [--foo]}
-!bind
-$Args: !concat
+!emit
+args: !concat
   - ["--verbose", "--alsologtostderr"]
   - !ref $Values.extraArgs
----
-!emit
-args: !ref $Args
 # args: [--verbose, --alsologtostderr, --foo]
 ```
 
@@ -80,24 +77,20 @@ Missing `extraArgs` → no `$Args` (the `"--verbose"` base is dropped too). Keep
 
 ```yaml
 # $Values = {extraArgs: [--foo]}
-!emit
-args: !concat
+!concat
   - ["--verbose"]
   - !ref $Values.extraArgs
-# error: !concat is bind-only
+# error: !concat is not a document
 ```
 
 </td><td>
 
 ```yaml
 # $Values = {extraArgs: [--foo]}
-!bind
-$Args: !concat
+!emit
+args: !concat
   - ["--verbose"]
   - !ref $Values.extraArgs
----
-!emit
-args: !ref $Args
 # args: [--verbose, --foo]
 ```
 
@@ -117,13 +110,10 @@ args:
 
 ```yaml
 # $Values = {extraArgs: [--foo]}
-!bind
-$Args: !concat
+!emit
+args: !concat
   - ["--verbose"]
   - !ref $Values.extraArgs
----
-!emit
-args: !ref $Args
 # args: [--verbose, --foo]
 ```
 
@@ -228,7 +218,7 @@ Keep the base: `$Name:` + `?? []` on that child.
 
 ## Comparison with Helm
 
-`!concat` is bind-only. `+` never concatenates lists. `$Name?:` follows the same omit pair as [`!format`](format.md): any omit child drops the whole bind. A literal sibling on `$Name?:` is allowed (unlike [`!merge`](merge.md), where every child must be omit-capable).
+`!concat` is a value. `+` never concatenates lists. `?:` follows the same omit pair as [`!format`](format.md): any omit child drops the whole value. A literal sibling on `?:` is allowed (unlike [`!merge`](merge.md), where every child must be omit-capable).
 
 <table>
 <tr><th>Helm</th><td>
@@ -244,18 +234,15 @@ args: {{ concat (list "--verbose") (required "extraArgs" .Values.extraArgs) }}
 
 ```yaml
 # $Values = {extraArgs: [--foo]}
-!bind
-$Args: !concat
-  - ["--verbose"]
-  - !ref $Values.extraArgs
----
 !validation
 $rules:
   - !is-not-empty $Values.extraArgs?
 $fail: "extraArgs"
 ---
 !emit
-args: !ref $Args
+args: !concat
+  - ["--verbose"]
+  - !ref $Values.extraArgs
 # args: [--verbose, --foo]
 ```
 

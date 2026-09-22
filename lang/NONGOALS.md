@@ -61,12 +61,12 @@
 - Host **`toJson` / `fromJson`**; pretty JSON; `SetEscapeHTML(false)`; JSON-ключи first-seen (канон **71** = Helm `toJson`)
 - Multi-doc / dual-type `!read` по числу `---` (решение **69**; `!read-docs` — v2)
 - Якоря **`&` / `*` / `<<` в документе knarr** (решение **70**; в `!read` можно)
-- Host **`concat` / `append` / `prepend`**; **`+` на sequence**; **`+` на string** (решение **75**); **`args: !expr "concat(…)"`**; **`args: !concat`** (канон — **`!concat` в `!bind`**, решение **59**)
-- Host **`join` / `split`**; **`!join`/`!split` в `!emit`** (канон — bind, решение **62**)
+- Host **`concat` / `append` / `prepend`**; **`+` на sequence**; **`+` на string** (решение **75**); **`args: !expr "concat(…)"`**
+- Host **`join` / `split`**. **`!join` / `!split` / `!concat` / `!merge` / `!sha256` в поле — 150 / 151.**
 - Host **`printf`**; **`!printf`** (не синоним, **78**); голые `$X` в sequence `!format`; **`+` строк в `!expr`**; **`%n` `%p` `%T` `%w`**; синтаксис Rust `{}` / `{:.2}`; Go-вставка `%!s(int=…)` вместо ошибки (решение **80**: диалект Go `fmt` на скалярах; mismatch — ошибка). **`!format` в поле — 149.**
 - Host **`b64enc` / `b64dec` / `len`**; mapping `$of` у этих тегов; **`$when: !len`** (решение **76**: tagged scalar как `!int`; `$N?: !len $X.y?`)
-- Host **`sha256sum`**; **`!sha256` в `!emit`**; тихий хэш mapping без JSON (решение **63**; дерево — **`!sha256-json`**, **71**)
-- Host **`merge`**; **`!merge` в `!emit`**; **`!merge-overwrite`** / тихий overwrite вложенного map (решение **64**)
+- Host **`sha256sum`**; тихий хэш mapping без JSON (решение **63**; дерево — **`!sha256-json`**, **71**). **`!sha256` в поле — 151.**
+- Host **`merge`**; **`!merge-overwrite`** / тихий overwrite вложенного map (решение **64**). **`!merge` в поле — 150.**
 - Host **`until` / `untilStep` / `seq`**; **`!range` в `$over`**; документ **`!range`** (поле — **146**); **`$Idx: !range` без `$as`/`$yield`** (ints только через `$yield`, **144**); один `$to` с двумя смыслами; нет ключа **`$from`** → `0`; omit написанного **`$step`** → `1`; **`$Name?:` / `имя?: !range`** без omit границ и без **`$yield?:`** (решения **65**, **107**, **144**, **146**)
 - Host **`empty`**; тег **`!nempty`**; теги **`!empty` / `!not-empty`** (имена — **`!is-empty` / `!is-not-empty`**, решение **140**); **`!omit-empty` / `!skip-not-empty`**; **`!not` вокруг `!is-empty`/`!and`/`!or`** (решение **66**); **`!skip-empty`** на `имя:` / `$when` / `$then` **документа** `!emit` / `$over` / seq / ребёнок **`!pick`** (решения **140**, **141**: `$then`/`$else` только у `!match` в omit-слоте)
 - Host **`int` / `str` / `bool` / `float64`**; `string()`/`int()` в `!expr`; **`!!int`/`!!bool` как coerce**; `1`/`yes` → bool; **`!int` от float** (усечение); **`.nan`/`.inf`**; тип Quantity/`500m` как число (решение **67**, **81**: `!float`; Inf ошибка)

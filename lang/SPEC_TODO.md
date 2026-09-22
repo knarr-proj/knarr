@@ -10,7 +10,6 @@
 
 ---
 
-- `!concat` **в** `$yield` **/** поле `!emit`. `!format` теперь значение; `!concat` / `!join` / `!merge` / `!split` / `!sha256` — только bind. Разрешить `!concat` как значение (как `!format`) или оставить bind-only?
 - Оценить замену в !match   $then на $yield, а $else на $else-yield
 - Проверить что везде есть `$yield?:` — пропускает emit или bind; на обычном теге — только `$yield`
 - Суффикс `?` на теге документа: `!emit?` = обязательный `$when` без `$else`; `!emit-foreach?` / `!emit-range?` = пара `$yield?:`, `$when` опционален. Один закон `?` или два? Тегов `!foreach?` / `!range?` нет (`?:` на ключе поля).
