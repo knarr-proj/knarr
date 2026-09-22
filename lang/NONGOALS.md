@@ -39,7 +39,7 @@
 - Тег типа **без `$`**: `!ValuesType` — ошибка; нужен **`!$ValuesType`**. `!$T` не синоним `!ref $T`
 - Вложенный **`!$U`** на поле bind / в `!emit` / на `$then` (v1: корень `$Name` или **`$yield: !$T`**, решения **34–35**)
 - Тег **`!walk`** (решение **49**: нет навсегда; пути — `!ref` / `!expr` / `!foreach`)
-- `$Name: !emit` / **`$Name: !bind`** / **`$Name: !emit-foreach`** / **`$Name: !emit-range`** / **`$Name: !validation`** (все — только документ)
+- `$Name: !emit` / **`$Name: !bind`** / **`$Name: !emit-foreach`** / **`$Name: !emit-foreach?`** / **`$Name: !emit-range`** / **`$Name: !emit-range?`** / **`$Name: !validation`** (все — только документ)
 - Host **`fail` / `required`** в `!expr`; **`$fail` и `$warning` вместе** на `!validation`; правило-sequence `!match`
 - Ключ **`$items`** на `!emit`; splat **`!emit-foreach`** / **`!emit-range`** без `$as`/`$yield`; документ с тегом **`!foreach`** / **`!range`** (N манифестов — `!emit-foreach` / `!emit-range`)
 - **`$filter?:` / `$when?:` / `$if?:`**; `$when` / `$filter` / `$if` с omit из `?.` без `??` (решение **112**: нужен `?? false` или `!is-empty` / `!is-not-empty`; omit ≠ false)
@@ -63,7 +63,7 @@
 - Якоря **`&` / `*` / `<<` в документе knarr** (решение **70**; в `!read` можно)
 - Host **`concat` / `append` / `prepend`**; **`+` на sequence**; **`+` на string** (решение **75**); **`args: !expr "concat(…)"`**; **`args: !concat`** (канон — **`!concat` в `!bind`**, решение **59**)
 - Host **`join` / `split`**; **`!join`/`!split` в `!emit`** (канон — bind, решение **62**)
-- Host **`printf`**; **`!printf`** (не синоним, **78**); **`!format` в `!emit` / `$yield`**; голые `$X` в sequence `!format`; **`+` строк в `!expr`**; **`%n` `%p` `%T` `%w`**; синтаксис Rust `{}` / `{:.2}`; Go-вставка `%!s(int=…)` вместо ошибки (решение **80**: диалект Go `fmt` на скалярах; mismatch — ошибка)
+- Host **`printf`**; **`!printf`** (не синоним, **78**); голые `$X` в sequence `!format`; **`+` строк в `!expr`**; **`%n` `%p` `%T` `%w`**; синтаксис Rust `{}` / `{:.2}`; Go-вставка `%!s(int=…)` вместо ошибки (решение **80**: диалект Go `fmt` на скалярах; mismatch — ошибка). **`!format` в поле — 149.**
 - Host **`b64enc` / `b64dec` / `len`**; mapping `$of` у этих тегов; **`$when: !len`** (решение **76**: tagged scalar как `!int`; `$N?: !len $X.y?`)
 - Host **`sha256sum`**; **`!sha256` в `!emit`**; тихий хэш mapping без JSON (решение **63**; дерево — **`!sha256-json`**, **71**)
 - Host **`merge`**; **`!merge` в `!emit`**; **`!merge-overwrite`** / тихий overwrite вложенного map (решение **64**)

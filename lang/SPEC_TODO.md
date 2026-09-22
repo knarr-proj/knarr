@@ -10,7 +10,7 @@
 
 ---
 
-- `!emit-foreach?` **/** `!emit-range?` **нет,** `!emit?` **есть.** Сахар «if без else» только на один документ. На пачке документов — опциональный `$when`. Ввести `!emit-foreach?` / `!emit-range?` (только `$when`+`$yield`, без возможности опустить `$when`) или оставить?
-- `!format` **в** `$yield` **цикла.** Helm `name: {{ printf "w-%04d" . }}` внутри `range until` (со `---`) печатает поле в каждом документе. knarr: `!format` только корень bind. `!concat` / `!join` / `!merge` тоже bind-only, `!str` / `!ref` в `$yield` можно. Разрешить `!format` (и тогда те же bind-only теги?) в `$yield` / поле `!emit`, или Comparison `printf` в ряде остаётся Impossible?
+- `!concat` **в** `$yield` **/** поле `!emit`. `!format` теперь значение; `!concat` / `!join` / `!merge` / `!split` / `!sha256` — только bind. Разрешить `!concat` как значение (как `!format`) или оставить bind-only?
 - Оценить замену в !match   $then на $yield, а $else на $else-yield
-
+- Проверить что везде есть `$yield?:` — пропускает emit или bind; на обычном теге — только `$yield`
+- Суффикс `?` на теге документа: `!emit?` = обязательный `$when` без `$else`; `!emit-foreach?` / `!emit-range?` = пара `$yield?:`, `$when` опционален. Один закон `?` или два? Тегов `!foreach?` / `!range?` нет (`?:` на ключе поля).

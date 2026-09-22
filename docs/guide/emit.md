@@ -161,31 +161,6 @@ $then:
 <tr><td>
 
 ```yaml
-# $Values = {name: api}
-!emit
-name: !format
-  - "%s-svc"
-  - !ref $Values.name
-# error: !format is bind-only
-```
-
-</td><td>
-
-```yaml
-# $Values = {name: api}
-!bind
-$Name: !format
-  - "%s-svc"
-  - !ref $Values.name
----
-!emit
-name: !ref $Name  # name: api-svc
-```
-
-</td></tr>
-<tr><td>
-
-```yaml
 # $On = false
 !emit
 $when: !ref $On

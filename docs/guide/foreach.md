@@ -402,7 +402,7 @@ Drop other empty lists with [`!skip-empty`](skip-empty.md) on a `?:` key.
 
 ## Comparison with Helm
 
-`!foreach` fills a **sequence field**. One document per item is `!emit-foreach`.
+`!foreach` fills a **sequence field**. One document per item is `!emit-foreach`. Skip a document when the body omits: `!emit-foreach?` + `$yield?:`.
 
 <table>
 <tr><th>Helm</th><td>

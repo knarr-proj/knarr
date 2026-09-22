@@ -2,23 +2,19 @@
 
 Short recipes. Each links to the full construct page.
 
-## Name everything you format
-
-`!format` cannot sit in `!emit`. Bind first, then `!ref`.
+## Format in the field
 
 ```yaml
 # $Values = {env: prod, name: api}
-!bind
-$FullName: !format
+!emit
+name: !format
   - "%s-%s"
   - !ref $Values.env
   - !ref $Values.name
----
-!emit
-name: !ref $FullName  # name: prod-api
+# name: prod-api
 ```
 
-Details: [`!format`](guide/format.md).
+Bind first if you reuse the string. Details: [`!format`](guide/format.md).
 
 ## Optional nested mapping
 
@@ -153,7 +149,7 @@ $yield?: !ref $Worker.sidecar?
 # skip iteration
 ```
 
-Omit yield → no element (foreach) / no document (emit-foreach). Details: [`!foreach`](guide/foreach.md).
+Omit yield → no element ([`!foreach`](guide/foreach.md) `$yield?:`) / no document ([`!emit-foreach?`](guide/emit-foreach.md) `$yield?:`).
 
 ## Fail the render if a value is missing
 

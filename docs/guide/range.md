@@ -75,11 +75,13 @@ names: !range
   $from: 0
   $until: !ref $Values.completions
   $as: $I
-  $yield: !str $I
-# names: ["0", "1"]
+  $yield: !format
+    - "w-%04d"
+    - !ref $I
+# names: ["w-0000", "w-0001"]
 ```
 
-`!format` cannot sit in `$yield`. Prefixed names (`w-0000`) need a bind `!format` per static index.
+Prefixed names use [`!format`](format.md) in `$yield`.
 
 ### Optional count
 

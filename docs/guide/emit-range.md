@@ -1,6 +1,6 @@
 # `!emit-range`
 
-Emit **N YAML documents** — one per int in a [`!range`](range.md). For a collection, use [`!emit-foreach`](emit-foreach.md).
+Emit **N YAML documents** — one per int in a [`!range`](range.md). For a collection, use [`!emit-foreach`](emit-foreach.md). **`!emit-range?`** skips an index when `$yield?:` omits.
 
 ## Syntax
 
@@ -22,11 +22,12 @@ $yield:
 |-----|---------|
 | `$from` / `$to` xor `$until` / `$step` | Same as [`!range`](range.md). **`$from?:` is an error.** Omit a bound → **zero documents**. |
 | `$as` | Binding for the int. |
-| `$yield` | Mapping = one manifest. Or `$yield?:` to skip that index on omit. |
+| `$yield` | On **`!emit-range`**: mapping = one manifest. Omit is an error. |
+| `$yield?:` | On **`!emit-range?` only**: mapping; omit → **no document** for that index. |
 | `$filter` | Bool; false → no document for that index. |
-| `$when` | Bool gate for the **whole** pack. False → zero documents; bounds are not evaluated. **No** `$then` / `$else`. |
+| `$when` | Bool gate for the **whole** pack. Optional on both tags. False → zero documents; bounds are not evaluated. **No** `$then` / `$else`. |
 
-No `$over` / `$key` / `$index`. `$yield` must be a **mapping**. There is no `!emit-range?`. `$Name: !emit-range` is an error.
+No `$over` / `$key` / `$index`. `$yield` / `$yield?:` must be a **mapping**. Pair: `!emit-range` ↔ `$yield:`; `!emit-range?` ↔ `$yield?:`. `$Name: !emit-range` / `$Name: !emit-range?` is an error.
 
 ## Examples
 
@@ -81,9 +82,23 @@ $yield:
 # Jobs name "1" and "2"
 ```
 
+### Skip an index when the body omits
+
+```yaml
+# $Values = {n: 2, extra: {1: {kind: Job}}}
+!emit-range?
+$from: 0
+$until: !ref $Values.n
+$as: $I
+$yield?: !ref $Values.extra[$I]?
+# kind: Job
+```
+
+Index `0` omits → no document. Index `1` prints. `$yield?:` on `!emit-range` is a pair error.
+
 ## Omit
 
-Same markers as [`!emit-foreach`](emit-foreach.md): omit `$when` is an error; omit a bound (`$until: !ref $Values.n?`) → zero documents; `$yield?:` skips one index.
+Same markers as [`!emit-foreach`](emit-foreach.md): omit `$when` is an error; omit a bound (`$until: !ref $Values.n?`) → zero documents; on **`!emit-range?`**, omit `$yield?:` skips one index.
 
 ```yaml
 # $Values = {}
@@ -201,6 +216,44 @@ $yield:
 <tr><th>Difference</th><td>
 
 Same documents when `completions` is an int. Helm `name:` is an int; knarr `!str` is a string. Without `---` Helm is one stream, not documents.
+
+</td></tr>
+</table>
+
+<table>
+<tr><th>Helm</th><td>
+
+```gotemplate
+# $Values = {n: 2}
+{{- range until .Values.n }}
+---
+name: {{ printf "w-%04d" . }}
+{{- end }}
+# name: w-0000 / name: w-0001
+```
+
+</td></tr>
+<tr><th>Knarr</th><td>
+
+```yaml
+# $Values = {n: 2}
+!emit-range
+$from: 0
+$until: !ref $Values.n
+$as: $I
+$yield:
+  name: !format
+    - "w-%04d"
+    - !ref $I
+# name: w-0000
+# ---
+# name: w-0001
+```
+
+</td></tr>
+<tr><th>Difference</th><td>
+
+Same result. Without `---` Helm is one stream, not documents.
 
 </td></tr>
 </table>

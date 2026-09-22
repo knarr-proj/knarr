@@ -29,8 +29,10 @@ Purpose is **one sentence**. The construct page is the source of truth; this tab
 | `!bind` | Name values; never appears in stdout | [bind](guide/bind.md) |
 | `!emit` | One output document | [emit](guide/emit.md) |
 | `!emit?` | One output document or none (`$when` + `$then`) | [emit](guide/emit.md) |
-| `!emit-foreach` | One output document per item | [emit-foreach](guide/emit-foreach.md) |
-| `!emit-range` | One output document per int in a range | [emit-range](guide/emit-range.md) |
+| `!emit-foreach` | One output document per item (`$yield:`) | [emit-foreach](guide/emit-foreach.md) |
+| `!emit-foreach?` | Same, skip an item when `$yield?:` omits | [emit-foreach](guide/emit-foreach.md) |
+| `!emit-range` | One output document per int in a range (`$yield:`) | [emit-range](guide/emit-range.md) |
+| `!emit-range?` | Same, skip an index when `$yield?:` omits | [emit-range](guide/emit-range.md) |
 | `!import` | Splice knarr documents from another file | [import](guide/import.md) |
 | `!policy` | Schema-only policy for `!$Type` | [policy](guide/policy.md) |
 | `!typedef` / `!$Type` | Declare a type; instantiate a bind | [typedef](guide/typedef.md) |
@@ -57,14 +59,13 @@ Purpose is **one sentence**. The construct page is the source of truth; this tab
 
 ### Bind-only transforms
 
-These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where noted) inside `!bind`. Use `!ref` in the manifest. `!join` may take `$prefix` / `$suffix` (non-empty strings, like `$sep`). `!join` may be `$Name?:` when `$over` is omit-capable; `!foreach` / `!range` also as a field (`имя?:` when `$over` / a bound omits or `$yield?:` is used). `!split` / `!sha256` when `$of` is omit-capable; `!concat` / `!format` when a child is omit-capable; `!merge` when **every** child is omit-capable. `!pick` is always a value (`$Name?: !pick` is an error). Each construct page has an **Omit** section.
+These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where noted) inside `!bind`. Use `!ref` in the manifest. `!join` may take `$prefix` / `$suffix` (non-empty strings, like `$sep`). `!join` may be `$Name?:` when `$over` is omit-capable; `!foreach` / `!range` also as a field (`имя?:` when `$over` / a bound omits or `$yield?:` is used). `!split` / `!sha256` when `$of` is omit-capable; `!concat` when a child is omit-capable; `!merge` when **every** child is omit-capable. `!pick` is always a value (`$Name?: !pick` is an error). Each construct page has an **Omit** section.
 
 | Construct | Purpose | Guide |
 |-----------|---------|-------|
 | `!concat` | Concatenate sequences | [concat](guide/concat.md) |
 | `!join` | Join a sequence (`!str` each item) with `$sep`; optional `$filter` | [join](guide/join.md) |
 | `!split` | Split a string into a sequence | [split](guide/split.md) |
-| `!format` | Go `fmt` string from operands | [format](guide/format.md) |
 | `!merge` | Deep-merge mappings, later wins | [merge](guide/merge.md) |
 | `!sha256` | Hex SHA-256 of a string | [sha256](guide/sha256.md) |
 
@@ -72,6 +73,7 @@ These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where not
 
 | Construct | Purpose | Guide |
 |-----------|---------|-------|
+| `!format` | Go `fmt` string from operands | [format](guide/format.md) |
 | `!b64enc` | Base64-encode a string | [b64enc](guide/b64enc.md) |
 | `!b64dec` | Base64-decode a string | [b64dec](guide/b64dec.md) |
 | `!len` | Length of seq / map / string bytes | [len](guide/len.md) |

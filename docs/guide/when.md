@@ -1,6 +1,6 @@
 # `$when`
 
-Document-level condition. **`!emit?`**: `$when` + `$then`, no `$else` (false → no document). **`!emit`**: `$when` + `$then` + `$else` (`$else: ""` skips; or another mapping). Omit `$when` is an error on both. On **`!foreach`** / **`!emit-foreach`** / **`!emit-range`** / **`!range`**, `$when` is an optional pack gate with **no** `$then` / `$else`. False → empty loop (`[]` / omit key / zero documents); `$over` / bounds are not evaluated.
+Document-level condition. **`!emit?`**: `$when` + `$then`, no `$else` (false → no document). **`!emit`**: `$when` + `$then` + `$else` (`$else: ""` skips; or another mapping). Omit `$when` is an error on both. On **`!foreach`** / **`!emit-foreach`** / **`!emit-foreach?`** / **`!emit-range`** / **`!emit-range?`** / **`!range`**, `$when` is an optional pack gate with **no** `$then` / `$else`. False → empty loop (`[]` / omit key / zero documents); `$over` / bounds are not evaluated. **`!emit-foreach?`** is not “`$when` required”: it pairs with **`$yield?:`**.
 
 ## Syntax (`!emit?`)
 
@@ -186,7 +186,7 @@ $then:
 
 ## Omit
 
-Omit `$when` is an **error** (not `false`). Use `?? false` or [`!is-empty`](is-empty.md) / [`!is-not-empty`](is-not-empty.md). `$when?:` is an error. On `!foreach` / `!range` / `!emit-foreach` / `!emit-range`, `$when` false is an empty loop (`$over` / bounds not evaluated).
+Omit `$when` is an **error** (not `false`). Use `?? false` or [`!is-empty`](is-empty.md) / [`!is-not-empty`](is-not-empty.md). `$when?:` is an error. On `!foreach` / `!range` / `!emit-foreach` / `!emit-foreach?` / `!emit-range` / `!emit-range?`, `$when` false is an empty loop (`$over` / bounds not evaluated).
 
 ```yaml
 # $Values = {}

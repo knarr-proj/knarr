@@ -1,6 +1,6 @@
 # `!emit-foreach`
 
-Emit **N YAML documents** — one document per item.
+Emit **N YAML documents** — one document per item. **`!emit-foreach?`** skips an item when `$yield?:` omits.
 
 For lists **inside** one mapping (env, ports, extra hosts), use [`!foreach`](foreach.md), not this tag.
 
@@ -24,12 +24,13 @@ $yield:
 |-----|---------|
 | `$over` | Sequence or mapping. **`$over?:` is an error.** Omit value (`$over: !ref $Values.workers?`) → **zero documents**. Empty `[]` / `{}` → zero documents. `?? []` / `?? {}` also fine (missing becomes empty). |
 | `$as` | Binding for the element (value if `$over` is a map). |
-| `$yield` | Mapping = one manifest. Or `$yield?:` to skip that iteration on omit. |
+| `$yield` | On **`!emit-foreach`**: mapping = one manifest. Omit is an error. |
+| `$yield?:` | On **`!emit-foreach?` only**: mapping; omit → **no document** for that item. |
 | `$filter` | Bool; false → no document for that item. Tags or YAML `true` / `false`. |
 | `$key` | Extra binding for the map key (maps only). |
-| `$when` | Bool gate for the **whole** loop. False → zero documents; `$over` is not evaluated. **No** `$then` / `$else`. Tags or YAML `true` / `false`. |
+| `$when` | Bool gate for the **whole** loop. Optional on both tags. False → zero documents; `$over` is not evaluated. **No** `$then` / `$else`. Tags or YAML `true` / `false`. |
 
-There is no `$index`. `$yield` on `!emit-foreach` must be a **mapping**.
+There is no `$index`. `$yield` / `$yield?:` must be a **mapping**. Pair: `!emit-foreach` ↔ `$yield:`; `!emit-foreach?` ↔ `$yield?:`. Mixed pair is an error. `$yield?` without `:` is an error. `$Name: !emit-foreach` / `$Name: !emit-foreach?` is an error.
 
 ## Examples
 
@@ -94,6 +95,19 @@ $yield:
   name: !ref $Worker.name
 # kind: Pod / name: w1
 ```
+
+### Skip a document when the body omits
+
+```yaml
+# $Values = {workers: [{name: w1}, {name: w2, sidecar: {kind: Sidecar}}]}
+!emit-foreach?
+$over: !ref $Values.workers
+$as: $W
+$yield?: !ref $W.sidecar?
+# kind: Sidecar
+```
+
+`$W.sidecar` missing → no document for that item. `$yield?:` on `!emit-foreach` (no `?` on the tag) is a pair error.
 
 ## Common mistakes
 
@@ -209,11 +223,32 @@ $yield:
 ```
 
 </td></tr>
+<tr><td>
+
+```yaml
+# $Values = {workers: [{sidecar: {kind: Sidecar}}]}
+!emit-foreach
+$over: !ref $Values.workers
+$as: $W
+$yield?: !ref $W.sidecar?
+# error: $yield?: pairs with !emit-foreach?
+```
+
+</td><td>
+
+```yaml
+# $Values = {workers: [{sidecar: {kind: Sidecar}}]}
+!emit-foreach?
+$over: !ref $Values.workers
+$as: $W
+$yield?: !ref $W.sidecar?
+# kind: Sidecar
+```
+
+</td></tr>
 </table>
 
-## Omit
-
-Omit `$over` (`$over: !ref $Values.workers?`) → **zero documents**. `$over?:` is an error. Omit `$when` is an error. `$yield?:` skips one item.
+Omit `$over` (`$over: !ref $Values.workers?`) → **zero documents**. `$over?:` is an error. Omit `$when` is an error. On **`!emit-foreach?`**, omit `$yield?:` skips one document.
 
 ```yaml
 # $Values = {}
@@ -234,7 +269,7 @@ $yield:
 
 ## Comparison with Helm
 
-`!emit-foreach` is `range` around a **whole resource**. Lists inside one spec use `!foreach`.
+`!emit-foreach` is `range` around a **whole resource**. Lists inside one spec use `!foreach`. **`!emit-foreach?`** is the same loop with `$yield?:` (skip a document when the body omits), like `$yield?:` on [`!foreach`](foreach.md).
 
 <table>
 <tr><th>Helm</th><td>

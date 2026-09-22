@@ -1,6 +1,6 @@
 # `!format`
 
-Format a string with **Go `fmt`** verbs (not Rust `{}`). Bind-only.
+Format a string with **Go `fmt`** verbs (not Rust `{}`). A value, like [`!str`](str.md): bind or a field.
 
 ## Syntax
 
@@ -13,13 +13,22 @@ $Name: !format
 # $Name = prod-api
 ```
 
+```yaml
+# $Values = {name: api}
+!emit
+name: !format
+  - "%s-svc"
+  - !ref $Values.name
+# name: api-svc
+```
+
 - Tagged **sequence**: first element is the format **string**; the rest are arguments in order.
-- Only `$Name` or `$Name?:` in `!bind` (omit children require `$Name?:`). A literal format string on `$Name?:` is allowed; one omit argument drops the whole bind (unlike [`!merge`](merge.md)).
+- Bind `$Name` / `$Name?:`, or a field of `!emit` / `$then` / `$yield` (same omit pair: `?:` ↔ an omit-capable argument). A literal format string on `?:` is allowed; one omit argument drops the whole value (unlike [`!merge`](merge.md)).
 - Dialect ≡ Go `fmt.Sprintf` for knarr scalars (string, int64, bool, float64).
 - Type mismatch is a **render error**, not a `%!s(int=…)` insertion.
 - seq/map arguments are errors (JSON-string first).
 - `%n` `%p` `%T` `%w` and Rust `{:.2}` are errors.
-- Tag name is `!format`, not `!printf`.
+- Tag name is `!format`, not `!printf`. Not a document. Nested `!format` is an error.
 
 ## Examples
 
@@ -27,12 +36,26 @@ $Name: !format
 
 ```yaml
 # $Values = {env: prod, name: api}
+!bind
 $FullName: !format
   - "%s-%s"
   - !ref $Values.env
   - !ref $Values.name
+---
 !emit
 name: !ref $FullName
+# name: prod-api
+```
+
+Or the same `!format` on the field:
+
+```yaml
+# $Values = {env: prod, name: api}
+!emit
+name: !format
+  - "%s-%s"
+  - !ref $Values.env
+  - !ref $Values.name
 # name: prod-api
 ```
 
@@ -64,11 +87,18 @@ Go quotes, not JSON (`!to-json-str`).
 ### Zero-padded index
 
 ```yaml
-# $I = 3
-$WorkerId: !format
-  - "w-%04d"
-  - !ref $I
-# $WorkerId = w-0003
+# $Values = {n: 2}
+!emit-range
+$from: 0
+$until: !ref $Values.n
+$as: $I
+$yield:
+  name: !format
+    - "w-%04d"
+    - !ref $I
+# name: w-0000
+# ---
+# name: w-0001
 ```
 
 ### CPU float
@@ -91,24 +121,20 @@ Operand must be **float**.
 
 ```yaml
 # $Values = {name: api}
-!emit
-name: !format
+!format
   - "%s-svc"
   - !ref $Values.name
-# error: !format is bind-only
+# error: !format is not a document
 ```
 
 </td><td>
 
 ```yaml
 # $Values = {name: api}
-!bind
-$Name: !format
+!emit
+name: !format
   - "%s-svc"
   - !ref $Values.name
----
-!emit
-name: !ref $Name
 # name: api-svc
 ```
 
@@ -186,7 +212,7 @@ $Name: !format
 
 ## Omit
 
-`$Name?: !format` ↔ an omit-capable argument. One omit argument drops the whole bind (like [`!concat`](concat.md)).
+`$Name?: !format` / `name?: !format` ↔ an omit-capable argument. One omit argument drops the whole bind / key (like [`!concat`](concat.md)). `$yield?: !format` + omit → skip that iteration.
 
 ```yaml
 # $Values = {}
@@ -199,12 +225,13 @@ $Fmt?: !format
 ## See also
 
 - [`!join`](join.md)
+- [`!emit-range`](emit-range.md)
 - [`!int`](int.md)
 - [`!float`](float.md)
 
 ## Comparison with Helm
 
-`!format` is bind-only Go `fmt`. Type mismatch is an error, not `%!s`.
+`!format` is Go `fmt` as a **value** (bind or a field). Type mismatch is an error, not `%!s`.
 
 <table>
 <tr><th>Helm</th><td>
@@ -220,12 +247,6 @@ name: {{ printf "%s-%s" (required "env" .Values.env) (required "name" .Values.na
 
 ```yaml
 # $Values = {env: prod, name: api}
-!bind
-$FullName: !format
-  - "%s-%s"
-  - !ref $Values.env
-  - !ref $Values.name
----
 !validation
 $rules:
   - !is-not-empty $Values.env?
@@ -233,7 +254,10 @@ $rules:
 $fail: "env"
 ---
 !emit
-name: !ref $FullName
+name: !format
+  - "%s-%s"
+  - !ref $Values.env
+  - !ref $Values.name
 # name: prod-api
 ```
 
@@ -257,12 +281,20 @@ addr: {{ printf "%s:%d" .Values.host .Values.port }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+# $Values = {host: h, port: 80}
+!emit
+addr: !format
+  - "%s:%d"
+  - !ref $Values.host
+  - !ref $Values.port
+# addr: h:80
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Wrong operand type is `%!s` in Helm, an error in knarr. Bind-only `!format` is not this Helm stdout unless types already match.
+Same result when `port` is int. Wrong operand type is `%!s` in Helm, an error in knarr.
 
 </td></tr>
 </table>

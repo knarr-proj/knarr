@@ -518,7 +518,7 @@ name: !ref $Name  # name: api-svc
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Knarr `+` is not string concat — `!format` in bind.
+Same result. Knarr `+` is not string concat — [`!format`](format.md).
 
 </td></tr>
 </table>
@@ -540,7 +540,7 @@ Impossible as `!expr "$Values.name + '-svc'"`.
 </td></tr>
 <tr><th>Difference</th><td>
 
-No string `+` in `!expr`. Use `!format` (bind-only).
+No string `+` in `!expr`. Use [`!format`](format.md).
 
 </td></tr>
 </table>
