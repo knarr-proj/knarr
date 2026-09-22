@@ -104,7 +104,7 @@ host: !ref "$Values.tls?.host? ?? 'localhost'"
 - `$Values.affinity?` — missing `affinity` is omit, not an error.
 - `host: !ref … ?? 'localhost'` — the key stays; missing host becomes `"localhost"`.
 
-A required key with a missing path is always an error. See [Omit](guide/omit.md).
+A required key with a missing path is always an error. See [`!ref`](guide/ref.md) (Omit).
 
 ## 5. A formula
 
@@ -140,6 +140,7 @@ $then:
 | `printf` / `%s-%s` | [`!format`](guide/format.md) in `!bind`, then `!ref` |
 | Loop **fields** (env, ports) | [`!foreach`](guide/foreach.md) |
 | Loop **resources** (one Pod per worker) | [`!emit-foreach`](guide/emit-foreach.md) |
+| Loop **ints** (one Job per index) | [`!emit-range`](guide/emit-range.md) |
 | `b64enc` for Secrets | [`!b64enc`](guide/b64enc.md) |
 | Schema + defaults | [`!typedef`](guide/typedef.md) |
 

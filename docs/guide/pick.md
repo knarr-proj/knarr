@@ -163,9 +163,32 @@ name: !pick
 </td></tr>
 </table>
 
+## Omit
+
+N-way omit default. Always a value: `$Name?: !pick` is an error. `??` is one default on [`!ref`](ref.md) / [`!expr`](expr.md); more than two candidates is `!pick`.
+
+```yaml
+# $Values = {name: api}
+name: !pick
+  - !ref $Values.fullnameOverride?
+  - !ref $Values.name?
+  - knarr-app
+# api
+```
+
+```yaml
+# $Values = {}
+name: !pick
+  - !ref $Values.fullnameOverride?
+  - !ref $Values.name?
+  - knarr-app
+# knarr-app
+```
+
+`""` / `0` / `false` do not fall through.
+
 ## See also
 
-- [Omit](omit.md)
 - [`!ref`](ref.md) / [`!expr`](expr.md) `??`
 
 ## Comparison with Helm

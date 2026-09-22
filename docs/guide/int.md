@@ -5,8 +5,9 @@ Coerce to **int** at evaluation. Not YAML `!!int`, not `int()` in `!expr`.
 ## Syntax
 
 ```yaml
+# $Values = {port: "8080"}
 $Port: !int $Values.port
-containerPort: !int $Values.port
+# 8080
 ```
 
 - Already int: unchanged.

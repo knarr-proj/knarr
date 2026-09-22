@@ -5,7 +5,9 @@ Coerce to **string**.
 ## Syntax
 
 ```yaml
+# $Values = {replicas: 3}
 replicas: !str $Values.replicas
+# "3"
 ```
 
 - String: unchanged.
@@ -19,7 +21,9 @@ replicas: !str $Values.replicas
 ### Label from replica count
 
 ```yaml
+# $Values = {replicas: 3}
 replicas: !str $Values.replicas
+# "3"
 ```
 
 ### Annotation from bool
@@ -188,13 +192,9 @@ name: {{ . }}
 <tr><th>Knarr</th><td>
 
 ```yaml
-!bind
-$Idx: !range
-  $from: 0
-  $until: !ref $Values.completions
----
-!emit-foreach
-$over: !ref $Idx
+!emit-range
+$from: 0
+$until: !ref $Values.completions
 $as: $I
 $yield:
   name: !str $I

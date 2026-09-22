@@ -25,7 +25,7 @@ Details: [`!format`](guide/format.md).
 affinity?: !ref $Values.affinity?
 ```
 
-Not a `!with` tag. Details: [Omit](guide/omit.md).
+Not a `!with` tag. Details: [`!ref`](guide/ref.md) (Omit).
 
 ## Default vs omit
 

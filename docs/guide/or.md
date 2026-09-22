@@ -5,9 +5,11 @@ Boolean OR of a sequence of predicates. All children are evaluated (no short-cir
 ## Syntax
 
 ```yaml
+# $Values = {tls: false, cert: ""}
 $when: !or
   - !is-empty $Values.tls?
   - !is-empty $Values.cert?
+# true
 ```
 
 Same child rules as [`!and`](and.md).

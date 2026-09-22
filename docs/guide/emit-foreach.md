@@ -34,12 +34,19 @@ There is no `$index`. `$yield` on `!emit-foreach` must be a **mapping**.
 ### One Deployment per worker
 
 ```yaml
+# $Values = {workers: [{name: w1}, {name: w2}]}
 !emit-foreach
 $over: !ref $Values.workers
 $as: $Worker
 $yield:
   kind: Deployment
   name: !ref $Worker.name
+# ---
+# kind: Deployment
+# name: w1
+# ---
+# kind: Deployment
+# name: w2
 ```
 
 ### Filter disabled workers
@@ -188,9 +195,25 @@ $yield:
 </td></tr>
 </table>
 
+## Omit
+
+Omit `$over` (`$over: !ref $Values.workers?`) → **zero documents**. `$over?:` is an error. Omit `$when` is an error. `$yield?:` skips one item.
+
+```yaml
+# $Values = {}
+!emit-foreach
+$over: !ref $Values.workers?
+$as: $W
+$yield:
+  kind: Pod
+  name: !ref $W.name
+# stdout empty
+```
+
 ## See also
 
 - [`!foreach`](foreach.md)
+- [`!emit-range`](emit-range.md)
 - [`$when`](when.md)
 
 ## Comparison with Helm

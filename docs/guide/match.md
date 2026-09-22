@@ -25,10 +25,12 @@ replicas: !match
 ### replicas fallback
 
 ```yaml
+# $Values = {replicas: 0}
 replicas: !match
   $if: !expr "$Values.replicas > 0"
   $then: !ref $Values.replicas
   $else: 1
+# 1
 ```
 
 ### topologySpread only when HA
@@ -149,10 +151,24 @@ replicas: !match
 </td></tr>
 </table>
 
+## Omit
+
+`$if` omit without `??` is an error. Omit the **key** with `имя?: !match` and no `$else`.
+
+```yaml
+# $Values = {replicas: 1}
+topologySpreadConstraints?: !match
+  $if: !expr "$Values.replicas > 1"
+  $then:
+    - maxSkew: 1
+# no topologySpreadConstraints
+```
+
+Helm `| default` is `$if: !is-empty` then fallback — not `??`.
+
 ## See also
 
 - [`$when`](when.md)
-- [Omit](omit.md)
 - [`!pick`](pick.md)
 - [`!skip-empty`](skip-empty.md)
 

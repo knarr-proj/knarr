@@ -161,13 +161,24 @@ $Res?: !merge
 </td></tr>
 </table>
 
+## Omit
+
+`$Name?: !merge` ↔ **every** child omit-capable (no `?? {}`). All omit → omit bind. A literal on `$Name?:` is a pair error.
+
+```yaml
+# $Values = {}
+$Res?: !merge
+  - !ref $Values.requests?
+  - !ref $Values.limits?
+# no $Res
+```
+
+Keep defaults: `$Name:` + `?? {}` on the overlay.
+
 ## See also
 
 - [`!concat`](concat.md)
-- [Omit](omit.md)
 - [`!pick`](pick.md)
-- [`!pick`](pick.md)
-- [Omit](omit.md)
 
 ## Comparison with Helm
 

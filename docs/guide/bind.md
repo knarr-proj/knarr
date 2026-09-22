@@ -17,23 +17,26 @@ $Other?: <omit-capable value>
 - `$Name: !bind` is an error (bind is a document, not a field).
 - Empty `!bind` is an error.
 
-Optional bind (`$Name?:`) requires an omit-capable value (`?.` / `$Other?`, `$over` of [`!foreach`](foreach.md) / [`!join`](join.md) without `?? []`, **or** [`!foreach`](foreach.md) with `$yield?:` — `?? []` on that `$over` is allowed, `$of` of [`!split`](split.md) / [`!sha256`](sha256.md) without `?? ''`, an omit child of [`!concat`](concat.md) / [`!format`](format.md), or **every** child of [`!merge`](merge.md) omit-capable, or at least one of `$from` / `$to` / `$until` on [`!range`](range.md)). [`!pick`](pick.md) is always a value: `$Name?: !pick` is an error. Elsewhere the name is written `$Name?`. See [Omit](omit.md).
+Optional bind (`$Name?:`) requires an omit-capable value (`?.` / `$Other?`, `$over` of [`!foreach`](foreach.md) / [`!join`](join.md) without `?? []`, **or** [`!foreach`](foreach.md) with `$yield?:` — `?? []` on that `$over` is allowed, `$of` of [`!split`](split.md) / [`!sha256`](sha256.md) without `?? ''`, an omit child of [`!concat`](concat.md) / [`!format`](format.md), or **every** child of [`!merge`](merge.md) omit-capable, or at least one of `$from` / `$to` / `$until` on [`!range`](range.md) **or** `$yield?:`). [`!pick`](pick.md) is always a value: `$Name?: !pick` is an error. Elsewhere the name is written `$Name?`.
 
 ## Examples
 
 ### Chart values
 
 ```yaml
+# $Values is this mapping
 !bind
 $Values:
   name: api
   image: ghcr.io/acme/api:1.4.0
   replicas: 3
+# no stdout
 ```
 
 ### Derived name for a Deployment
 
 ```yaml
+# $Values = {env: prod, name: api}
 !bind
 $FullName: !format
   - "%s-%s"
@@ -42,6 +45,7 @@ $FullName: !format
 ---
 !emit
 name: !ref $FullName
+# name: prod-api
 ```
 
 ### Load `values.yaml`
@@ -54,11 +58,13 @@ $Values: !read values.yaml
 ### Optional TLS block
 
 ```yaml
+# $Values = {}
 !bind
 $Tls?: !ref $Values.tls?
 ---
 !emit
 tls?: !ref $Tls?
+# no tls
 ```
 
 ### Several binds
@@ -72,6 +78,39 @@ $Port: !int $Values.port
 ```
 
 Split computation across documents. Order of `!bind` documents does not restrict visibility.
+
+## Omit
+
+`$Name?:` is an optional bind. Elsewhere write **`$Name?`**. `$Name` without `?` is an error.
+
+| Marker | Meaning |
+|--------|---------|
+| `$Name?:` | This bind may be absent |
+| `?` on a path field | That field may be absent → omit value |
+| `??` | Default; the bind stays |
+
+```yaml
+# $Values = {}
+!bind
+$Tls?: !ref $Values.tls?
+---
+!emit
+tls?: !ref $Tls?
+# no tls
+```
+
+```yaml
+# $Values = {tls: {cert: x}}
+!bind
+$Tls?: !ref $Values.tls?
+---
+!emit
+tls?: !ref $Tls?
+cert?: !ref $Tls?.cert
+# tls: {cert: x}  /  cert: x
+```
+
+`$Name?: !pick` is an error (always a value). `имя?: … ?? …` on a leaf is a pair error.
 
 ## Common mistakes
 

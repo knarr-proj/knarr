@@ -53,7 +53,7 @@ lang/goldens/
 | 29-join-split | `!join` / `!split` в `!bind` (62) |
 | 30-sha256 | `!sha256` `$of` string → hex (63) |
 | 31-merge | `!merge` deep mapping в `!bind` (64) |
-| 32-range | `!range` `$until` / `$to` (65) |
+| 32-range | `!range` `$until` / `$to` + `$yield` (65, **144**) |
 | 33-empty-or | `!is-not-empty` / `!or` в `$rules` и `$when` (66) |
 | 34-coerce | `!int` / `!str` / `!bool` (67) |
 | 35-expr-lits | `?? [80, 443]` в `!ref` (кавычки YAML, **89**); map с `$` в `!expr` (68, 85) |

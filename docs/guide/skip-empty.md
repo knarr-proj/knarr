@@ -16,7 +16,9 @@ No `!skip-not-empty`. `!omit-empty` is not a tag.
 ## Syntax
 
 ```yaml
+# $Values = {tls: false}
 tls?: !skip-empty $Values.tls?
+# no tls
 ```
 
 Tagged scalar `RefScalar`. Missing **without** `?` on that field is a path error.
@@ -157,9 +159,24 @@ initContainers?: !skip-empty $Values.init?
 </td></tr>
 </table>
 
+## Omit
+
+Allowed only where omit is already legal: `имя?:` / `$Name?:` / `$yield?:`, or `$then`/`$else` of `!match` there.
+
+```yaml
+# $Values = {tls: false}
+tls?: !skip-empty $Values.tls?
+# no tls
+```
+
+```yaml
+# $Values = {tls: {host: a}}
+tls?: !skip-empty $Values.tls?
+# tls: {host: a}
+```
+
 ## See also
 
-- [Omit](omit.md)
 - [`!is-empty`](is-empty.md)
 - [`!is-not-empty`](is-not-empty.md)
 - [`!match`](match.md)

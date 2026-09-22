@@ -25,7 +25,9 @@ Dynamic index: `$Map[$Key]` where the index is `$Name` or `$Name.ident` — not 
 ### Enable a Service
 
 ```yaml
+# $Values = {service: {enabled: true}, replicas: 2}
 $ShowSvc: !expr "$Values.service.enabled && $Values.replicas > 1"
+# true
 ```
 
 ### replicas + 1
@@ -300,10 +302,24 @@ replicas: !ref $Values.replicas
 </td></tr>
 </table>
 
+## Omit
+
+One `??` defaults the **whole** formula. Omit from `?.` on `+` needs `??` (both sides). `||` / `&&` only demand what they need. A path with no operator is [`!ref`](ref.md).
+
+```yaml
+# $Values = {a: 1}
+$sum: !expr "$Values.a? + $Values.b? ?? 0"   # 1
+$when: !expr "$Values.a? || $Values.b? ?? false"  # true
+```
+
+```yaml
+# $Values = {}
+$sum: !expr "$Values.a? + $Values.b? ?? 0"   # 0
+```
+
 ## See also
 
 - [`!ref`](ref.md)
-- [Omit](omit.md)
 - [`!format`](format.md)
 - [`!len`](len.md)
 - [`!float`](float.md)

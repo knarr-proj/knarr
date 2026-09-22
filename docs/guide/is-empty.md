@@ -14,7 +14,9 @@ Inverse: [`!is-not-empty`](is-not-empty.md). To drop an empty **field** (not a b
 ## Syntax
 
 ```yaml
+# $Values = {tls: false}
 $when: !is-empty $Values.tls?
+# true
 ```
 
 Tagged scalar `RefScalar`. Result is bool — not omit (so `$Name?: !is-empty` is an error).
@@ -187,6 +189,16 @@ $then:
 
 </td></tr>
 </table>
+
+## Omit
+
+`!is-empty` of omit (`path?`) is **true**. Result is bool — `$Name?: !is-empty` is an error. Missing **without** `?` is a path error.
+
+```yaml
+# $Values = {}
+$when: !is-empty $Values.tls?
+# true
+```
 
 ## See also
 

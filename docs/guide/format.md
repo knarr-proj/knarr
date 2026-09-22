@@ -164,6 +164,18 @@ $Name: !format
 </td></tr>
 </table>
 
+## Omit
+
+`$Name?: !format` ↔ an omit-capable argument. One omit argument drops the whole bind (like [`!concat`](concat.md)).
+
+```yaml
+# $Values = {}
+$Fmt?: !format
+  - "%s-app"
+  - !ref $Values.name?
+# no $Fmt
+```
+
 ## See also
 
 - [`!join`](join.md)

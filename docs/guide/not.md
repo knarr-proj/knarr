@@ -118,6 +118,20 @@ $then:
 </td></tr>
 </table>
 
+## Omit
+
+`!not` takes a path. Optional field uses `?`. No `??` on `!not`.
+
+```yaml
+# $Values = {enabled: false}
+$when: !not $Values.enabled    # true
+```
+
+```yaml
+# $Values = {}
+$when: !not $Values.enabled?   # error: omit in bool slot
+```
+
 ## See also
 
 - [`!is-not-empty`](is-not-empty.md)

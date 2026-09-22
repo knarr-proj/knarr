@@ -45,6 +45,7 @@ Several `!emit` documents print in **source order**.
 ### Deployment
 
 ```yaml
+# $Values = {name: api, replicas: 2, image: ghcr.io/acme/api:1}
 !emit
 apiVersion: apps/v1
 kind: Deployment
@@ -65,6 +66,7 @@ spec:
       containers:
         - name: app
           image: !ref $Values.image
+# kind: Deployment / name: api / replicas: 2
 ```
 
 ### Optional Service
@@ -195,10 +197,25 @@ $then:
 </td></tr>
 </table>
 
+## Omit
+
+`!emit?` may print **no** document (`$when` false). Omit `$when` is still an error. `$else: ""` on `!emit` skips. `key?:` inside `$then` still needs a `?` path.
+
+```yaml
+# $Values = {service: {enabled: false}, name: api}
+!emit?
+$when: !is-not-empty $Values.service?.enabled?
+$then:
+  kind: Service
+  name: !ref $Values.name
+# stdout empty
+```
+
 ## See also
 
 - [`$when`](when.md)
 - [`!emit-foreach`](emit-foreach.md)
+- [`!emit-range`](emit-range.md)
 - [`!match`](match.md) for field-level if
 
 ## Comparison with Helm

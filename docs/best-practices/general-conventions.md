@@ -6,8 +6,8 @@ These rules apply to every knarr file. This page is the checklist for authors.
 
 - The program is **YAML 1.2**, multiple documents separated by `---`. Guide examples with two document tags (`!bind` then `!emit`, …) must show that `---` too.
 - Tagged scalars (`!ref`, `!expr`, `!not`, coerce) quote as YAML 1.2: `[` `{` `]` `}` `,`, `: ` (colon+space), and ` #` need quotes **anywhere**, not only at line start. `/` and `?? false` / `||` do not. A parser that accepts `?? [80, 443]` unquoted is not the knarr rule: knarr still rejects it. A planned negative golden covers that.
-- Every document has a **local tag**: `!bind`, `!emit`, `!emit?`, `!emit-foreach`, `!import`, `!validation`, or prelude `!policy` / `!typedef`.
-- After `!import` flattening, order is: optional `!policy` (must be first), optional `!typedef`, then `!bind` / `!validation` / `!emit` / `!emit?` / `!emit-foreach` mixed.
+- Every document has a **local tag**: `!bind`, `!emit`, `!emit?`, `!emit-foreach`, `!emit-range`, `!import`, `!validation`, or prelude `!policy` / `!typedef`.
+- After `!import` flattening, order is: optional `!policy` (must be first), optional `!typedef`, then `!bind` / `!validation` / `!emit` / `!emit?` / `!emit-foreach` / `!emit-range` mixed.
 - **No anchors** (`&`, `*`, `<<`) in knarr documents. Data files loaded with [`!read`](../guide/read.md) may use them; knarr sees the expanded tree.
 - **No `!!` tags** in knarr documents (`!!str`, `!!int`, `!!null` included). Core YAML tags are allowed **inside** a `!read` file.
 - **No null value.** YAML/JSON `a: null` / `a: ~` / `a:` ≡ **the key is absent** (omit). Stdout never prints `null`. Helm `a: null` in a Comparison is the same as knarr without `a`. A sequence item `null` is an error.
@@ -55,7 +55,7 @@ knarr never drops a key because a value “looks empty”.
 | Field always present, default | `host: !ref "$Values.tls?.host ?? 'localhost'"` |
 | N candidates | [`!pick`](../guide/pick.md) — not `\|\|` in [`!expr`](../guide/expr.md) |
 
-Both markers are required for omit: key `?:` **and** an omit-capable value (`$Values.tls?` / `$Name?`). See [Omit](../guide/omit.md).
+Both markers are required for omit: key `?:` **and** an omit-capable value (`$Values.tls?` / `$Name?`). See **Omit** on [`!bind`](../guide/bind.md) and [`!ref`](../guide/ref.md).
 
 Optional mappings: every child key uses `?:` if and only if the parent does. An optional mapping that evaluates to `{}` is omitted (no `spec: {}`). An empty list `[]` stays, except [`!foreach`](../guide/foreach.md) on a `?:` key with `$yield?:` and nothing to print. To drop other empty lists, [`!skip-empty`](../guide/skip-empty.md) on a `?:` key.
 

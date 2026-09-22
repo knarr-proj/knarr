@@ -38,12 +38,14 @@ No `$index`.
 ### Container env
 
 ```yaml
+# $Values = {env: [{name: N, value: x}]}
 env: !foreach
   $over: !ref $Values.env
   $as: $E
   $yield:
     name: !ref $E.name
     value: !ref $E.value
+# env: [{name: N, value: x}]
 ```
 
 ### Ports from ints
@@ -315,10 +317,26 @@ env: !foreach
 </td></tr>
 </table>
 
+## Omit
+
+`env?: !foreach` ↔ omit-capable `$over` **or** `$yield?:`. Missing collection → no key. `env: []` + `$yield:` → `env: []`. Nothing to print on `env?:` + `$yield?:` → no key. `$over?:` is an error.
+
+```yaml
+# $Values = {}
+env?: !foreach
+  $over: !ref $Values.env?
+  $as: $E
+  $yield:
+    name: !ref $E.name
+# no env
+```
+
+Drop other empty lists with [`!skip-empty`](skip-empty.md) on a `?:` key.
+
 ## See also
 
 - [`!emit-foreach`](emit-foreach.md)
-- [Omit](omit.md)
+- [`!emit-range`](emit-range.md)
 - [`!join`](join.md)
 
 ## Comparison with Helm

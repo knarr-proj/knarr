@@ -39,9 +39,9 @@
 - Тег типа **без `$`**: `!ValuesType` — ошибка; нужен **`!$ValuesType`**. `!$T` не синоним `!ref $T`
 - Вложенный **`!$U`** на поле bind / в `!emit` / на `$then` (v1: корень `$Name` или **`$yield: !$T`**, решения **34–35**)
 - Тег **`!walk`** (решение **49**: нет навсегда; пути — `!ref` / `!expr` / `!foreach`)
-- `$Name: !emit` / **`$Name: !bind`** / **`$Name: !emit-foreach`** / **`$Name: !validation`** (все — только документ)
+- `$Name: !emit` / **`$Name: !bind`** / **`$Name: !emit-foreach`** / **`$Name: !emit-range`** / **`$Name: !validation`** (все — только документ)
 - Host **`fail` / `required`** в `!expr`; **`$fail` и `$warning` вместе** на `!validation`; правило-sequence `!match`
-- Ключ **`$items`** на `!emit`; splat **`!emit-foreach`** без `$as`/`$yield`; документ с тегом **`!foreach`** (N манифестов — `!emit-foreach`)
+- Ключ **`$items`** на `!emit`; splat **`!emit-foreach`** / **`!emit-range`** без `$as`/`$yield`; документ с тегом **`!foreach`** / **`!range`** (N манифестов — `!emit-foreach` / `!emit-range`)
 - **`$filter?:` / `$when?:` / `$if?:`**; `$when` / `$filter` / `$if` с omit из `?.` без `??` (решение **112**: нужен `?? false` или `!is-empty` / `!is-not-empty`; omit ≠ false)
 - Схлопывать пустой sequence **`[]`** как omit / как пустой `{}` (решение **94**: `[]` — значение; empty-bool — **`!is-empty` / `!is-not-empty`**; omit поля — **`!skip-empty`** на ключе `?:`, решение **140**). Исключение — **`имя?: !foreach` + `$yield?:`** (решение **108**)
 - Служебный ключ **`$yield?`** без `:` (решение **108**: только **`$yield?:`**)
@@ -51,8 +51,8 @@
 - **`$prefix?:` / `$suffix?:`**; omit / `""` у написанных `$prefix`/`$suffix`; эти ключи на **`!split` / `!format` / `!concat`** (решение **115**)
 - Голый mapping-документ `$Name:` без **`!bind`** (решение 29B)
 - **Значение** `null` в языке и **`null` в stdout** (решение **130**: `a: null` ≡ нет ключа; отсутствие = omit / `?` / `$else: ""`)
-- **`$key`** при `$over`-sequence; **`$index`** у `!foreach` / `!emit-foreach` (не в v1)
-- `$yield` не mapping у **`!emit-foreach`**; flatten sequence-`$yield` в родителя
+- **`$key`** при `$over`-sequence; **`$index`** у циклов; **`$key`** на **`!range` / `!emit-range`**
+- `$yield` не mapping у **`!emit-foreach` / `!emit-range`**; flatten sequence-`$yield` в родителя
 - Теги knarr с handle **`!!`** (`!!ref`, `!!bind`, `!!$T`, `!!emit`, …) — канон только локальный **`!`** (решение **54**). Не `%TAG` knarr
 - В документе knarr **любой `!!`**, включая ядро YAML **`!!str` / `!!int` / `!!bool` / `!!null`** (решение **55**). В **`!read`** core `!!str`/`!!int` можно; **`!!null`** = YAML null ≡ нет ключа (**130**)
 - Тег **`!each`** (канон — `!foreach`)
@@ -67,7 +67,7 @@
 - Host **`b64enc` / `b64dec` / `len`**; mapping `$of` у этих тегов; **`$when: !len`** (решение **76**: tagged scalar как `!int`; `$N?: !len $X.y?`)
 - Host **`sha256sum`**; **`!sha256` в `!emit`**; тихий хэш mapping без JSON (решение **63**; дерево — **`!sha256-json`**, **71**)
 - Host **`merge`**; **`!merge` в `!emit`**; **`!merge-overwrite`** / тихий overwrite вложенного map (решение **64**)
-- Host **`until` / `untilStep` / `seq`**; **`!range` в `$over` / `!emit`**; один `$to` с двумя смыслами; нет ключа **`$from`** → `0`; omit написанного **`$step`** → `1`; **`$Name?: !range`** без omit `$from`/`$to`/`$until` (решения **65**, **107**: `$from` явный; ключа `$step` нет → `1`; `?:` как concat)
+- Host **`until` / `untilStep` / `seq`**; **`!range` в `$over` / `!emit`**; **`$Idx: !range` без `$as`/`$yield`** (ints только через `$yield`, **144**); один `$to` с двумя смыслами; нет ключа **`$from`** → `0`; omit написанного **`$step`** → `1`; **`$Name?: !range`** без omit границ и без **`$yield?:`** (решения **65**, **107**, **144**)
 - Host **`empty`**; тег **`!nempty`**; теги **`!empty` / `!not-empty`** (имена — **`!is-empty` / `!is-not-empty`**, решение **140**); **`!omit-empty` / `!skip-not-empty`**; **`!not` вокруг `!is-empty`/`!and`/`!or`** (решение **66**); **`!skip-empty`** на `имя:` / `$when` / `$then` **документа** `!emit` / `$over` / seq / ребёнок **`!pick`** (решения **140**, **141**: `$then`/`$else` только у `!match` в omit-слоте)
 - Host **`int` / `str` / `bool` / `float64`**; `string()`/`int()` в `!expr`; **`!!int`/`!!bool` как coerce**; `1`/`yes` → bool; **`!int` от float** (усечение); **`.nan`/`.inf`**; тип Quantity/`500m` как число (решение **67**, **81**: `!float`; Inf ошибка)
 - Host **`list` / `dict`**; YAML-вид `{a: 1}` внутри `!expr`; `[a, b]` как concat (решение **68**)

@@ -170,10 +170,42 @@ name: !ref $Values.name
 </td></tr>
 </table>
 
+## Omit
+
+Absence is written. YAML `a: null` ≡ no `a`. Stdout never prints `null`.
+
+| Marker | Meaning |
+|--------|---------|
+| `key?:` | This stdout key may be absent |
+| `?` on a path field | That field may be absent → omit value. No `?.` operator |
+| `??` | One default on the whole scalar; the key stays |
+
+Leaf omit needs **both** `?:` on the key and an omit-capable path.
+
+```yaml
+# $Values = {}
+affinity?: !ref $Values.affinity?
+# no affinity
+```
+
+```yaml
+# $Values = {tls: {host: a}}
+host: !ref "$Values.tls?.host ?? 'localhost'"   # a
+host?: !ref $Values.tls?.host                   # a
+```
+
+```yaml
+# $Values = {}
+host: !ref "$Values.tls?.host ?? 'localhost'"   # localhost
+host?: !ref $Values.tls?.host                   # no host
+```
+
+Do not put `?:` on a key that uses `??`. Optional mapping: every child is `?:` iff the parent is.
+
 ## See also
 
 - [`!expr`](expr.md)
-- [Omit](omit.md)
+- [`!pick`](pick.md)
 
 ## Comparison with Helm
 

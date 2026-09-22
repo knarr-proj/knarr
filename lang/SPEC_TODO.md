@@ -10,4 +10,12 @@
 
 ---
 
-- **`!format` в `$yield` цикла.** Helm `name: {{ printf "w-%04d" $i }}` внутри `range until` печатает поле в каждом документе. knarr: `!format` только корень bind, в `$yield` / поле `!emit` — ошибка. Префикс `w-0000` из индекса `!range` в Comparison остаётся Impossible. Разрешить `!format` как значение в `$yield` / `!emit`, оставить bind-only, или другой канон с тем же stdout?
+- **`$when` у `!foreach`.** Циклы `!emit-foreach` / `!emit-range` / `!range` имеют опциональный `$when` (ложь → пустой ряд, коллекцию/границы не считают). У `!foreach` ключа `$when` нет. Добавить тот же слот (ложь ≡ пустой `$over`) или оставить отличие?
+
+- **`!range` только bind, `!foreach` ещё поле.** `env: !foreach` в `!emit` законно. `env: !range` — ошибка (ряд только `$Name:`). Цикл==цикл: разрешить `!range` как значение поля (как `!foreach`) или оставить bind-only?
+
+- **`!join` обходит `$over`, но не цикл.** Нет `$as` / `$filter` / `$yield` / `$when`. Склейка строк vs `!foreach` + `!join`. Выровнять слоты или считать применимость «не цикл»?
+
+- **`!emit-foreach?` / `!emit-range?` нет, `!emit?` есть.** Сахар «if без else» только на один документ. На пачке документов — опциональный `$when`. Ввести `!emit-foreach?` / `!emit-range?` (только `$when`+`$yield`, без возможности опустить `$when`) или оставить?
+
+- **`!format` в `$yield` цикла.** Helm `name: {{ printf "w-%04d" . }}` внутри `range until` (со `---`) печатает поле в каждом документе. knarr: `!format` только корень bind. `!concat` / `!join` / `!merge` тоже bind-only, `!str` / `!ref` в `$yield` можно. Разрешить `!format` (и тогда те же bind-only теги?) в `$yield` / поле `!emit`, или Comparison `printf` в ряде остаётся Impossible?

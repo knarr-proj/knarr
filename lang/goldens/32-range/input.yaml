@@ -6,14 +6,21 @@ $Values:
 ---
 !bind
 $Idx: !range
+  $from: 0
   $until: !ref $Values.count
+  $as: $I
+  $yield: !ref $I
 $Seq: !range
   $from: 1
   $to: !ref $Values.count
+  $as: $I
+  $yield: !ref $I
 $Ports: !range
   $from: 3
   $until: 10
   $step: 2
+  $as: $I
+  $yield: !ref $I
 
 ---
 !emit

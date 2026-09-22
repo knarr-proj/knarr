@@ -198,11 +198,22 @@ $Hosts: !split
 </td></tr>
 </table>
 
+## Omit
+
+`$Name?: !split` ↔ omit-capable `$of` (no `?? ''`). Missing → omit bind. `hostCsv: ""` → `[]`.
+
+```yaml
+# $Values = {}
+$Hosts?: !split
+  $sep: ","
+  $of: !ref $Values.hostCsv?
+# no $Hosts
+```
+
 ## See also
 
 - [`!join`](join.md)
 - [`!foreach`](foreach.md)
-- [Omit](omit.md)
 
 ## Comparison with Helm
 

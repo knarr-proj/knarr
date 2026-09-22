@@ -5,9 +5,11 @@ Boolean AND of a **sequence** of predicates. Evaluates **all** children (no shor
 ## Syntax
 
 ```yaml
+# $Values = {service: {enabled: true}, replicas: 3}
 $when: !and
   - !ref $Values.service.enabled
   - !expr "$Values.replicas > 1"
+# true
 ```
 
 Children: `!ref` / `!not` / `!is-empty` / `!is-not-empty` / `!and` / `!or` / `!expr` (bool) / bool literal. ≥1 element. Omit child is an error.

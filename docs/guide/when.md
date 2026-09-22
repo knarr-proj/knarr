@@ -1,6 +1,6 @@
 # `$when`
 
-Document-level condition. **`!emit?`**: `$when` + `$then`, no `$else` (false → no document). **`!emit`**: `$when` + `$then` + `$else` (`$else: ""` skips; or another mapping). Omit `$when` is an error on both. On **`!emit-foreach`**, `$when` is an optional pack gate with **no** `$then` / `$else`.
+Document-level condition. **`!emit?`**: `$when` + `$then`, no `$else` (false → no document). **`!emit`**: `$when` + `$then` + `$else` (`$else: ""` skips; or another mapping). Omit `$when` is an error on both. On **`!emit-foreach`** / **`!emit-range`**, `$when` is an optional pack gate with **no** `$then` / `$else`. On bind **`!range`**, `$when` false is an empty loop.
 
 ## Syntax (`!emit?`)
 
@@ -153,9 +153,23 @@ $then:
 </td></tr>
 </table>
 
+## Omit
+
+Omit `$when` is an **error** (not `false`). Use `?? false` or [`!is-empty`](is-empty.md) / [`!is-not-empty`](is-not-empty.md). `$when?:` is an error. On `!range` / `!emit-range`, `$when` false is an empty loop (bounds not evaluated).
+
+```yaml
+# $Values = {}
+!emit?
+$when: !is-not-empty $Values.service?.enabled?
+$then:
+  kind: Service
+# stdout empty
+```
+
 ## See also
 
 - [`!emit`](emit.md)
+- [`!emit-range`](emit-range.md)
 - [`!match`](match.md)
 - [`!and`](and.md)
 

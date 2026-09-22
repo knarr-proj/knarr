@@ -185,12 +185,25 @@ $Args: !concat
 </td></tr>
 </table>
 
+## Omit
+
+`$Name?: !concat` ↔ an omit-capable child (no `?? []`). Any omit child drops the **whole** bind.
+
+```yaml
+# $Values = {}
+$Args?: !concat
+  - ["--verbose"]
+  - !ref $Values.extraArgs?
+# no $Args
+```
+
+Keep the base: `$Name:` + `?? []` on that child.
+
 ## See also
 
 - [`!join`](join.md)
 - [`!foreach`](foreach.md)
 - [`!format`](format.md)
-- [Omit](omit.md)
 
 ## Comparison with Helm
 

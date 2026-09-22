@@ -1,14 +1,18 @@
 # `!range`
 
-Build a sequence of **ints**. Bind-only. Use it as `$over` via `!ref`.
+Loop over an **int** sequence in **bind**. Each iteration appends `$yield` to a list. Documents: [`!emit-range`](emit-range.md). Collection loops: [`!foreach`](foreach.md).
 
 ## Syntax
 
 ```yaml
 $Idx: !range
   $from: 0
-  $to: 3            # inclusive  XOR  $until
-  $step: 1          # optional; missing key → 1
+  $to: 2              # inclusive  XOR  $until
+  $step: 1            # optional; missing key → 1
+  $as: $I
+  $when: true         # optional; false → empty result
+  $filter: true       # optional
+  $yield: !ref $I
 ```
 
 Exclusive end:
@@ -16,88 +20,142 @@ Exclusive end:
 ```yaml
 $Idx: !range
   $from: 0
-  $until: 3         # 0, 1, 2
+  $until: 3           # indexes 0, 1, 2
+  $as: $I
+  $yield: !ref $I
 ```
 
-- `$from` is always written (a value). No key / omit → error, not `0`.
-- `$step` key absent → `1` (the only implicit default). If `$step:` is written, it must be a value (`?? 1` or a required path). Written `$step` that omits is an error, not `1`.
-- XOR `$to` (inclusive) or `$until` (exclusive).
-- Bounds and `$step` are **int**. `$step: 0` is an error. Impossible direction → `[]`.
-- `$Name?: !range` ↔ at least one of `$from` / `$to` / `$until` is omit-capable (`?.`, no `??`). `$step` is not in the pair. Any omit among those three → omit the whole bind.
-- All three bounds are values on `$Name?:` → pair error (`?:` cannot fire).
-- `$from?:` / `$step?:` / `$to?:` / `$until?:` are errors.
-- Not used as `$over` directly: bind first.
+- Result is **only** `$yield` (or `$yield?:`). No `$as` / no `$yield` is an error. Not `[0, 1, 2]` from bounds alone.
+- `$from` is always written. No key / omit → error, not `0`.
+- `$step` key absent → `1`. Written `$step` that omits is an error, not `1`. `$step: 0` is an error.
+- XOR `$to` (inclusive) or `$until` (exclusive). Bounds and `$step` are **int**.
+- `$as` / `$when` / `$filter` / `$yield` — same roles as [`!emit-foreach`](emit-foreach.md). `$yield` may be scalar / seq / map (like [`!foreach`](foreach.md)).
+- `$when` false → bounds are not evaluated; result like an empty `!foreach`. `$as` is not in `$when`.
+- No `$over` / `$key`. Not a document. Not a field of `!emit`.
+- `$Name?: !range` ↔ omit-capable `$from` / `$to` / `$until` (no `??`) **or** `$yield?:`. Omit a bound → omit the bind.
+- `$from?:` / `$to?:` / `$until?:` / `$step?:` are errors.
 
 ## Examples
 
 ### Inclusive `0..2`
 
 ```yaml
-$Idx: !range
-  $from: 0
-  $to: 2
-# [0, 1, 2]
-```
-
-### Exclusive `$until: 3` → `[0, 1, 2]`
-
-```yaml
-$Idx: !range
-  $from: 0
-  $until: !ref $Values.replicas
-```
-
-### Indexed Jobs / ordinals
-
-```yaml
+# $Values = {}
 !bind
 $Idx: !range
   $from: 0
-  $until: !ref $Values.completions
----
-!emit-foreach
-$over: !ref $Idx
-$as: $I
-$yield:
-  kind: Job
-  name: !str $I
+  $to: 2
+  $as: $I
+  $yield: !ref $I
+# $Idx = [0, 1, 2]
 ```
 
-`!format` cannot sit in `$yield`. Prefixed names (`w-0`) belong in **values**, or a dedicated `$Name: !format` per static index.
+### Exclusive `$until`
+
+```yaml
+# $Values = {replicas: 3}
+$Idx: !range
+  $from: 0
+  $until: !ref $Values.replicas
+  $as: $I
+  $yield: !ref $I
+# $Idx = [0, 1, 2]
+```
+
+### Names as strings
+
+```yaml
+# $Values = {completions: 2}
+!bind
+$Names: !range
+  $from: 0
+  $until: !ref $Values.completions
+  $as: $I
+  $yield: !str $I
+---
+!emit
+names: !ref $Names
+# names: ["0", "1"]
+```
+
+`!format` cannot sit in `$yield`. Prefixed names (`w-0000`) need a bind `!format` per static index.
 
 ### Optional count
 
 ```yaml
+# $Values = {}
 !bind
 $Idx?: !range
   $from: 0
   $until: !ref $Values.replicas?
----
-!emit-foreach
-$over: !ref $Idx?
-$as: $I
-$yield:
-  kind: Job
-  name: !str $I
+  $as: $I
+  $yield: !ref $I
+# no $Idx
 ```
 
-Missing `replicas` → no `$Idx` → zero documents. `replicas: 0` → `$Idx: []` (a value). Always keep a list:
+`replicas: 0` → `$Idx: []`. Always keep a list:
 
 ```yaml
-!bind
+# $Values = {}
 $Idx: !range
   $from: 0
   $until: !ref "$Values.replicas? ?? 0"
+  $as: $I
+  $yield: !ref $I
+# $Idx = []
 ```
 
 ### Downwards
 
 ```yaml
+# $Values = {}
 $Idx: !range
   $from: 5
   $to: 0
   $step: -1
+  $as: $I
+  $yield: !ref $I
+# $Idx = [5, 4, 3, 2, 1, 0]
 ```
+
+### Skip zero
+
+```yaml
+# $Values = {n: 3}
+$Idx: !range
+  $from: 0
+  $until: !ref $Values.n
+  $as: $I
+  $filter: !expr "$I != 0"
+  $yield: !ref $I
+# $Idx = [1, 2]
+```
+
+## Omit
+
+`$Name?:` needs an omit-capable bound **or** `$yield?:`. Leaf omit still needs **both** `?:` and a `?` path.
+
+```yaml
+# $Values = {}
+$Idx?: !range
+  $from: 0
+  $until: !ref $Values.replicas?
+  $as: $I
+  $yield: !ref $I
+# no $Idx
+```
+
+```yaml
+# $Values = {replicas: 0}
+$Idx?: !range
+  $from: 0
+  $until: !ref $Values.replicas
+  $as: $I
+  $yield?: !ref $I
+# $Idx = []  ($yield: would also be [])
+```
+
+`$when` false is an empty loop (not a missing bound): `$Name:` + `$yield:` → `[]`.
 
 ## Common mistakes
 
@@ -106,57 +164,55 @@ $Idx: !range
 <tr><td>
 
 ```yaml
-!bind
+$Idx: !range
+  $from: 0
+  $until: 3
+# no $as / $yield — not [0, 1, 2]
+```
+
+</td><td>
+
+```yaml
+$Idx: !range
+  $from: 0
+  $until: 3
+  $as: $I
+  $yield: !ref $I
+# $Idx = [0, 1, 2]
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
 $Idx: !range
   $until: 3
+  $as: $I
+  $yield: !ref $I
 # $from is required; missing is not 0
 ```
 
 </td><td>
 
 ```yaml
-!bind
 $Idx: !range
   $from: 0
   $until: 3
-# write the start
+  $as: $I
+  $yield: !ref $I
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
-!bind
-$Idx: !range
-  $from: 0
-  $to: 3
-  $until: 3
-# $to and $until together is an error
-```
-
-</td><td>
-
-```yaml
-!bind
-$Idx: !range
-  $from: 0
-  $until: 3
-# pick $to (inclusive) or $until (exclusive)
-```
-
-</td></tr>
-<tr><td>
-
-```yaml
-!emit
 env: !foreach
   $over: !range
     $from: 0
     $until: 3
-  $as: $I
-  $yield:
-    name: !str $I
-# !range cannot be $over directly
+    $as: $I
+    $yield: !ref $I
+# !range cannot be $over
 ```
 
 </td><td>
@@ -166,88 +222,38 @@ env: !foreach
 $Idx: !range
   $from: 0
   $until: 3
+  $as: $I
+  $yield: !ref $I
 ---
 !emit
 env: !foreach
   $over: !ref $Idx
-  $as: $I
+  $as: $N
   $yield:
-    name: !str $I
-# bind !range, then $over: !ref
+    name: !str $N
+# env: [{name: "0"}, {name: "1"}, {name: "2"}]
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
-!bind
 $Idx?: !range
   $from: 0
   $until: 5
+  $as: $I
+  $yield: !ref $I
 # all bounds are values; ?: cannot fire
 ```
 
 </td><td>
 
 ```yaml
-!bind
 $Idx?: !range
   $from: 0
   $until: !ref $Values.replicas?
-# at least one of $from / $to / $until omits
-```
-
-</td></tr>
-<tr><td>
-
-```yaml
-!bind
-$Idx: !range
-  $from: 0
-  $step: !ref $Values.step?
-  $until: 5
-# a written $step that omits is an error, not 1
-```
-
-</td><td>
-
-```yaml
-!bind
-$Idx: !range
-  $from: 0
-  $until: 5
-# no $step key → 1
-```
-
-```yaml
-!bind
-$Idx: !range
-  $from: 0
-  $step: !ref "$Values.step? ?? 1"
-  $until: 5
-# written $step must be a value
-```
-
-</td></tr>
-<tr><td>
-
-```yaml
-!bind
-$Idx: !range
-  $from: 0
-  $until: !ref $Values.cpu
-# bounds must be int; a float is an error
-```
-
-</td><td>
-
-```yaml
-!bind
-$N: !int $Values.completions
-$Idx: !range
-  $from: 0
-  $until: !ref $N
-# !int first, then !range
+  $as: $I
+  $yield: !ref $I
 ```
 
 </td></tr>
@@ -255,14 +261,14 @@ $Idx: !range
 
 ## See also
 
+- [`!emit-range`](emit-range.md)
+- [`!foreach`](foreach.md)
 - [`!emit-foreach`](emit-foreach.md)
 - [`!str`](str.md)
-- [`!concat`](concat.md)
-- [Omit](omit.md)
 
 ## Comparison with Helm
 
-`$until` is exclusive (like `until`). `$to` is **inclusive**. Bind, then `!ref`. Write `$from`. A missing `$step` key is `1`.
+`$until` is exclusive (like `until`). `$to` is **inclusive**. Write `$from`. Missing `$step` key is `1`. Output is `$yield`.
 
 <table>
 <tr><th>Helm</th><td>
@@ -282,6 +288,8 @@ idx:
 $Idx: !range
   $from: 0
   $until: 3
+  $as: $I
+  $yield: !ref $I
 ---
 !emit
 idx: !ref $Idx
@@ -290,7 +298,7 @@ idx: !ref $Idx
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same list `0,1,2`. Knarr writes `$from: 0`.
+Same list `0,1,2`. Knarr writes `$from: 0` and `$yield`.
 
 </td></tr>
 </table>
@@ -314,6 +322,8 @@ $Idx: !range
   $from: 0
   $to: 2
   $step: 1
+  $as: $I
+  $yield: !ref $I
 ---
 !emit
 idx: !ref $Idx
@@ -323,42 +333,6 @@ idx: !ref $Idx
 <tr><th>Difference</th><td>
 
 Same list `0,1,2`. Helm end exclusive; knarr `$to` inclusive.
-
-</td></tr>
-</table>
-
-<table>
-<tr><th>Helm</th><td>
-
-```gotemplate
-{{- range until .Values.completions }}
----
-kind: Job
-name: {{ . }}
-{{- end }}
-```
-
-</td></tr>
-<tr><th>Knarr</th><td>
-
-```yaml
-!bind
-$Idx: !range
-  $from: 0
-  $until: !ref $Values.completions
----
-!emit-foreach
-$over: !ref $Idx
-$as: $I
-$yield:
-  kind: Job
-  name: !str $I
-```
-
-</td></tr>
-<tr><th>Difference</th><td>
-
-Same documents when `completions` is an int. Helm `name:` is an int; knarr `!str` is a string. Without `---` Helm is one stream, not documents.
 
 </td></tr>
 </table>

@@ -18,6 +18,8 @@ Kubernetes manifests are a common use, not a limit of the language.
 
 Each construct page has a **Comparison with Helm** section at the bottom. A pair is either the **same result** (any real difference — quotes, key order — belongs in Difference) or knarr **cannot** do it (say so; do not invent a knarr sample). Prefer more exact matches and more explicit impossibilities.
 
+Examples are compact. Each shows input as `# $Var = {a: 1}` and the result as an in-line comment or a comment under the snippet.
+
 Purpose is **one sentence**. The construct page is the source of truth; this table does not copy examples.
 
 ### Documents
@@ -28,6 +30,7 @@ Purpose is **one sentence**. The construct page is the source of truth; this tab
 | `!emit` | One output document | [emit](guide/emit.md) |
 | `!emit?` | One output document or none (`$when` + `$then`) | [emit](guide/emit.md) |
 | `!emit-foreach` | One output document per item | [emit-foreach](guide/emit-foreach.md) |
+| `!emit-range` | One output document per int in a range | [emit-range](guide/emit-range.md) |
 | `!import` | Splice knarr documents from another file | [import](guide/import.md) |
 | `!policy` | Schema-only policy for `!$Type` | [policy](guide/policy.md) |
 | `!typedef` / `!$Type` | Declare a type; instantiate a bind | [typedef](guide/typedef.md) |
@@ -37,10 +40,9 @@ Purpose is **one sentence**. The construct page is the source of truth; this tab
 
 | Construct | Purpose | Guide |
 |-----------|---------|-------|
-| `$when` | Keep or skip one `!emit?` / `!emit` / `!emit-foreach` | [when](guide/when.md) |
+| `$when` | Keep or skip `!emit?` / `!emit` / `!emit-foreach` / `!emit-range` / `!range` | [when](guide/when.md) |
 | `!foreach` | Build a sequence field | [foreach](guide/foreach.md) |
 | `!match` | If/else as a value | [match](guide/match.md) |
-| Omit (`?:`, path `?`, `??`) | Written absence (hub; tag pages link here) | [omit](guide/omit.md) |
 
 ### Access and expressions
 
@@ -54,7 +56,7 @@ Purpose is **one sentence**. The construct page is the source of truth; this tab
 
 ### Bind-only transforms
 
-These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where noted) inside `!bind`. Use `!ref` in the manifest. `!join` may take `$prefix` / `$suffix` (non-empty strings, like `$sep`). `!join` / `!foreach` may be `$Name?:` when `$over` is omit-capable; `!foreach` also when `$yield?:` is used (empty result omits the bind; `?? []` on that `$over` is then allowed); `!split` / `!sha256` when `$of` is omit-capable; `!concat` / `!format` when a child is omit-capable; `!merge` when **every** child is omit-capable; `!range` when `$from` / `$to` / `$until` can omit. `!pick` is always a value (`$Name?: !pick` is an error).
+These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where noted) inside `!bind`. Use `!ref` in the manifest. `!join` may take `$prefix` / `$suffix` (non-empty strings, like `$sep`). `!join` / `!foreach` may be `$Name?:` when `$over` is omit-capable; `!foreach` also when `$yield?:` is used (empty result omits the bind; `?? []` on that `$over` is then allowed); `!split` / `!sha256` when `$of` is omit-capable; `!concat` / `!format` when a child is omit-capable; `!merge` when **every** child is omit-capable; `!range` when `$from` / `$to` / `$until` can omit **or** `$yield?:` is used (`$as` and `$yield` are required). `!pick` is always a value (`$Name?: !pick` is an error). Each construct page has an **Omit** section.
 
 | Construct | Purpose | Guide |
 |-----------|---------|-------|
@@ -62,7 +64,7 @@ These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where not
 | `!join` | Join strings with `$sep` | [join](guide/join.md) |
 | `!split` | Split a string into a sequence | [split](guide/split.md) |
 | `!format` | Go `fmt` string from operands | [format](guide/format.md) |
-| `!range` | Integer sequence `$from`…`$to`/`$until` | [range](guide/range.md) |
+| `!range` | Int loop in bind; output is `$yield` | [range](guide/range.md) |
 | `!merge` | Deep-merge mappings, later wins | [merge](guide/merge.md) |
 | `!sha256` | Hex SHA-256 of a string | [sha256](guide/sha256.md) |
 

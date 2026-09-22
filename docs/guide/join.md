@@ -285,12 +285,25 @@ $Name: !join
 </td></tr>
 </table>
 
+## Omit
+
+`$Name?: !join` ↔ omit-capable `$over` (no `?? []`). Missing collection → omit bind. `hosts: []` → `""`, not omit.
+
+```yaml
+# $Values = {}
+$HostList?: !join
+  $sep: ","
+  $over: !ref $Values.hosts?
+# no $HostList
+```
+
+Do not write `$HostList?:` with `$over: … ?? []`.
+
 ## See also
 
 - [`!split`](split.md)
 - [`!format`](format.md)
 - [`!foreach`](foreach.md)
-- [Omit](omit.md)
 
 ## Comparison with Helm
 
