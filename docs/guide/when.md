@@ -1,6 +1,6 @@
 # `$when`
 
-Document-level condition. **`!emit?`**: `$when` + `$yield?:`, no `$else-yield` (false `$when` or omit `$yield?:` → no document). **`!emit`**: `$when` + `$yield` + `$else-yield` (`$else-yield: ""` skips; or another mapping). Omit `$when` is an error on both. On **`!foreach`** / **`!emit-foreach`** / **`!emit-foreach?`** / **`!emit-range`** / **`!emit-range?`** / **`!range`**, `$when` is an optional pack gate with **no** `$else-yield` (`$yield` is the loop body). False → empty loop (`[]` / omit key / zero documents); `$over` / bounds are not evaluated. **`!emit-foreach?`** is not “`$when` required”: it pairs with **`$yield?:`**. `$yield:` on `!emit?` is a pair error.
+Document-level condition. **`!emit?`**: `$yield?:`, optional `$when`, no `$else-yield` (false `$when` or omit `$yield?:` → no document). **`!emit`**: `$when` + `$yield` + `$else-yield` (`$else-yield: ""` skips; or another mapping). If `$when` is written, omit is an error. On **`!foreach`** / **`!emit-foreach`** / **`!emit-foreach?`** / **`!emit-range`** / **`!emit-range?`** / **`!range`**, `$when` is an optional pack gate with **no** `$else-yield` (`$yield` is the loop body). False → empty loop (`[]` / omit key / zero documents); `$over` / bounds are not evaluated. Document `?` is one law: **`$yield?:`**, `$when` optional. `$yield:` on `!emit?` is a pair error.
 
 ## Syntax (`!emit?`)
 
@@ -13,7 +13,7 @@ $yield?:
   name: !ref $Values.name  # name: api
 ```
 
-Predicate: `!ref`, `!not`, `!expr`, `!is-empty`, `!is-not-empty`, `!and`, `!or`, or YAML `true` / `false`. Not `!len` (that is int). Not `!expr "true"` — that is no computation.
+`$when` is optional. Predicate: `!ref`, `!not`, `!expr`, `!is-empty`, `!is-not-empty`, `!and`, `!or`, or YAML `true` / `false`. Not `!len` (that is int). Not `!expr "true"` — that is no computation.
 
 `$else-yield` on `!emit?` is a pair error. On `!emit`, `$else-yield: ""` → emit nothing; `$else-yield:` may be another mapping.
 
@@ -206,7 +206,7 @@ $yield?:
 
 ## Comparison with Helm
 
-`$when` gates `!emit?` (`$yield?:`, no `$else-yield`) or `!emit` (needs `$else-yield`). Field-level if is `!match`.
+`$when` is optional on `!emit?` (`$yield?:`, no `$else-yield`) and required on `!emit` with `$else-yield`. Field-level if is `!match`.
 
 <table>
 <tr><th>Helm</th><td>

@@ -13,7 +13,7 @@ kind: ConfigMap
 name: !ref $Values.name  # name: api
 ```
 
-**If, no else** — tag **`!emit?`**: only `$when` and `$yield?:`. False `$when` or omit `$yield?:` → no document. `$yield:` on `!emit?` is a pair error. Omit `$when` is still an error. `$else-yield` on `!emit?` is a pair error.
+**If, no else** — tag **`!emit?`**: only `$yield?:`. `$when` is optional (same law as `!emit-foreach?`). False `$when` or omit `$yield?:` → no document. No `$when` → evaluate `$yield?:`. `$yield:` on `!emit?` is a pair error. If `$when` is written, omit is still an error. `$else-yield` on `!emit?` is a pair error.
 
 ```yaml
 # $Values = {service: {enabled: true}, name: api}
@@ -22,6 +22,13 @@ $when: !ref $Values.service.enabled
 $yield?:
   kind: Service
   name: !ref $Values.name  # name: api
+```
+
+```yaml
+# $Values = {doc: {kind: ConfigMap}}
+!emit?
+$yield?: !ref $Values.doc?
+# kind: ConfigMap
 ```
 
 **If / else** — tag **`!emit`**: only `$when`, `$yield`, `$else-yield` (no other keys):
@@ -187,7 +194,7 @@ $yield?:
 
 ## Omit
 
-`!emit?` may print **no** document (`$when` false or `$yield?:` omits). Omit `$when` is still an error. `$else-yield: ""` on `!emit` skips. `key?:` inside `$yield` / `$yield?:` still needs a `?` path.
+`!emit?` may print **no** document (`$when` false or `$yield?:` omits). `$when` may be omitted. If `$when` is written, omit is still an error. `$else-yield: ""` on `!emit` skips. `key?:` inside `$yield` / `$yield?:` still needs a `?` path.
 
 ```yaml
 # $Values = {service: {enabled: false}, name: api}
@@ -202,7 +209,6 @@ $yield?:
 ```yaml
 # $Values = {}
 !emit?
-$when: true
 $yield?: !ref $Values.doc?
 # stdout empty
 ```

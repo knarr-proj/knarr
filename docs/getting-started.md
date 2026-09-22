@@ -10,7 +10,7 @@ A knarr file is **YAML 1.2** with several documents (`---`). Each document has a
 |-----|------|
 | `!bind` | Name values (`$Values`, `$AppName`, …). Not printed. |
 | `!emit` | One YAML document on stdout (any schema). |
-| `!emit?` | Same, or nothing if `$when` is false or `$yield?:` omits. |
+| `!emit?` | Same, or nothing if `$when` is false or `$yield?:` omits. `$when` optional. |
 
 Look up a value with **`!ref $Name`**. There is no `{{ }}`.
 
@@ -141,7 +141,7 @@ $yield?:
 # kind: Service / name: demo
 ```
 
-**`!emit?`** means **emit nothing** when `$when` is false or `$yield?:` omits. On `!emit`, `$else-yield: ""` does the same.
+**`!emit?`** means **emit nothing** when `$when` is false or `$yield?:` omits. `$when` is optional. On `!emit`, `$else-yield: ""` does the same.
 
 ## 6. Names you will reuse
 

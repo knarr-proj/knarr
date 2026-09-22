@@ -1,7 +1,7 @@
 # Knarr — норматив языка (v1)
 
 Авторское описание: корневой [README.md](../README.md) и [docs/](../docs/README.md).  
-Q&A 1–154: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOALS.md). Язык: [SPEC_TODO.md](SPEC_TODO.md) / [SPEC_TODO_v2.md](SPEC_TODO_v2.md). CLI: [CLI_TODO.md](CLI_TODO.md) / [CLI_TODO_v2.md](CLI_TODO_v2.md).
+Q&A 1–155: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOALS.md). Язык: [SPEC_TODO.md](SPEC_TODO.md) / [SPEC_TODO_v2.md](SPEC_TODO_v2.md). CLI: [CLI_TODO.md](CLI_TODO.md) / [CLI_TODO_v2.md](CLI_TODO_v2.md).
 
 Инвентарь языка v1 **закрыт**. Носитель YAML 1.2; нет Go `{{ }}`; нет CLI `-f` / `--set`. Knarr делает только то, что явно записано: нет скрытого omit, нет неявного default, нет **значения** `null` (`a: null` ≡ нет ключа, решение **130**).
 
@@ -929,7 +929,7 @@ Omit нельзя: элемент sequence, тело `!emit` кроме `$else-y
 
 ### 3.5 Условия — `$when`
 
-`$when` живёт на **`!emit?`** (`$when` + **`$yield?:`**, **без** `$else-yield` — **133**, **153**), на **`!emit`** (обязательны `$yield` **и** `$else-yield`), опционально на **`!foreach`** / **`!emit-foreach`** / **`!emit-foreach?`** / **`!emit-range`** / **`!emit-range?`** / **`!range`** (**145**, **148**, без `$else-yield`; `$yield` — тело цикла; ложь ≡ пустой цикл). Значение — предикат **bool (66):** `!ref` / `!not` / **`!expr`** / **`!is-empty` / `!is-not-empty` / `!and` / `!or`** / YAML **`true`/`false`** (**85**: не `!expr "true"`). Omit — **ошибка (112)** и на `!emit?`, не `false`.
+`$when` живёт на **`!emit`** (обязательны `$yield` **и** `$else-yield`), опционально на **`!emit?` / `!foreach` / `!emit-foreach` / `!emit-foreach?` / `!emit-range` / `!emit-range?` / `!range`** (**145**, **148**, **155**; без `$else-yield`; `$yield` / `$yield?:` — тело). Ложь → нет документа / пустой цикл; тело не считают. Значение — предикат **bool (66):** `!ref` / `!not` / **`!expr`** / **`!is-empty` / `!is-not-empty` / `!and` / `!or`** / YAML **`true`/`false`** (**85**: не `!expr "true"`). Ключ есть, значение omit — **ошибка (112)**, не `false`. Нет ключа `$when` на `!emit?` — законно (**155**).
 
 ```yaml
 $when: true
@@ -947,7 +947,7 @@ $when: true
   $else-yield: ""
 ```
 
-- **`!emit?` (133, **153**):** ровно `$when` + **`$yield?:`**. Нет `$else-yield`. Ложь `$when` или omit `$yield?:` → нет документа. `$else-yield` / нет `$when` / **`$yield:`** — ошибка пары. `$Name: !emit?` — ошибка.
+- **`!emit?` (133, **153**, **155**):** только **`$yield?:`**. `$when` опц. Нет `$else-yield`. Ложь `$when` или omit `$yield?:` → нет документа. `$else-yield` / нет `$yield?:` / **`$yield:`** — ошибка пары. `$Name: !emit?` — ошибка.
 - **`!emit` + `$when`:** обязательны `$yield` и `$else-yield`; других ключей нет.
 - `$yield` — mapping манифеста (один документ, если ветка истинна; **любое число ключей — 132**). Не **`!foreach`** / **`!emit-foreach`** / **`!emit-foreach?`** / **`!emit-range`** / **`!emit-range?`** как всё тело `$yield`.
 - `$else-yield: ""` (пустая строка) — **не эмитить** ничего. Это не документ и не `null`.
@@ -1212,7 +1212,7 @@ spec:
           image: !ref $C.image
 ```
 
-**2. If без else — `!emit?` (133, **153**)** — только `$when` / **`$yield?:`**. Ложь `$when` или omit `$yield?:` → нет документа. **`$yield:`** — ошибка пары. Omit `$when` — ошибка (112).
+**2. If без else — `!emit?` (133, **153**, **155**)** — только **`$yield?:`**; `$when` опц. Ложь `$when` или omit `$yield?:` → нет документа. **`$yield:`** — ошибка пары. Ключ `$when` с omit — ошибка (112). Нет ключа `$when` — считают `$yield?:`.
 
 **3. If / else — `!emit`** — только `$when` / `$yield` / `$else-yield` (см. §3.5). `$else-yield: ""` = пропуск. В полях `$yield` можно вложенный `!foreach`.
 
