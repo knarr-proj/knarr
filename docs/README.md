@@ -62,7 +62,7 @@ These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where not
 | Construct | Purpose | Guide |
 |-----------|---------|-------|
 | `!concat` | Concatenate sequences | [concat](guide/concat.md) |
-| `!join` | Join strings with `$sep` | [join](guide/join.md) |
+| `!join` | Join a sequence (`!str` each item) with `$sep`; optional `$filter` | [join](guide/join.md) |
 | `!split` | Split a string into a sequence | [split](guide/split.md) |
 | `!format` | Go `fmt` string from operands | [format](guide/format.md) |
 | `!merge` | Deep-merge mappings, later wins | [merge](guide/merge.md) |

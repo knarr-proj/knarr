@@ -10,8 +10,7 @@
 
 ---
 
-- **`!join` обходит `$over`, но не цикл.** Нет `$as` / `$filter` / `$yield` / `$when`. Склейка строк vs `!foreach` + `!join`. Выровнять слоты или считать применимость «не цикл»?
+- `!emit-foreach?` **/** `!emit-range?` **нет,** `!emit?` **есть.** Сахар «if без else» только на один документ. На пачке документов — опциональный `$when`. Ввести `!emit-foreach?` / `!emit-range?` (только `$when`+`$yield`, без возможности опустить `$when`) или оставить?
+- `!format` **в** `$yield` **цикла.** Helm `name: {{ printf "w-%04d" . }}` внутри `range until` (со `---`) печатает поле в каждом документе. knarr: `!format` только корень bind. `!concat` / `!join` / `!merge` тоже bind-only, `!str` / `!ref` в `$yield` можно. Разрешить `!format` (и тогда те же bind-only теги?) в `$yield` / поле `!emit`, или Comparison `printf` в ряде остаётся Impossible?
+- Оценить замену в !match   $then на $yield, а $else на $else-yield
 
-- **`!emit-foreach?` / `!emit-range?` нет, `!emit?` есть.** Сахар «if без else» только на один документ. На пачке документов — опциональный `$when`. Ввести `!emit-foreach?` / `!emit-range?` (только `$when`+`$yield`, без возможности опустить `$when`) или оставить?
-
-- **`!format` в `$yield` цикла.** Helm `name: {{ printf "w-%04d" . }}` внутри `range until` (со `---`) печатает поле в каждом документе. knarr: `!format` только корень bind. `!concat` / `!join` / `!merge` тоже bind-only, `!str` / `!ref` в `$yield` можно. Разрешить `!format` (и тогда те же bind-only теги?) в `$yield` / поле `!emit`, или Comparison `printf` в ряде остаётся Impossible?

@@ -1,6 +1,6 @@
 # `!join`
 
-Join a sequence of **strings** with a separator. Bind-only. Result is a string. Split: [`!split`](split.md).
+Join a **sequence** with a separator. Each item is coerced like [`!str`](str.md). Bind-only. Result is a string. Split: [`!split`](split.md).
 
 ## Syntax
 
@@ -12,7 +12,8 @@ $Csv: !join
 # $Csv = a,b
 ```
 
-- Tagged **mapping**: `$sep` (non-empty string) + `$over` (sequence of **strings** only). Optional `$prefix` / `$suffix`: if the key is written, same as `$sep` (non-empty string; omit / `""` is an error). Missing key → no wrap on that side. Result is prefix + joined + suffix. A mapping / `?? {}` on `$over` is a sort error. Map keys or values: [`!foreach`](foreach.md) first, then join.
+- Tagged **mapping**: `$sep` (non-empty string) + `$over` (sequence). Each item is coerced like [`!str`](str.md) after `$filter`: string as-is; int / bool / float as `!str`; seq / map is an error. Optional `$prefix` / `$suffix`: if the key is written, same as `$sep` (non-empty string; omit / `""` is an error). Missing key → no wrap on that side. Result is prefix + joined + suffix. A mapping / `?? {}` on `$over` is a sort error. Map keys or values: [`!foreach`](foreach.md) first, then join.
+- Not a loop: no `$yield` / `$when` / `$key`. Optional `$filter` and `$as` together (both or neither). `$as` names the **raw** item for `$filter` only (same bool law as [`!foreach`](foreach.md): omit is an error). False → skip that item. All skipped / `[]` → `""` or just the wrap.
 - `$prefix?:` / `$suffix?:` are errors. They are not part of the `$Name?:` pair.
 - `$Name?: !join` ↔ omit-capable `$over` (`?.`, no `?? []`): missing collection → omit bind.
 - `$Name: !join` ↔ `$over` always a value (`?? []` or a required path): empty → `""`, or just the wrap if `$prefix` / `$suffix` are set.
@@ -50,7 +51,7 @@ $Name: !join
 # $Name = api.svc.cluster.local
 ```
 
-`$over` must be a sequence of strings — build it with `!foreach` in bind if needed.
+Ints / bools / floats join without a prior `!foreach` + `!str`. Nested seq / map items are still an error.
 
 ### Wrap after join
 
@@ -66,6 +67,30 @@ $Csv: !join
 ```
 
 `hosts: [a, b]` → `[a,b]`. `hosts: []` → `[]`. Omit `$over` on `$Name?:` still omits the bind (no wrap). Only `$prefix` or only `$suffix` is allowed. Do not write `$prefix: ""`.
+
+### Ports as ints
+
+```yaml
+# $Values = {ports: [80, 443]}
+$Csv: !join
+  $sep: ","
+  $over: !ref $Values.ports
+# $Csv = 80,443
+```
+
+### Skip some items
+
+```yaml
+# $Values = {ports: [80, 0, 443]}
+$Csv: !join
+  $sep: ","
+  $over: !ref $Values.ports
+  $as: $P
+  $filter: !expr "$P != 0"
+# $Csv = 80,443
+```
+
+`$as` without `$filter` (or `$filter` without `$as`) is an error.
 
 ### Optional hosts annotation
 
@@ -223,7 +248,7 @@ $HostList?: !join
 $HostList: !join
   $sep: ","
   $over: !ref $Values.labels
-# error: mapping is not a sequence of strings
+# error: mapping is not a sequence
 ```
 
 ```yaml
@@ -269,7 +294,8 @@ $HostList: !join
 $Ports: !join
   $sep: ","
   $over: !ref $Values.ports
-# error: joining ints
+  $filter: !expr "$P != 0"
+# error: $filter without $as
 ```
 
 </td><td>
@@ -277,13 +303,11 @@ $Ports: !join
 ```yaml
 # $Values = {ports: [80]}
 !bind
-$StrPorts: !foreach
-  $over: !ref $Values.ports
-  $as: $P
-  $yield: !str $P
 $Ports: !join
   $sep: ","
-  $over: !ref $StrPorts
+  $over: !ref $Values.ports
+  $as: $P
+  $filter: !expr "$P != 0"
 # $Ports = "80"
 ```
 
@@ -338,7 +362,7 @@ Do not write `$HostList?:` with `$over: … ?? []`.
 
 ## Comparison with Helm
 
-`!join` is bind-only: `$sep` + `$over` → string. `$Name?:` follows the same omit pair as [`!foreach`](foreach.md).
+`!join` is bind-only: `$sep` + `$over` → string (`!str` each item). `$Name?:` follows the same omit pair as [`!foreach`](foreach.md). `$filter`/`$as` are optional together; there is no `$yield`.
 
 <table>
 <tr><th>Helm</th><td>
