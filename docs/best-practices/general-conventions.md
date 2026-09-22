@@ -81,7 +81,7 @@ Kubernetes quantities like `"500m"` stay **strings**.
 
 - Key order in a mapping is **source order**, not sorted (JSON checksums are the exception: sorted keys, Go `json.Marshal` canon).
 - Stdout is YAML 1.2, UTF-8, LF, 2-space block style.
-- Zero manifests (all `!emit?` with false `$when`, all `$else-yield: ""`, empty loops, false `$when` on `!emit-foreach`) → empty stdout, exit 0.
+- Zero manifests (all `!emit?` with false `$when` or omit `$yield?:`, all `$else-yield: ""`, empty loops, false `$when` on `!emit-foreach`) → empty stdout, exit 0.
 
 ## Helm comparison in the guide
 

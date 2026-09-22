@@ -1,6 +1,6 @@
 # `$when`
 
-Document-level condition. **`!emit?`**: `$when` + `$yield`, no `$else-yield` (false → no document). **`!emit`**: `$when` + `$yield` + `$else-yield` (`$else-yield: ""` skips; or another mapping). Omit `$when` is an error on both. On **`!foreach`** / **`!emit-foreach`** / **`!emit-foreach?`** / **`!emit-range`** / **`!emit-range?`** / **`!range`**, `$when` is an optional pack gate with **no** `$else-yield` (`$yield` is the loop body). False → empty loop (`[]` / omit key / zero documents); `$over` / bounds are not evaluated. **`!emit-foreach?`** is not “`$when` required”: it pairs with **`$yield?:`**.
+Document-level condition. **`!emit?`**: `$when` + `$yield?:`, no `$else-yield` (false `$when` or omit `$yield?:` → no document). **`!emit`**: `$when` + `$yield` + `$else-yield` (`$else-yield: ""` skips; or another mapping). Omit `$when` is an error on both. On **`!foreach`** / **`!emit-foreach`** / **`!emit-foreach?`** / **`!emit-range`** / **`!emit-range?`** / **`!range`**, `$when` is an optional pack gate with **no** `$else-yield` (`$yield` is the loop body). False → empty loop (`[]` / omit key / zero documents); `$over` / bounds are not evaluated. **`!emit-foreach?`** is not “`$when` required”: it pairs with **`$yield?:`**. `$yield:` on `!emit?` is a pair error.
 
 ## Syntax (`!emit?`)
 
@@ -8,7 +8,7 @@ Document-level condition. **`!emit?`**: `$when` + `$yield`, no `$else-yield` (fa
 # $Values = {name: api}
 !emit?
 $when: <bool>
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name  # name: api
 ```
@@ -66,7 +66,7 @@ $when: !ref $Values.service.enabled
 # $Values = {sidecars: [a]}
 !emit?
 $when: !is-not-empty $Values.sidecars?
-$yield:
+$yield?:
   kind: ConfigMap
   name: sidecars
 # kind: ConfigMap / name: sidecars
@@ -117,7 +117,7 @@ replicas: !match
 # $Values = {workers: [a]}
 !emit?
 $when: !len $Values.workers
-$yield:
+$yield?:
   kind: ConfigMap
 # error: !len is an int, not a bool
 ```
@@ -128,7 +128,7 @@ $yield:
 # $Values = {workers: [a]}
 !emit?
 $when: !is-not-empty $Values.workers?
-$yield:
+$yield?:
   kind: ConfigMap
   name: workers
 # kind: ConfigMap / name: workers
@@ -141,7 +141,7 @@ $yield:
 # $Values = {}
 !emit?
 $when: !ref $Values.enabled?
-$yield:
+$yield?:
   kind: Service
 # error: omit is not a bool
 ```
@@ -152,7 +152,7 @@ $yield:
 # $Values = {name: api}
 !emit?
 $when: !ref $Values.enabled? ?? false
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name
 # stdout empty
@@ -165,7 +165,7 @@ $yield:
 # $Values = {a: 1}
 !emit?
 $when: !expr "true"
-$yield:
+$yield?:
   kind: Service
 # error: no computation: use YAML
 ```
@@ -176,7 +176,7 @@ $yield:
 # $Values = {name: api}
 !emit?
 $when: true
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name  # name: api
 ```
@@ -192,7 +192,7 @@ Omit `$when` is an **error** (not `false`). Use `?? false` or [`!is-empty`](is-e
 # $Values = {}
 !emit?
 $when: !is-not-empty $Values.service?.enabled?
-$yield:
+$yield?:
   kind: Service
 # stdout empty
 ```
@@ -206,7 +206,7 @@ $yield:
 
 ## Comparison with Helm
 
-`$when` gates `!emit?` (no `$else-yield`) or `!emit` (needs `$else-yield`). Field-level if is `!match`.
+`$when` gates `!emit?` (`$yield?:`, no `$else-yield`) or `!emit` (needs `$else-yield`). Field-level if is `!match`.
 
 <table>
 <tr><th>Helm</th><td>
@@ -226,7 +226,7 @@ kind: Service
 # $Values = {service: {enabled: true}}
 !emit?
 $when: !is-not-empty $Values.service?.enabled?
-$yield:
+$yield?:
   kind: Service
 # kind: Service
 ```
@@ -257,7 +257,7 @@ kind: ConfigMap
 # $Values = {sidecars: [a]}
 !emit?
 $when: !is-not-empty $Values.sidecars?
-$yield:
+$yield?:
   kind: ConfigMap
 # kind: ConfigMap
 ```
@@ -290,7 +290,7 @@ kind: Service
 $when: !and
   - !is-not-empty $Values.service?.enabled?
   - !expr "$Values.replicas? > 1 ?? false"
-$yield:
+$yield?:
   kind: Service
 # kind: Service
 ```

@@ -13,14 +13,14 @@ replicas: !match
 # replicas: 3
 ```
 
-- Mapping with `$if` + `$yield`, optional `$else-yield`.
+- Mapping with `$if` + exactly one of `$yield` / `$yield?:`. `$yield:` may have `$else-yield`. `$yield?:` + `$else-yield` is a pair error.
 - Not a sequence of branches. Else-if = `$else-yield: !match`.
 - `$if` is a bool predicate (same family as `$when`): tags or YAML `true` / `false`. Omit from `?.` without `??` is an error (not `false`); use `?? false` or [`!is-empty`](is-empty.md) / [`!is-not-empty`](is-not-empty.md).
-- Short-circuit: false `$if` does not evaluate `$yield`.
-- One sort: `$yield` and `$else-yield` (when present) must match.
-- **Omit the key:** `affinity?: !match` **without** `$else-yield` — false `$if` omits.
-- `affinity: !match` without `$else-yield` is an error if `$if` is false (no value).
-- On `!match`, `$if?:` / `$yield?:` / `$else-yield?:` are errors. Loop `$yield?:` is a different key (on `!foreach` / `!emit-foreach?`). `$then` / `$else` are errors, not synonyms.
+- Short-circuit: false `$if` does not evaluate `$yield` / `$yield?:`.
+- One sort: `$yield` / `$yield?:` and `$else-yield` (when present) must match.
+- **Omit the key:** `affinity?: !match` **without** `$else-yield` — false `$if` omits; or `$yield?:` omits when `$if` is true.
+- `affinity: !match` without `$else-yield` is an error if `$if` is false (no value). `имя: !match` + `$yield?:` is a pair error.
+- `$if?:` / `$else-yield?:` are errors. There is no `!match?`. `$then` / `$else` are errors, not synonyms.
 
 ## Examples
 
@@ -63,7 +63,15 @@ initContainers?: !skip-empty $Values.init?
 # no initContainers
 ```
 
-On a `?:` key this is the short form of `$if: !is-not-empty` + `$yield: !ref`. Do not write `initContainers?: !is-empty …` (bool). On `name?: !match`, `$yield: !skip-empty` is allowed; on `$yield` of `!emit?` it is not.
+On a `?:` key this is the short form of `$if: !is-not-empty` + `$yield: !ref`. Do not write `initContainers?: !is-empty …` (bool). On `name?: !match`, `$yield: !skip-empty` or `$yield?:` is allowed.
+
+```yaml
+# $Values = {}
+name?: !match
+  $if: true
+  $yield?: !ref $Values.name?
+# no name
+```
 
 ### Else-if (Ingress vs ClusterIP)
 
@@ -167,7 +175,7 @@ replicas: !match
 
 ## Omit
 
-`$if` omit without `??` is an error. Omit the **key** with `имя?: !match` and no `$else-yield`.
+`$if` omit without `??` is an error. Omit the **key** with `имя?: !match` and no `$else-yield`, or with `$yield?:` when the body omits.
 
 ```yaml
 # $Values = {replicas: 1}

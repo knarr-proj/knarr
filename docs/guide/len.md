@@ -86,7 +86,7 @@ $n: !len $Values.workers
 # $Values = {workers: [a]}
 !emit?
 $when: !len $Values.workers
-$yield:
+$yield?:
   kind: ConfigMap
 # error: !len is an int, not a bool
 ```
@@ -97,7 +97,7 @@ $yield:
 # $Values = {workers: [a]}
 !emit?
 $when: !is-not-empty $Values.workers?
-$yield:
+$yield?:
   kind: ConfigMap
   name: workers
 # kind: ConfigMap / name: workers
@@ -225,7 +225,7 @@ kind: ConfigMap
 # $Values = {workers: [a]}
 !emit?
 $when: !is-not-empty $Values.workers?
-$yield:
+$yield?:
   kind: ConfigMap
 # kind: ConfigMap
 ```

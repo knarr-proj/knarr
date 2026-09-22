@@ -13,13 +13,13 @@ kind: ConfigMap
 name: !ref $Values.name  # name: api
 ```
 
-**If, no else** — tag **`!emit?`**: only `$when` and `$yield`. False `$when` → no document. Omit `$when` is still an error. `$else-yield` on `!emit?` is a pair error.
+**If, no else** — tag **`!emit?`**: only `$when` and `$yield?:`. False `$when` or omit `$yield?:` → no document. `$yield:` on `!emit?` is a pair error. Omit `$when` is still an error. `$else-yield` on `!emit?` is a pair error.
 
 ```yaml
 # $Values = {service: {enabled: true}, name: api}
 !emit?
 $when: !ref $Values.service.enabled
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name  # name: api
 ```
@@ -38,7 +38,7 @@ $else-yield:
 ```
 
 - `$when` is a bool predicate (`!ref`, `!not`, `!expr`, `!is-empty`, `!is-not-empty`, `!and`, `!or`, or YAML `true` / `false`).
-- `$yield` is a mapping (the manifest).
+- `$yield` / `$yield?:` is a mapping (the manifest). On `!emit?`, omit `$yield?:` → no document.
 - On `!emit`, `$else-yield: ""` skips the document; `$else-yield:` may be another mapping.
 - `$Name: !emit` / `$Name: !emit?` is an error.
 
@@ -79,7 +79,7 @@ spec:
 # $Values = {service: {enabled: true}, name: api}
 !emit?
 $when: !ref $Values.service.enabled
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name  # name: api
 ```
@@ -129,7 +129,7 @@ kind: Service
 # $On = true
 !emit?
 $when: !ref $On
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name  # name: api
 ```
@@ -141,7 +141,7 @@ $yield:
 # $On = true
 !emit?
 when: !ref $On
-$yield:
+$yield?:
   kind: Service
 # error: key is $when, not when
 ```
@@ -152,7 +152,7 @@ $yield:
 # $On = true
 !emit?
 $when: !ref $On
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name  # name: api
 ```
@@ -176,7 +176,7 @@ $else-yield: null
 # $On = false
 !emit?
 $when: !ref $On
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name
 # stdout empty
@@ -187,15 +187,23 @@ $yield:
 
 ## Omit
 
-`!emit?` may print **no** document (`$when` false). Omit `$when` is still an error. `$else-yield: ""` on `!emit` skips. `key?:` inside `$yield` still needs a `?` path.
+`!emit?` may print **no** document (`$when` false or `$yield?:` omits). Omit `$when` is still an error. `$else-yield: ""` on `!emit` skips. `key?:` inside `$yield` / `$yield?:` still needs a `?` path.
 
 ```yaml
 # $Values = {service: {enabled: false}, name: api}
 !emit?
 $when: !is-not-empty $Values.service?.enabled?
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name
+# stdout empty
+```
+
+```yaml
+# $Values = {}
+!emit?
+$when: true
+$yield?: !ref $Values.doc?
 # stdout empty
 ```
 
@@ -262,7 +270,7 @@ name: {{ .Values.name }}
 # $Values = {service: {enabled: true}, name: api}
 !emit?
 $when: !is-not-empty $Values.service?.enabled?
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name  # name: api
 ```

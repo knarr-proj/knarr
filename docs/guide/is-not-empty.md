@@ -20,7 +20,7 @@ $when: !is-not-empty $Values.sidecars?
 # $Values = {sidecars: [x]}
 !emit?
 $when: !is-not-empty $Values.sidecars?
-$yield:
+$yield?:
   kind: ConfigMap
   name: sidecars
 # kind: ConfigMap
@@ -65,7 +65,7 @@ Missing or `[]` / `""` / `false` / `0` → no key. Non-empty → the value. For 
 # $Values = {nodeSelector: {disk: ssd}}
 !emit?
 $when: !is-not-empty $Values.nodeSelector?
-$yield:
+$yield?:
   nodeSelector: !ref $Values.nodeSelector
 # nodeSelector: {disk: ssd}
 ```
@@ -82,7 +82,7 @@ For a **field** omit of empty, `nodeSelector?: !skip-empty $Values.nodeSelector?
 # $Values = {workers: [a]}
 !emit?
 $when: !len $Values.workers
-$yield:
+$yield?:
   kind: ConfigMap
 # error: !len is an int, not a bool
 ```
@@ -93,7 +93,7 @@ $yield:
 # $Values = {workers: [a]}
 !emit?
 $when: !is-not-empty $Values.workers?
-$yield:
+$yield?:
   kind: ConfigMap
   name: workers
 # kind: ConfigMap
@@ -129,7 +129,7 @@ $fail: "set name"
 # $Values = {sidecars: [x]}
 !emit?
 $when: !not-empty $Values.sidecars?
-$yield:
+$yield?:
   kind: ConfigMap
 # error: !not-empty is not a tag
 ```
@@ -140,7 +140,7 @@ $yield:
 # $Values = {sidecars: [x]}
 !emit?
 $when: !is-not-empty $Values.sidecars?
-$yield:
+$yield?:
   kind: ConfigMap
   name: sidecars
 # kind: ConfigMap
@@ -177,7 +177,7 @@ kind: ConfigMap
 # $Values = {sidecars: [x]}
 !emit?
 $when: !is-not-empty $Values.sidecars?
-$yield:
+$yield?:
   kind: ConfigMap
 # kind: ConfigMap
 ```

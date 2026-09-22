@@ -379,7 +379,7 @@ kind: Service
 $when: !and
   - !is-not-empty $Values.service?.enabled?
   - !expr "$Values.replicas? > 1 ?? false"
-$yield:
+$yield?:
   kind: Service
 # kind: Service
 ```
@@ -443,7 +443,7 @@ kind: Ingress
 $when: !or
   - !is-not-empty $Values.ingress?.enabled?
   - !is-not-empty $Values.mesh?.enabled?
-$yield:
+$yield?:
   kind: Ingress
 # kind: Ingress
 ```

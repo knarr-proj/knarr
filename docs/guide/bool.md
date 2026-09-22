@@ -25,7 +25,7 @@ $HA: !bool $Values.ha
 ---
 !emit?
 $when: !ref $HA
-$yield:
+$yield?:
   kind: PodDisruptionBudget
   name: !ref $Values.name
 # kind: PodDisruptionBudget / name: api
@@ -158,7 +158,7 @@ kind: PodDisruptionBudget
 # $Values = {ha: "true"}
 !emit?
 $when: !expr "$Values.ha == 'true'"
-$yield:
+$yield?:
   kind: PodDisruptionBudget
 # kind: PodDisruptionBudget
 ```
@@ -221,7 +221,7 @@ kind: Ingress
 # $Values = {ingress: {tls: true}}
 !emit?
 $when: !is-not-empty $Values.ingress?.tls?
-$yield:
+$yield?:
   kind: Ingress
 # kind: Ingress
 ```

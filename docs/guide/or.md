@@ -58,7 +58,7 @@ $when: !expr "$Values.ingress?.enabled || $Values.mesh?.enabled ?? false"
 # $Values = {ingress: {enabled: true}, mesh: {enabled: false}}
 !emit?
 $when: !expr "or($Values.ingress.enabled, $Values.mesh.enabled)"
-$yield:
+$yield?:
   kind: Ingress
 # error: no or() in !expr
 ```
@@ -69,7 +69,7 @@ $yield:
 # $Values = {ingress: {enabled: true}, mesh: {enabled: false}, name: api}
 !emit?
 $when: !expr "$Values.ingress.enabled || $Values.mesh.enabled"
-$yield:
+$yield?:
   kind: Ingress
   name: !ref $Values.name
 # kind: Ingress
@@ -84,7 +84,7 @@ $yield:
 $when: !not !or
   - !ref $Values.ingress.enabled
   - !ref $Values.mesh.enabled
-$yield:
+$yield?:
   kind: Ingress
 # error: !not does not wrap !or
 ```
@@ -95,7 +95,7 @@ $yield:
 # $Values = {ingress: {enabled: false}, mesh: {enabled: false}, name: api}
 !emit?
 $when: !expr "!($Values.ingress.enabled || $Values.mesh.enabled)"
-$yield:
+$yield?:
   kind: Ingress
   name: !ref $Values.name
 # kind: Ingress
@@ -135,7 +135,7 @@ kind: Ingress
 $when: !or
   - !is-not-empty $Values.ingress?.enabled?
   - !is-not-empty $Values.mesh?.enabled?
-$yield:
+$yield?:
   kind: Ingress
 # kind: Ingress
 ```

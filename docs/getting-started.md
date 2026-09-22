@@ -10,7 +10,7 @@ A knarr file is **YAML 1.2** with several documents (`---`). Each document has a
 |-----|------|
 | `!bind` | Name values (`$Values`, `$AppName`, …). Not printed. |
 | `!emit` | One YAML document on stdout (any schema). |
-| `!emit?` | Same, or nothing if `$when` is false. |
+| `!emit?` | Same, or nothing if `$when` is false or `$yield?:` omits. |
 
 Look up a value with **`!ref $Name`**. There is no `{{ }}`.
 
@@ -133,7 +133,7 @@ Service on/off is a document [`$when`](guide/when.md), not an `if` inside YAML t
 ---
 !emit?
 $when: !ref $ShowSvc
-$yield:
+$yield?:
   apiVersion: v1
   kind: Service
   metadata:
@@ -141,7 +141,7 @@ $yield:
 # kind: Service / name: demo
 ```
 
-**`!emit?`** means **emit nothing** when `$when` is false. On `!emit`, `$else-yield: ""` does the same.
+**`!emit?`** means **emit nothing** when `$when` is false or `$yield?:` omits. On `!emit`, `$else-yield: ""` does the same.
 
 ## 6. Names you will reuse
 
@@ -210,7 +210,7 @@ when: !ref $ShowSvc
 # $ShowSvc = true
 !emit?
 $when: !ref $ShowSvc
-$yield: { ... }
+$yield?: { ... }
 # $yield mapping
 ```
 

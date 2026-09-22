@@ -45,7 +45,7 @@ Document-level `if`:
 # $Values = {service: {enabled: true}, name: api}
 !emit?
 $when: !ref $Values.service.enabled
-$yield:
+$yield?:
   apiVersion: v1
   kind: Service
   name: !ref $Values.name  # name: api

@@ -73,7 +73,7 @@ $when: !and
 # $Values = {a: 1}
 !emit?
 $when: !and []
-$yield:
+$yield?:
   kind: Service
 # error: empty !and
 ```
@@ -86,7 +86,7 @@ $yield:
 $when: !and
   - !ref $Values.service.enabled
   - !expr "$Values.replicas > 1"
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name
 # kind: Service
@@ -100,7 +100,7 @@ $yield:
 !emit?
 $when: !and
   - !ref $Values.enabled?
-$yield:
+$yield?:
   kind: Service
 # error: omit child is not a bool
 ```
@@ -111,7 +111,7 @@ $yield:
 # $Values = {enabled: true, name: api}
 !emit?
 $when: !ref $Values.enabled? ?? false
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name
 # kind: Service
@@ -124,7 +124,7 @@ $yield:
 # $Values = {service: {enabled: true}, tls: true}
 !emit?
 $when: !expr "and($Values.service.enabled, $Values.tls)"
-$yield:
+$yield?:
   kind: Service
 # error: no and() in !expr
 ```
@@ -135,7 +135,7 @@ $yield:
 # $Values = {service: {enabled: true}, tls: true, name: api}
 !emit?
 $when: !expr "$Values.service.enabled && $Values.tls"
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name
 # kind: Service
@@ -175,7 +175,7 @@ kind: Service
 $when: !and
   - !is-not-empty $Values.service?.enabled?
   - !expr "$Values.replicas? > 1 ?? false"
-$yield:
+$yield?:
   kind: Service
 # kind: Service
 ```
@@ -276,7 +276,7 @@ kind: Service
 $when: !and
   - !is-not-empty $Values.service?.enabled?
   - !is-not-empty $Values.tls?
-$yield:
+$yield?:
   kind: Service
 # kind: Service
 ```

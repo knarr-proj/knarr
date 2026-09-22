@@ -28,7 +28,7 @@ Purpose is **one sentence**. The construct page is the source of truth; this tab
 |-----------|---------|-------|
 | `!bind` | Name values; never appears in stdout | [bind](guide/bind.md) |
 | `!emit` | One output document | [emit](guide/emit.md) |
-| `!emit?` | One output document or none (`$when` + `$yield`) | [emit](guide/emit.md) |
+| `!emit?` | One output document or none (`$when` + `$yield?:`) | [emit](guide/emit.md) |
 | `!emit-foreach` | One output document per item (`$yield:`) | [emit-foreach](guide/emit-foreach.md) |
 | `!emit-foreach?` | Same, skip an item when `$yield?:` omits | [emit-foreach](guide/emit-foreach.md) |
 | `!emit-range` | One output document per int in a range (`$yield:`) | [emit-range](guide/emit-range.md) |

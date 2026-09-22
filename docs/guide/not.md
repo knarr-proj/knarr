@@ -20,7 +20,7 @@ One tag, one scalar path. Does **not** wrap `!is-empty` / `!and` / `!or` (those 
 # $Values = {service: {enabled: false}}
 !emit?
 $when: !not $Values.service.enabled
-$yield:
+$yield?:
   kind: ConfigMap
   name: no-svc
 # kind: ConfigMap
@@ -60,7 +60,7 @@ $filter: !not $Worker.disabled
 # $On = true
 !emit?
 $when: !not !ref $On
-$yield:
+$yield?:
   kind: Service
 # error: !not does not wrap !ref
 ```
@@ -71,7 +71,7 @@ $yield:
 # $Values = {service: {enabled: false}, name: api}
 !emit?
 $when: !not $Values.service.enabled
-$yield:
+$yield?:
   kind: Service
   name: !ref $Values.name
 # kind: Service
@@ -84,7 +84,7 @@ $yield:
 # $Values = {tls: {host: a}}
 !emit?
 $when: !not !is-empty $Values.tls?
-$yield:
+$yield?:
   kind: ConfigMap
 # error: !not does not wrap !is-empty
 ```
@@ -95,7 +95,7 @@ $yield:
 # $Values = {tls: {host: a}}
 !emit?
 $when: !is-not-empty $Values.tls?
-$yield:
+$yield?:
   kind: ConfigMap
   name: tls
 # kind: ConfigMap
@@ -108,7 +108,7 @@ $yield:
 # $Values = {}
 !emit?
 $when: !not $Values.debug? ?? false
-$yield:
+$yield?:
   kind: Deployment
 # error: no ?? on !not
 ```
@@ -122,7 +122,7 @@ $Debug: !ref $Values.debug? ?? false
 ---
 !emit?
 $when: !not $Debug
-$yield:
+$yield?:
   kind: Deployment
   name: !ref $Values.name
 # kind: Deployment
@@ -174,7 +174,7 @@ kind: Service
 # $Values = {service: {enabled: false}}
 !emit?
 $when: !is-empty $Values.service?.enabled?
-$yield:
+$yield?:
   kind: Service
 # kind: Service
 ```
@@ -205,7 +205,7 @@ kind: Deployment
 # $Values = {}
 !emit?
 $when: !is-empty $Values.debug?
-$yield:
+$yield?:
   kind: Deployment
 # kind: Deployment
 ```

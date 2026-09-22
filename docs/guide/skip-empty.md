@@ -9,7 +9,7 @@ Allowed as the whole value of:
 
 Not a bool. Not a predicate. [`!is-empty`](is-empty.md) asks; `!skip-empty` omits the value.
 
-Error anywhere else: `имя:`, `$when`, `$yield` of `!emit` / `!emit?`, `$over`, a sequence item, a [`!pick`](pick.md) child.
+Error anywhere else: `имя:`, `$when`, `$yield` of `!emit`, `$over`, a sequence item, a [`!pick`](pick.md) child. `$yield?:` of [`!emit?`](emit.md) is an omit slot.
 
 No `!skip-not-empty`. `!omit-empty` is not a tag.
 
@@ -56,7 +56,7 @@ name?: !match
 # name: img
 ```
 
-Go `and x y`: if `x` is not empty, then `y` (omit `y` when empty). `$yield` of `!emit?` cannot use this tag (body is a mapping).
+Go `and x y`: if `x` is not empty, then `y` (omit `y` when empty). `$yield` of `!emit` cannot use this tag (body is a mapping). `$yield?: !skip-empty` on `!emit?` is allowed (omit → no document).
 
 ### Skip a foreach item
 
@@ -97,7 +97,7 @@ tls?: !skip-empty $Values.tls?
 # $Values = {tls: {host: a}}
 !emit?
 $when: !skip-empty $Values.tls?
-$yield:
+$yield?:
   kind: Secret
 # error: $when is bool, not skip-empty
 ```
@@ -108,7 +108,7 @@ $yield:
 # $Values = {tls: {host: a}}
 !emit?
 $when: !is-not-empty $Values.tls?
-$yield:
+$yield?:
   kind: Secret
 # kind: Secret
 ```
