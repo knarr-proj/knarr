@@ -421,12 +421,18 @@ host: {{ .Values.tls.host | default "localhost" }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+host: !match
+  $if: !empty $Values.tls?.host?
+  $then: localhost
+  $else: !ref $Values.tls.host
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `| default` replaces `""`. Knarr `??` fills omit only.
+Same result. Helm `| default` ≡ `!empty` then fallback. `??` still fills omit only.
 
 </td></tr>
 </table>
@@ -464,12 +470,21 @@ name: {{ coalesce .Values.fullnameOverride .Values.name "app" }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+name: !match
+  $if: !not-empty $Values.fullnameOverride?
+  $then: !ref $Values.fullnameOverride
+  $else: !match
+    $if: !not-empty $Values.name?
+    $then: !ref $Values.name
+    $else: app
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-`coalesce` skips `""` / `false` / `0`. `!pick` skips omit only.
+Same result. Helm `coalesce` ≡ nested `!match` + `!not-empty` (empty set, not omit). `!pick` skips omit only.
 
 </td></tr>
 </table>
@@ -491,7 +506,7 @@ Impossible in v1.
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` is truthiness: `false` / `""` / `0` / `[]` skip. Missing / `tls: null` / `{}` omit on both (`?:` and optional `{}` collapse). Still Impossible when `tls` is a non-empty-looking scalar that Helm treats as empty.
+Helm `if` is truthiness: `false` / `""` / `0` / `[]` skip. Missing / `tls: null` / `{}` omit on both (`?:` and optional `{}` collapse). Do not pair this snippet with `tls?:` or `!match` + `!not-empty`: that would be a different program. Impossible when `tls` is a present empty-looking scalar.
 
 </td></tr>
 </table>

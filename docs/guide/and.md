@@ -149,12 +149,19 @@ kind: Service
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !and
+  - !not-empty $Values.service?.enabled?
+  - !expr "$Values.replicas? > 1 ?? false"
+$then:
+  kind: Service
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `and` of missing is false. Knarr missing path is an error. `!and` evaluates every child.
+Same result when `replicas` is int/float. Helm `if` ≡ `!not-empty`. Helm `gt` ≡ `>`. `!and` evaluates every child. Helm `gt` may coerce a numeric string; knarr `>` of a string is a type error.
 
 </td></tr>
 </table>
@@ -174,12 +181,22 @@ env:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+env?: !foreach
+  $over: !ref $Values.workers?
+  $as: $Worker
+  $filter: !and
+    - !not-empty $Worker.ports?
+    - !not-empty $Worker.enabled?
+  $yield?:
+    name: !ref $Worker.name
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `and` is truthiness. Knarr `!and` is boolean only. Empty range: Helm `env: null` ≡ no `env`; knarr `env: []` if the key is not `?:`.
+Same result. Helm `if` ≡ `!not-empty`. Item is a mapping (`- name:`), not a string. Empty / all filtered: Helm `env: null` ≡ no `env`. `!and` stays boolean (children are `!not-empty`, not the raw list).
 
 </td></tr>
 </table>

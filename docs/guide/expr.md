@@ -324,12 +324,19 @@ kind: Service
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !and
+  - !not-empty $Values.service?.enabled?
+  - !expr "$Values.replicas? > 1 ?? false"
+$then:
+  kind: Service
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `and` / `gt` of missing is false/empty. Knarr `&&` of omit is an error. No `len()` / `printf()` in `!expr`.
+Same result when `replicas` is int/float. Helm `gt` ≡ `>`. Missing `replicas` → omit of `>` → `?? false`. Helm `gt` may coerce a numeric string; knarr `>` of a string is a type error. No `len()` / `printf()` in `!expr`.
 
 </td></tr>
 </table>

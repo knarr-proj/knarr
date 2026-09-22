@@ -182,12 +182,21 @@ name: {{ coalesce .Values.fullnameOverride .Values.name "app" }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+name: !match
+  $if: !not-empty $Values.fullnameOverride?
+  $then: !ref $Values.fullnameOverride
+  $else: !match
+    $if: !not-empty $Values.name?
+    $then: !ref $Values.name
+    $else: app
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-`coalesce` skips `""` / `false` / `0`. `!pick` skips omit only.
+Same result. Helm `coalesce` ≡ nested `!match` + `!not-empty`. `!pick` skips omit only.
 
 </td></tr>
 </table>
@@ -202,12 +211,21 @@ image: {{ .Values.image.full | default .Values.image.repository | default "ghcr.
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+image: !match
+  $if: !empty $Values.image?.full?
+  $then: !match
+    $if: !empty $Values.image?.repository?
+    $then: ghcr.io/acme/app:latest
+    $else: !ref $Values.image.repository
+  $else: !ref $Values.image.full
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `| default` skips `""`. `!pick` keeps `""`.
+Same result. Chained `| default` ≡ nested `!match` + `!empty`. `!pick` is omit only.
 
 </td></tr>
 </table>
@@ -222,12 +240,18 @@ containerPort: {{ .Values.port | default 8080 }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+containerPort: !match
+  $if: !empty $Values.port?
+  $then: 8080
+  $else: !ref $Values.port
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-`0` is empty for Helm `default`. `!pick` keeps `0`.
+Same result. Helm `| default` treats `0` as empty; so does `!empty`. `??` / `!pick` keep `0`.
 
 </td></tr>
 </table>

@@ -9,3 +9,8 @@
 - Недостаток принятого решения — **развёрнутый вопрос** в этот же список.
 
 ---
+
+- {{- if .Values.tls }}tls: ...{{- end }} не решается для `tls: false` / `""` / `[]` knarr печатает, helm - нет.
+
+- Helm Comparison `if and .Values.service.enabled .Values.tls` → `kind: Service`: пара с `!emit?` + `$when: !and` из `!not-empty $Values.service?.enabled?` и `!not-empty $Values.tls?`, или Impossible (ворота документа vs поле `tls:` как в omit.md). Отложено.
+

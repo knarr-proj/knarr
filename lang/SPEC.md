@@ -1,7 +1,7 @@
 # Knarr — норматив языка (v1)
 
 Авторское описание: корневой [README.md](../README.md) и [docs/](../docs/README.md).  
-Q&A 1–133: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOALS.md). Язык: [SPEC_TODO.md](SPEC_TODO.md) / [SPEC_TODO_v2.md](SPEC_TODO_v2.md). CLI: [CLI_TODO.md](CLI_TODO.md) / [CLI_TODO_v2.md](CLI_TODO_v2.md).
+Q&A 1–138: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOALS.md). Язык: [SPEC_TODO.md](SPEC_TODO.md) / [SPEC_TODO_v2.md](SPEC_TODO_v2.md). CLI: [CLI_TODO.md](CLI_TODO.md) / [CLI_TODO_v2.md](CLI_TODO_v2.md).
 
 Инвентарь языка v1 **закрыт**. Носитель YAML 1.2; нет Go `{{ }}`; нет CLI `-f` / `--set`. Knarr делает только то, что явно записано: нет скрытого omit, нет неявного default, нет **значения** `null` (`a: null` ≡ нет ключа, решение **130**).
 
@@ -961,7 +961,7 @@ $when: !not
 
 **`!empty` / `!not-empty`:** tagged **scalar**, тот же `RefScalar`, что у `!ref`. Один узел — один тег. Не `!nempty`. Не `!empty { $of: … }`.
 
-Helm `empty` (заморожено, **128**): **true** для omit (`?` на поле / `$Name?` без значения), `""`, `[]`, `{}`, `false`, int **`0`**, float **`0.0` / `-0.0`**. Иначе **false** (непустая строка / seq / map, `true`, ненулевой int / float). Missing **без** `?` на шаге — ошибка пути (8). **`!not-empty`** ≡ отрицание `!empty` того же пути.
+Helm `empty` (заморожено, **128**): **true** для omit (`?` на поле / `$Name?` без значения), `""`, `[]`, `{}`, `false`, int **`0`**, float **`0.0` / `-0.0`**. Иначе **false** (непустая строка / seq / map, `true`, ненулевой int / float). Missing **без** `?` на шаге — ошибка пути (8). **`!not-empty`** ≡ отрицание `!empty` того же пути. Helm **`| default`** в guide (**134**) = **`!match`** + **`!empty`**, не `??`.
 
 ```yaml
 ---
@@ -974,6 +974,10 @@ $else: ""
 
 **`!and` / `!or`:** tagged **sequence**. Дети — предикаты bool: `!ref` / `!not` / `!empty` / `!not-empty` / `!and` / `!or` / `!expr` (результат bool) / литерал bool. ≥1 элемент. Пустой `[]` — ошибка. Mapping-носитель — ошибка. Вложение `!and`/`!or` можно. Считают **всех** детей (нет short-circuit). Omit ребёнка — ошибка. Не bool — ошибка.
 
+**Comparison Helm `and` + `gt` (136):** `if and .Values.service.enabled (gt .Values.replicas 1)` — пара `!emit?` + `$when: !and` (`!not-empty` на `service?.enabled?`; `!expr "$Values.replicas? > 1 ?? false"`). Не Impossible.
+
+**Comparison Helm `range` + `if and .ports .enabled` (138):** `env:` + фильтр элемента = `env?: !foreach` + `$filter: !and` двух `!not-empty` + `$yield?:` mapping `name`. Не Impossible. Не `!and` сырого seq/bool.
+
 ```yaml
 $when: !or
   - !empty $Values.tls?
@@ -981,7 +985,7 @@ $when: !or
 
 $filter: !and
   - !not-empty $S.ports?
-  - !ref $S.enabled
+  - !not-empty $S.enabled?
 ```
 
 **`!not` не оборачивает** `!empty` / `!and` / `!or` (по-прежнему только scalar-путь). Invert `!or` — De Morgan: `!and` + `!not-empty`, либо `||` / `&&` в `!expr` для уже-bool.
@@ -1165,8 +1169,8 @@ spec:
 ```yaml
 ---
 !emit-foreach
-  $when: !ref $Values.deployWorkers ?? false
-  $over: !ref $Values.workers
+  $when: !not-empty $Values.deployWorkers?
+  $over: !ref $Values.workers?
   $as: $Worker
   $filter: !ref $Worker.enabled? ?? false
   $yield:
@@ -1175,6 +1179,8 @@ spec:
     metadata:
       name: !ref $Worker.name
 ```
+
+**Comparison Helm `if` + `range` документов (137):** в guide сниппет с **`---`** на каждый ресурс = этот тег; без `---` — не пара.
 
 - **`$when` (40):** как предикат `!emit`, но **без** `$then`/`$else`. Нет `$when` — цикл как без ворот. Ложь → **ноль документов**; `$over` / `$filter` / `$yield` **не считают**. `$as` / `$key` в `$when` нет. Не bool / omit без `??` — ошибка. **`$when?:`** — ошибка. `has()` нет.
 - **Omit `$over` (97):** `$over: !ref $Values.workers?` — нет workers → **ноль документов**, `$filter` / `$yield` не считают. **`$over?:` нет.** `$over: !ref "$Values.workers? ?? []"` — нет workers → пустой `$over` → тоже ноль документов.

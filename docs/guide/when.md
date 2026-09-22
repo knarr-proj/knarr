@@ -229,12 +229,19 @@ kind: Service
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !and
+  - !not-empty $Values.service?.enabled?
+  - !expr "$Values.replicas? > 1 ?? false"
+$then:
+  kind: Service
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `and` / `gt` of missing is false. Knarr omit / missing path is an error.
+Same result when `replicas` is int/float. Helm `if` ≡ `!not-empty`. Helm `gt` ≡ `>`. Missing `service` / `enabled` / `replicas` → no document. Helm `gt` may coerce a numeric string; knarr `>` of a string is a type error.
 
 </td></tr>
 </table>
@@ -245,6 +252,7 @@ Helm `and` / `gt` of missing is false. Knarr omit / missing path is an error.
 ```gotemplate
 {{- if .Values.deployWorkers }}
 {{- range .Values.workers }}
+---
 kind: Pod
 name: {{ .name }}
 {{- end }}
@@ -254,12 +262,20 @@ name: {{ .name }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit-foreach
+$when: !not-empty $Values.deployWorkers?
+$over: !ref $Values.workers?
+$as: $Worker
+$yield:
+  kind: Pod
+  name: !ref $Worker.name
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` is truthiness (non-bool present values). Knarr `$when` needs a bool. Helm `range` here is not `---`-separated documents.
+Same YAML documents. Helm `if` ≡ `!not-empty`. Comparison Helm must include `---` (without it the stream is not multi-doc). See [`!emit-foreach`](emit-foreach.md).
 
 </td></tr>
 </table>

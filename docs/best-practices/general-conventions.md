@@ -88,7 +88,7 @@ Construct pages compare Helm only when the **result matches**, or they state **i
 
 Helm `required` that fails **aborts**: no stdout, stderr only. In a pair that is [`!validation`](../guide/validation.md) (`$fail` + `!not-empty` on the same path). A successful `required` still prints in Helm; knarr prints with `!emit` / `!ref`, not with `!validation` alone. Every Helm `required` in a Comparison row has a knarr `!validation`.
 
-Helm **`a: null`** (including `toYaml` of nil) is **the same as no `a`**. Knarr omits the key (`?:` + path `?`). It does not print `null`.
+Helm **`| default`** (empty → fallback) is [`!match`](../guide/match.md) with [`!empty`](../guide/empty.md), not `??` / [`!pick`](../guide/pick.md) (those fill omit only).
 
 ## Habits to drop
 
