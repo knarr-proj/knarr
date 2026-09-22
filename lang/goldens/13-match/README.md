@@ -1,6 +1,6 @@
 # 13-match
 
-Проверяет: решения **33/37** — `!match` mapping `$if`/`$then`/`$else`.
+Проверяет: решения **33/37** — `!match` mapping `$if`/`$yield`/`$else-yield`.
 
-- `replicas: !match` с `$else` (всегда ключ)
-- `topologySpreadConstraints?: !match` без `$else` (omit, если предикат ложен)
+- `replicas: !match` с `$else-yield` (всегда ключ)
+- `topologySpreadConstraints?: !match` без `$else-yield` (omit, если предикат ложен)

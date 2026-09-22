@@ -17,7 +17,7 @@ $Args: !concat
 - `$Name: !concat` / `args: !concat` ↔ every child is a value (`?? []` or a required path): empty / all `[]` → `[]`.
 - Pair error: `?:` without an omit path (or every child has `?? []`), or a required key + an omit child.
 - An empty list **value** (`[]`) still concatenates, even on `?:`. Omit only if a child itself omits.
-- Nested `!concat` is an error; list siblings instead. Not a document. Not the whole `$then` of `!emit`. Not `$yield` of `!emit-foreach` (not a mapping).
+- Nested `!concat` is an error; list siblings instead. Not a document. Not the whole `$yield` of `!emit`. Not `$yield` of `!emit-foreach` (not a mapping).
 - `+` does not concatenate lists.
 
 ## Examples

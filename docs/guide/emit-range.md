@@ -25,7 +25,7 @@ $yield:
 | `$yield` | On **`!emit-range`**: mapping = one manifest. Omit is an error. |
 | `$yield?:` | On **`!emit-range?` only**: mapping; omit → **no document** for that index. |
 | `$filter` | Bool; false → no document for that index. |
-| `$when` | Bool gate for the **whole** pack. Optional on both tags. False → zero documents; bounds are not evaluated. **No** `$then` / `$else`. |
+| `$when` | Bool gate for the **whole** pack. Optional on both tags. False → zero documents; bounds are not evaluated. **No** `$else-yield` (not if/else). `$yield` is the loop body. |
 
 No `$over` / `$key` / `$index`. `$yield` / `$yield?:` must be a **mapping**. Pair: `!emit-range` ↔ `$yield:`; `!emit-range?` ↔ `$yield?:`. `$Name: !emit-range` / `$Name: !emit-range?` is an error.
 

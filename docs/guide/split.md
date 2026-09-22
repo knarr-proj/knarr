@@ -17,7 +17,7 @@ $Parts: !split
 - `$Name: !split` / `parts: !split` ↔ `$of` always a value (`?? ''` or a required path): empty → `[]`.
 - Pair error: `?:` + `?? ''` on `$of`, or a required key + omit-capable `$of` without `??`.
 - Empty string value stays `[]` even on `?:`. Omit only if `$of` itself omits.
-- `$of?:` is an error. Not a document. Not the whole `$then` of `!emit`. Not `$yield` of `!emit-foreach` (not a mapping).
+- `$of?:` is an error. Not a document. Not the whole `$yield` of `!emit`. Not `$yield` of `!emit-foreach` (not a mapping).
 
 ## Examples
 

@@ -1,6 +1,6 @@
 # `$when`
 
-Document-level condition. **`!emit?`**: `$when` + `$then`, no `$else` (false → no document). **`!emit`**: `$when` + `$then` + `$else` (`$else: ""` skips; or another mapping). Omit `$when` is an error on both. On **`!foreach`** / **`!emit-foreach`** / **`!emit-foreach?`** / **`!emit-range`** / **`!emit-range?`** / **`!range`**, `$when` is an optional pack gate with **no** `$then` / `$else`. False → empty loop (`[]` / omit key / zero documents); `$over` / bounds are not evaluated. **`!emit-foreach?`** is not “`$when` required”: it pairs with **`$yield?:`**.
+Document-level condition. **`!emit?`**: `$when` + `$yield`, no `$else-yield` (false → no document). **`!emit`**: `$when` + `$yield` + `$else-yield` (`$else-yield: ""` skips; or another mapping). Omit `$when` is an error on both. On **`!foreach`** / **`!emit-foreach`** / **`!emit-foreach?`** / **`!emit-range`** / **`!emit-range?`** / **`!range`**, `$when` is an optional pack gate with **no** `$else-yield` (`$yield` is the loop body). False → empty loop (`[]` / omit key / zero documents); `$over` / bounds are not evaluated. **`!emit-foreach?`** is not “`$when` required”: it pairs with **`$yield?:`**.
 
 ## Syntax (`!emit?`)
 
@@ -8,14 +8,14 @@ Document-level condition. **`!emit?`**: `$when` + `$then`, no `$else` (false →
 # $Values = {name: api}
 !emit?
 $when: <bool>
-$then:
+$yield:
   kind: Service
   name: !ref $Values.name  # name: api
 ```
 
 Predicate: `!ref`, `!not`, `!expr`, `!is-empty`, `!is-not-empty`, `!and`, `!or`, or YAML `true` / `false`. Not `!len` (that is int). Not `!expr "true"` — that is no computation.
 
-`$else` on `!emit?` is a pair error. On `!emit`, `$else: ""` → emit nothing; `$else:` may be another mapping.
+`$else-yield` on `!emit?` is a pair error. On `!emit`, `$else-yield: ""` → emit nothing; `$else-yield:` may be another mapping.
 
 No other keys next to `$when`. `when:` without `$` is an error.
 
@@ -66,7 +66,7 @@ $when: !ref $Values.service.enabled
 # $Values = {sidecars: [a]}
 !emit?
 $when: !is-not-empty $Values.sidecars?
-$then:
+$yield:
   kind: ConfigMap
   name: sidecars
 # kind: ConfigMap / name: sidecars
@@ -93,8 +93,8 @@ $when: !and
 !emit
 replicas:
   $when: !ref $Values.ha
-  $then: 3
-  $else: 1
+  $yield: 3
+  $else-yield: 1
 # error: $when is not allowed on a field
 ```
 
@@ -105,8 +105,8 @@ replicas:
 !emit
 replicas: !match
   $if: !ref $Values.ha
-  $then: 3
-  $else: 1
+  $yield: 3
+  $else-yield: 1
 # replicas: 3
 ```
 
@@ -117,7 +117,7 @@ replicas: !match
 # $Values = {workers: [a]}
 !emit?
 $when: !len $Values.workers
-$then:
+$yield:
   kind: ConfigMap
 # error: !len is an int, not a bool
 ```
@@ -128,7 +128,7 @@ $then:
 # $Values = {workers: [a]}
 !emit?
 $when: !is-not-empty $Values.workers?
-$then:
+$yield:
   kind: ConfigMap
   name: workers
 # kind: ConfigMap / name: workers
@@ -141,7 +141,7 @@ $then:
 # $Values = {}
 !emit?
 $when: !ref $Values.enabled?
-$then:
+$yield:
   kind: Service
 # error: omit is not a bool
 ```
@@ -152,7 +152,7 @@ $then:
 # $Values = {name: api}
 !emit?
 $when: !ref $Values.enabled? ?? false
-$then:
+$yield:
   kind: Service
   name: !ref $Values.name
 # stdout empty
@@ -165,7 +165,7 @@ $then:
 # $Values = {a: 1}
 !emit?
 $when: !expr "true"
-$then:
+$yield:
   kind: Service
 # error: no computation: use YAML
 ```
@@ -176,7 +176,7 @@ $then:
 # $Values = {name: api}
 !emit?
 $when: true
-$then:
+$yield:
   kind: Service
   name: !ref $Values.name  # name: api
 ```
@@ -192,7 +192,7 @@ Omit `$when` is an **error** (not `false`). Use `?? false` or [`!is-empty`](is-e
 # $Values = {}
 !emit?
 $when: !is-not-empty $Values.service?.enabled?
-$then:
+$yield:
   kind: Service
 # stdout empty
 ```
@@ -206,7 +206,7 @@ $then:
 
 ## Comparison with Helm
 
-`$when` gates `!emit?` (no `$else`) or `!emit` (needs `$else`). Field-level if is `!match`.
+`$when` gates `!emit?` (no `$else-yield`) or `!emit` (needs `$else-yield`). Field-level if is `!match`.
 
 <table>
 <tr><th>Helm</th><td>
@@ -226,7 +226,7 @@ kind: Service
 # $Values = {service: {enabled: true}}
 !emit?
 $when: !is-not-empty $Values.service?.enabled?
-$then:
+$yield:
   kind: Service
 # kind: Service
 ```
@@ -257,7 +257,7 @@ kind: ConfigMap
 # $Values = {sidecars: [a]}
 !emit?
 $when: !is-not-empty $Values.sidecars?
-$then:
+$yield:
   kind: ConfigMap
 # kind: ConfigMap
 ```
@@ -290,7 +290,7 @@ kind: Service
 $when: !and
   - !is-not-empty $Values.service?.enabled?
   - !expr "$Values.replicas? > 1 ?? false"
-$then:
+$yield:
   kind: Service
 # kind: Service
 ```

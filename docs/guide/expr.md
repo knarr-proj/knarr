@@ -288,8 +288,8 @@ $x: !expr "$On ? 1 : 0"
 !emit
 replicas: !match
   $if: !ref $On
-  $then: 1
-  $else: 0
+  $yield: 1
+  $else-yield: 0
 # replicas: 1
 ```
 
@@ -379,7 +379,7 @@ kind: Service
 $when: !and
   - !is-not-empty $Values.service?.enabled?
   - !expr "$Values.replicas? > 1 ?? false"
-$then:
+$yield:
   kind: Service
 # kind: Service
 ```
@@ -443,7 +443,7 @@ kind: Ingress
 $when: !or
   - !is-not-empty $Values.ingress?.enabled?
   - !is-not-empty $Values.mesh?.enabled?
-$then:
+$yield:
   kind: Ingress
 # kind: Ingress
 ```

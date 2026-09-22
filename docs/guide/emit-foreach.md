@@ -28,7 +28,7 @@ $yield:
 | `$yield?:` | On **`!emit-foreach?` only**: mapping; omit → **no document** for that item. |
 | `$filter` | Bool; false → no document for that item. Tags or YAML `true` / `false`. |
 | `$key` | Extra binding for the map key (maps only). |
-| `$when` | Bool gate for the **whole** loop. Optional on both tags. False → zero documents; `$over` is not evaluated. **No** `$then` / `$else`. Tags or YAML `true` / `false`. |
+| `$when` | Bool gate for the **whole** loop. Optional on both tags. False → zero documents; `$over` is not evaluated. **No** `$else-yield` (not if/else). `$yield` is the loop body. Tags or YAML `true` / `false`. |
 
 There is no `$index`. `$yield` / `$yield?:` must be a **mapping**. Pair: `!emit-foreach` ↔ `$yield:`; `!emit-foreach?` ↔ `$yield?:`. Mixed pair is an error. `$yield?` without `:` is an error. `$Name: !emit-foreach` / `$Name: !emit-foreach?` is an error.
 

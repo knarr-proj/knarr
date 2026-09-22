@@ -28,7 +28,7 @@ Purpose is **one sentence**. The construct page is the source of truth; this tab
 |-----------|---------|-------|
 | `!bind` | Name values; never appears in stdout | [bind](guide/bind.md) |
 | `!emit` | One output document | [emit](guide/emit.md) |
-| `!emit?` | One output document or none (`$when` + `$then`) | [emit](guide/emit.md) |
+| `!emit?` | One output document or none (`$when` + `$yield`) | [emit](guide/emit.md) |
 | `!emit-foreach` | One output document per item (`$yield:`) | [emit-foreach](guide/emit-foreach.md) |
 | `!emit-foreach?` | Same, skip an item when `$yield?:` omits | [emit-foreach](guide/emit-foreach.md) |
 | `!emit-range` | One output document per int in a range (`$yield:`) | [emit-range](guide/emit-range.md) |
@@ -87,7 +87,7 @@ A value: bind or a field (`имя?:` uses the same omit pair as in bind).
 |-----------|---------|-------|
 | `!is-empty` | True if omit / empty / false / 0 | [is-empty](guide/is-empty.md) |
 | `!is-not-empty` | Inverse of `!is-empty` | [is-not-empty](guide/is-not-empty.md) |
-| `!skip-empty` | Empty → omit value; `?:` keys and `$then`/`$else` of omit `!match` | [skip-empty](guide/skip-empty.md) |
+| `!skip-empty` | Empty → omit value; `?:` keys and `$yield`/`$else-yield` of omit `!match` | [skip-empty](guide/skip-empty.md) |
 | `!and` | All predicates true | [and](guide/and.md) |
 | `!or` | Any predicate true | [or](guide/or.md) |
 | `!int` | Coerce to int | [int](guide/int.md) |

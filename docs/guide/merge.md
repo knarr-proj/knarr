@@ -19,7 +19,7 @@ $Cfg: !merge
 - Pair error: `?:` + `?? {}` on a child, or a required key + an omit child.
 - A live `{}` on `?:` stays `{}`. Omit only if **all** children omit.
 - Map vs non-map on the same path is an error.
-- No `!merge-overwrite` tag; later mapping already overwrites. Not a document. Not the whole `$then` of `!emit` (that `$then` is a YAML mapping). Allowed as `$yield` of `!emit-foreach` (result is a mapping).
+- No `!merge-overwrite` tag; later mapping already overwrites. Not a document. Not the whole `$yield` of `!emit` (that `$yield` is a YAML mapping). Allowed as `$yield` of `!emit-foreach` (result is a mapping).
 
 ## Examples
 

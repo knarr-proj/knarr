@@ -228,11 +228,11 @@ name: {{ coalesce .Values.fullnameOverride .Values.name "app" }}
 !emit
 name: !match
   $if: !is-not-empty $Values.fullnameOverride?
-  $then: !ref $Values.fullnameOverride
-  $else: !match
+  $yield: !ref $Values.fullnameOverride
+  $else-yield: !match
     $if: !is-not-empty $Values.name?
-    $then: !ref $Values.name
-    $else: app
+    $yield: !ref $Values.name
+    $else-yield: app
 # name: api
 ```
 
@@ -261,11 +261,11 @@ image: {{ .Values.image.full | default .Values.image.repository | default "ghcr.
 !emit
 image: !match
   $if: !is-empty $Values.image?.full?
-  $then: !match
+  $yield: !match
     $if: !is-empty $Values.image?.repository?
-    $then: ghcr.io/acme/app:latest
-    $else: !ref $Values.image.repository
-  $else: !ref $Values.image.full
+    $yield: ghcr.io/acme/app:latest
+    $else-yield: !ref $Values.image.repository
+  $else-yield: !ref $Values.image.full
 # image: ghcr.io/acme/app:latest
 ```
 
@@ -294,8 +294,8 @@ containerPort: {{ .Values.port | default 8080 }}
 !emit
 containerPort: !match
   $if: !is-empty $Values.port?
-  $then: 8080
-  $else: !ref $Values.port
+  $yield: 8080
+  $else-yield: !ref $Values.port
 # containerPort: 8080
 ```
 

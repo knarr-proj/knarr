@@ -17,9 +17,9 @@ $fail: "need name and sidecars or init"
 ---
 !emit
 $when: !is-not-empty $Values.sidecars?
-$then:
+$yield:
   apiVersion: v1
   kind: ConfigMap
   metadata:
     name: !ref $Values.name
-$else: ""
+$else-yield: ""

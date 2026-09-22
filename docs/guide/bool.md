@@ -25,7 +25,7 @@ $HA: !bool $Values.ha
 ---
 !emit?
 $when: !ref $HA
-$then:
+$yield:
   kind: PodDisruptionBudget
   name: !ref $Values.name
 # kind: PodDisruptionBudget / name: api
@@ -61,7 +61,7 @@ $TlsOn: !bool $Values.ingress.tls
 !emit
 tls?: !match
   $if: !ref $TlsOn
-  $then:
+  $yield:
     - hosts:
         - !ref $Values.ingress.host
       secretName: !ref $Values.ingress.secretName
@@ -158,7 +158,7 @@ kind: PodDisruptionBudget
 # $Values = {ha: "true"}
 !emit?
 $when: !expr "$Values.ha == 'true'"
-$then:
+$yield:
   kind: PodDisruptionBudget
 # kind: PodDisruptionBudget
 ```
@@ -166,7 +166,7 @@ $then:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. `$then` is the whole document (`kind` only).
+Same result. `$yield` is the whole document (`kind` only).
 
 </td></tr>
 </table>
@@ -221,7 +221,7 @@ kind: Ingress
 # $Values = {ingress: {tls: true}}
 !emit?
 $when: !is-not-empty $Values.ingress?.tls?
-$then:
+$yield:
   kind: Ingress
 # kind: Ingress
 ```

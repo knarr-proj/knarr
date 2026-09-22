@@ -8,7 +8,7 @@
 
 - [ ] Helm **`.Release` / `.Chart` / `.Capabilities`**: объекты, инжект или нет, `APIVersions.Has`, kube version, `IsInstall`/`IsUpgrade`?
 - [ ] Host `release.*` / `chart.*` (если вообще понадобятся)?
-- [ ] Вложенный **`!$Type`**: поле bind `nested: !$U`; тег в **`!emit` / `$then`**; тип **`$over`**?
+- [ ] Вложенный **`!$Type`**: поле bind `nested: !$U`; тег в **`!emit` / `$yield`**; тип **`$over`**?
 - [ ] Splat готового списка манифестов (`!emit-foreach` только `$over`)?
 - [ ] **`$index`** у `!foreach` / `!emit-foreach` (Helm `range $i, $v`)?
 - [ ] Named Helm **`define`/`include`**: `!define` / `!include` / `!import` на **значении** (фрагмент knarr в скоупе `$as`)?

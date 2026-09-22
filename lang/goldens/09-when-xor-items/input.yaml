@@ -4,9 +4,9 @@ $Flag: true
 ---
 !emit
   $when: !ref $Flag
-  $then:
+  $yield:
     kind: ConfigMap
-  $else: ""
+  $else-yield: ""
   $items:
     - a
     - b

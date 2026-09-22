@@ -14,8 +14,8 @@ metadata:
 spec:
   replicas: !match
     $if: !expr "$Values.replicas > 0"
-    $then: !ref $Values.replicas
-    $else: 1
+    $yield: !ref $Values.replicas
+    $else-yield: 1
   selector:
     matchLabels:
       app: !ref $Values.name
@@ -29,6 +29,6 @@ spec:
           image: example/api:1
       topologySpreadConstraints?: !match
         $if: !expr "$Values.replicas > 1"
-        $then:
+        $yield:
           - maxSkew: 1
             topologyKey: kubernetes.io/hostname

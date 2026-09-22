@@ -23,7 +23,7 @@ lang/goldens/
 |-----|--------|
 | 01-basic-deploy | values → Deployment |
 | 02-defaults | `!typedef` + `!$Type`: default `replicas` |
-| 03-when-else | `!emit` + `$when` / `$else: ""` / `!not` |
+| 03-when-else | `!emit` + `$when` / `$else-yield: ""` / `!not` |
 | 04-emit-items | `!emit-foreach` → несколько Deployment (имя каталога историческое) |
 | 05-path-non-ident | `!ref` `['не-Ident']` (48; имя каталога историческое) |
 | 06-import | local `!read` values.yaml (имя каталога историческое) |

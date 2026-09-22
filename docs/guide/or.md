@@ -58,7 +58,7 @@ $when: !expr "$Values.ingress?.enabled || $Values.mesh?.enabled ?? false"
 # $Values = {ingress: {enabled: true}, mesh: {enabled: false}}
 !emit?
 $when: !expr "or($Values.ingress.enabled, $Values.mesh.enabled)"
-$then:
+$yield:
   kind: Ingress
 # error: no or() in !expr
 ```
@@ -69,7 +69,7 @@ $then:
 # $Values = {ingress: {enabled: true}, mesh: {enabled: false}, name: api}
 !emit?
 $when: !expr "$Values.ingress.enabled || $Values.mesh.enabled"
-$then:
+$yield:
   kind: Ingress
   name: !ref $Values.name
 # kind: Ingress
@@ -84,7 +84,7 @@ $then:
 $when: !not !or
   - !ref $Values.ingress.enabled
   - !ref $Values.mesh.enabled
-$then:
+$yield:
   kind: Ingress
 # error: !not does not wrap !or
 ```
@@ -95,7 +95,7 @@ $then:
 # $Values = {ingress: {enabled: false}, mesh: {enabled: false}, name: api}
 !emit?
 $when: !expr "!($Values.ingress.enabled || $Values.mesh.enabled)"
-$then:
+$yield:
   kind: Ingress
   name: !ref $Values.name
 # kind: Ingress
@@ -135,7 +135,7 @@ kind: Ingress
 $when: !or
   - !is-not-empty $Values.ingress?.enabled?
   - !is-not-empty $Values.mesh?.enabled?
-$then:
+$yield:
   kind: Ingress
 # kind: Ingress
 ```
@@ -165,8 +165,8 @@ host: {{ or .Values.host "localhost" }}
 !emit
 host: !match
   $if: !is-empty $Values.host?
-  $then: localhost
-  $else: !ref $Values.host
+  $yield: localhost
+  $else-yield: !ref $Values.host
 # host: localhost
 ```
 

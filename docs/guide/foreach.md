@@ -354,8 +354,8 @@ env: !foreach
   $as: $E
   $yield: !match
     $if: !ref $E.plain
-    $then: !ref $E.name
-    $else:
+    $yield: !ref $E.name
+    $else-yield:
       name: !ref $E.name
       value: !ref $E.value
 # error: mixed string and mapping $yield

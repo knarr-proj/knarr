@@ -5,11 +5,11 @@ If the path is **empty** (same set as [`!is-empty`](is-empty.md)), the value is 
 Allowed as the whole value of:
 
 - `имя?:` / `$Name?:` / `$yield?:`
-- `$then` or `$else` of [`!match`](match.md) when that `!match` is already in one of those slots (or nested `$then` / `$else` of such a match)
+- `$yield` or `$else-yield` of [`!match`](match.md) when that `!match` is already in one of those slots (or nested `$yield` / `$else-yield` of such a match)
 
 Not a bool. Not a predicate. [`!is-empty`](is-empty.md) asks; `!skip-empty` omits the value.
 
-Error anywhere else: `имя:`, `$when`, `$then` of `!emit` / `!emit?`, `$over`, a sequence item, a [`!pick`](pick.md) child.
+Error anywhere else: `имя:`, `$when`, `$yield` of `!emit` / `!emit?`, `$over`, a sequence item, a [`!pick`](pick.md) child.
 
 No `!skip-not-empty`. `!omit-empty` is not a tag.
 
@@ -52,11 +52,11 @@ Empty `tls` omits the bind. Elsewhere write `$Tls?`.
 # $Values = {name: api, image: img}
 name?: !match
   $if: !is-not-empty $Values.name?
-  $then: !skip-empty $Values.image?
+  $yield: !skip-empty $Values.image?
 # name: img
 ```
 
-Go `and x y`: if `x` is not empty, then `y` (omit `y` when empty). `$then` of `!emit?` cannot use this tag (body is a mapping).
+Go `and x y`: if `x` is not empty, then `y` (omit `y` when empty). `$yield` of `!emit?` cannot use this tag (body is a mapping).
 
 ### Skip a foreach item
 
@@ -97,7 +97,7 @@ tls?: !skip-empty $Values.tls?
 # $Values = {tls: {host: a}}
 !emit?
 $when: !skip-empty $Values.tls?
-$then:
+$yield:
   kind: Secret
 # error: $when is bool, not skip-empty
 ```
@@ -108,7 +108,7 @@ $then:
 # $Values = {tls: {host: a}}
 !emit?
 $when: !is-not-empty $Values.tls?
-$then:
+$yield:
   kind: Secret
 # kind: Secret
 ```
@@ -121,8 +121,8 @@ $then:
 !emit
 name: !match
   $if: !is-not-empty $Values.name?
-  $then: !skip-empty $Values.image?
-# error: required key: omit $then is a pair error
+  $yield: !skip-empty $Values.image?
+# error: required key: omit $yield is a pair error
 ```
 
 </td><td>
@@ -132,7 +132,7 @@ name: !match
 !emit
 name?: !match
   $if: !is-not-empty $Values.name?
-  $then: !skip-empty $Values.image?
+  $yield: !skip-empty $Values.image?
 # no name
 ```
 
@@ -155,8 +155,8 @@ name: !pick
 !emit
 name: !match
   $if: !is-empty $Values.a?
-  $then: app
-  $else: !ref $Values.a
+  $yield: app
+  $else-yield: !ref $Values.a
 # name: app
 ```
 
@@ -184,7 +184,7 @@ initContainers?: !skip-empty $Values.init?
 
 ## Omit
 
-Allowed only where omit is already legal: `имя?:` / `$Name?:` / `$yield?:`, or `$then`/`$else` of `!match` there.
+Allowed only where omit is already legal: `имя?:` / `$Name?:` / `$yield?:`, or `$yield`/`$else-yield` of `!match` there.
 
 ```yaml
 # $Values = {tls: false}

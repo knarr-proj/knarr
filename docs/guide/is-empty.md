@@ -29,7 +29,7 @@ Tagged scalar `RefScalar`. Result is bool — not omit (so `$Name?: !is-empty` i
 # $Values = {}
 !emit?
 $when: !is-empty $Values.tls?
-$then:
+$yield:
   kind: ConfigMap
   name: no-tls
 # kind: ConfigMap
@@ -76,7 +76,7 @@ initContainers?: !skip-empty $Values.init?
 # $Values = {tls: false}
 !emit?
 $when: !expr "empty($Values.tls)"
-$then:
+$yield:
   kind: ConfigMap
 # error: no empty() in !expr
 ```
@@ -87,7 +87,7 @@ $then:
 # $Values = {tls: false}
 !emit?
 $when: !is-empty $Values.tls?
-$then:
+$yield:
   kind: ConfigMap
   name: no-tls
 # kind: ConfigMap
@@ -100,7 +100,7 @@ $then:
 # $Values = {sidecars: [x]}
 !emit?
 $when: !nempty $Values.sidecars?
-$then:
+$yield:
   kind: ConfigMap
 # error: !nempty is not a tag
 ```
@@ -111,7 +111,7 @@ $then:
 # $Values = {sidecars: [x]}
 !emit?
 $when: !is-not-empty $Values.sidecars?
-$then:
+$yield:
   kind: ConfigMap
   name: sidecars
 # kind: ConfigMap
@@ -143,7 +143,7 @@ initContainers?: !skip-empty $Values.init?
 # $Values = {tls: {host: a}}
 !emit?
 $when: !not !is-empty $Values.tls?
-$then:
+$yield:
   kind: ConfigMap
 # error: !not does not wrap !is-empty
 ```
@@ -154,7 +154,7 @@ $then:
 # $Values = {tls: {host: a}}
 !emit?
 $when: !is-not-empty $Values.tls?
-$then:
+$yield:
   kind: ConfigMap
   name: tls
 # kind: ConfigMap
@@ -167,7 +167,7 @@ $then:
 # $Values = {}
 !emit?
 $when: !is-empty $Values.tls
-$then:
+$yield:
   kind: ConfigMap
 # error: missing tls without ?
 ```
@@ -178,7 +178,7 @@ $then:
 # $Values = {}
 !emit?
 $when: !is-empty $Values.tls?
-$then:
+$yield:
   kind: ConfigMap
   name: no-tls
 # kind: ConfigMap
@@ -191,7 +191,7 @@ $then:
 # $Values = {tls: false}
 !emit?
 $when: !empty $Values.tls?
-$then:
+$yield:
   kind: ConfigMap
 # error: !empty is not a tag
 ```
@@ -202,7 +202,7 @@ $then:
 # $Values = {tls: false}
 !emit?
 $when: !is-empty $Values.tls?
-$then:
+$yield:
   kind: ConfigMap
   name: no-tls
 # kind: ConfigMap
@@ -249,7 +249,7 @@ kind: ConfigMap
 # $Values = {}
 !emit?
 $when: !is-empty $Values.tls?
-$then:
+$yield:
   kind: ConfigMap
 # kind: ConfigMap
 ```
@@ -257,7 +257,7 @@ $then:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. `$then` is the whole document. Helm `empty` ≡ `!is-empty`.
+Same result. `$yield` is the whole document. Helm `empty` ≡ `!is-empty`.
 
 </td></tr>
 </table>

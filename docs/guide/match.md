@@ -8,19 +8,19 @@ Field-level **if / else**. The tag sits on a **value**, not on a key.
 # $Values = {replicas: 3}
 replicas: !match
   $if: !expr "$Values.replicas > 0"
-  $then: !ref $Values.replicas
-  $else: 1
+  $yield: !ref $Values.replicas
+  $else-yield: 1
 # replicas: 3
 ```
 
-- Mapping with `$if` + `$then`, optional `$else`.
-- Not a sequence of branches. Else-if = `$else: !match`.
+- Mapping with `$if` + `$yield`, optional `$else-yield`.
+- Not a sequence of branches. Else-if = `$else-yield: !match`.
 - `$if` is a bool predicate (same family as `$when`): tags or YAML `true` / `false`. Omit from `?.` without `??` is an error (not `false`); use `?? false` or [`!is-empty`](is-empty.md) / [`!is-not-empty`](is-not-empty.md).
-- Short-circuit: false `$if` does not evaluate `$then`.
-- One sort: `$then` and `$else` (when present) must match.
-- **Omit the key:** `affinity?: !match` **without** `$else` — false `$if` omits.
-- `affinity: !match` without `$else` is an error if `$if` is false (no value).
-- `$if?:` / `$then?:` / `$else?:` are errors.
+- Short-circuit: false `$if` does not evaluate `$yield`.
+- One sort: `$yield` and `$else-yield` (when present) must match.
+- **Omit the key:** `affinity?: !match` **without** `$else-yield` — false `$if` omits.
+- `affinity: !match` without `$else-yield` is an error if `$if` is false (no value).
+- On `!match`, `$if?:` / `$yield?:` / `$else-yield?:` are errors. Loop `$yield?:` is a different key (on `!foreach` / `!emit-foreach?`). `$then` / `$else` are errors, not synonyms.
 
 ## Examples
 
@@ -30,8 +30,8 @@ replicas: !match
 # $Values = {replicas: 0}
 replicas: !match
   $if: !expr "$Values.replicas > 0"
-  $then: !ref $Values.replicas
-  $else: 1
+  $yield: !ref $Values.replicas
+  $else-yield: 1
 # 1
 ```
 
@@ -41,7 +41,7 @@ replicas: !match
 # $Values = {replicas: 3, name: api}
 topologySpreadConstraints?: !match
   $if: !expr "$Values.replicas > 1"
-  $then:
+  $yield:
     - maxSkew: 1
       topologyKey: kubernetes.io/hostname
       whenUnsatisfiable: ScheduleAnyway
@@ -51,7 +51,7 @@ topologySpreadConstraints?: !match
 # topologySpreadConstraints: [{maxSkew: 1}]
 ```
 
-No `$else` + `?:` → key absent when replicas ≤ 1.
+No `$else-yield` + `?:` → key absent when replicas ≤ 1.
 
 ### Drop empty list
 
@@ -63,7 +63,7 @@ initContainers?: !skip-empty $Values.init?
 # no initContainers
 ```
 
-On a `?:` key this is the short form of `$if: !is-not-empty` + `$then: !ref`. Do not write `initContainers?: !is-empty …` (bool). On `name?: !match`, `$then: !skip-empty` is allowed; on `$then` of `!emit?` it is not.
+On a `?:` key this is the short form of `$if: !is-not-empty` + `$yield: !ref`. Do not write `initContainers?: !is-empty …` (bool). On `name?: !match`, `$yield: !skip-empty` is allowed; on `$yield` of `!emit?` it is not.
 
 ### Else-if (Ingress vs ClusterIP)
 
@@ -71,17 +71,17 @@ On a `?:` key this is the short form of `$if: !is-not-empty` + `$then: !ref`. Do
 # $Values = {ingress: {enabled: true}}
 type: !match
   $if: !is-not-empty $Values.ingress?.enabled?
-  $then: ClusterIP
-  $else: !match
+  $yield: ClusterIP
+  $else-yield: !match
     $if: !is-not-empty $Values.loadBalancer?
-    $then: LoadBalancer
-    $else: ClusterIP
+    $yield: LoadBalancer
+    $else-yield: ClusterIP
 # type: ClusterIP
 ```
 
 ### Inside `$yield`
 
-`!match` is a normal value: it may appear in foreach yield, bind, `$then`.
+`!match` is a normal value: it may appear in foreach yield, bind, `$yield`.
 
 ## Common mistakes
 
@@ -103,8 +103,8 @@ replicas !if: !ref $Values.ha
 !emit
 replicas: !match
   $if: !ref $Values.ha
-  $then: 3
-  $else: 1
+  $yield: 3
+  $else-yield: 1
 # replicas: 3
 ```
 
@@ -116,9 +116,9 @@ replicas: !match
 !emit
 type: !match
   - $if: !is-not-empty $Values.ingress?.enabled?
-    $then: ClusterIP
+    $yield: ClusterIP
   - $if: !is-not-empty $Values.loadBalancer?
-    $then: LoadBalancer
+    $yield: LoadBalancer
 # error: !match is not a list of $if entries
 ```
 
@@ -129,11 +129,11 @@ type: !match
 !emit
 type: !match
   $if: !is-not-empty $Values.ingress?.enabled?
-  $then: ClusterIP
-  $else: !match
+  $yield: ClusterIP
+  $else-yield: !match
     $if: !is-not-empty $Values.loadBalancer?
-    $then: LoadBalancer
-    $else: ClusterIP
+    $yield: LoadBalancer
+    $else-yield: ClusterIP
 # type: ClusterIP
 ```
 
@@ -145,8 +145,8 @@ type: !match
 !emit
 replicas: !match
   $when: !expr "$Values.replicas > 0"
-  $then: !ref $Values.replicas
-  $else: 1
+  $yield: !ref $Values.replicas
+  $else-yield: 1
 # error: !match uses $if, not $when
 ```
 
@@ -157,8 +157,8 @@ replicas: !match
 !emit
 replicas: !match
   $if: !expr "$Values.replicas > 0"
-  $then: !ref $Values.replicas
-  $else: 1
+  $yield: !ref $Values.replicas
+  $else-yield: 1
 # replicas: 3
 ```
 
@@ -167,13 +167,13 @@ replicas: !match
 
 ## Omit
 
-`$if` omit without `??` is an error. Omit the **key** with `имя?: !match` and no `$else`.
+`$if` omit without `??` is an error. Omit the **key** with `имя?: !match` and no `$else-yield`.
 
 ```yaml
 # $Values = {replicas: 1}
 topologySpreadConstraints?: !match
   $if: !expr "$Values.replicas > 1"
-  $then:
+  $yield:
     - maxSkew: 1
 # no topologySpreadConstraints
 ```
@@ -212,8 +212,8 @@ $fail: "replicas"
 !emit
 replicas: !match
   $if: !expr "$Values.replicas > 0"
-  $then: !ref $Values.replicas
-  $else: 1
+  $yield: !ref $Values.replicas
+  $else-yield: 1
 # replicas: 3
 ```
 
@@ -250,7 +250,7 @@ $fail: "replicas"
 !emit
 topologySpreadConstraints?: !match
   $if: !expr "$Values.replicas > 1"
-  $then:
+  $yield:
     - maxSkew: 1
 # topologySpreadConstraints: [{maxSkew: 1}]
 ```
@@ -280,11 +280,11 @@ type: {{ if .Values.ingress.enabled }}ClusterIP{{ else if .Values.loadBalancer }
 !emit
 type: !match
   $if: !is-not-empty $Values.ingress?.enabled?
-  $then: ClusterIP
-  $else: !match
+  $yield: ClusterIP
+  $else-yield: !match
     $if: !is-not-empty $Values.loadBalancer?
-    $then: LoadBalancer
-    $else: ClusterIP
+    $yield: LoadBalancer
+    $else-yield: ClusterIP
 # type: ClusterIP
 ```
 

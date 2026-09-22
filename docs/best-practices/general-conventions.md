@@ -21,7 +21,7 @@ These rules apply to every knarr file. This page is the checklist for authors.
 | Type tag | `!$` + BindingName | `$Values: !$ValuesType` |
 
 - Bare `when:`, `over:`, `sep:`, `of:` on knarr meta mappings is an **error**, not a synonym.
-- Keys in `!emit` / `$yield` / `$then` stay unprefixed. They are ordinary YAML keys of your schema (`apiVersion:`, `services:`, `metadata:`, …), not knarr `$` keys.
+- Keys in `!emit` / `$yield` stay unprefixed. They are ordinary YAML keys of your schema (`apiVersion:`, `services:`, `metadata:`, …), not knarr `$` keys.
 - **`$Release`**, **`$Chart`**, **`$Capabilities`** are reserved. Do not bind or reference them in v1.
 
 ## One tag per node
@@ -81,7 +81,7 @@ Kubernetes quantities like `"500m"` stay **strings**.
 
 - Key order in a mapping is **source order**, not sorted (JSON checksums are the exception: sorted keys, Go `json.Marshal` canon).
 - Stdout is YAML 1.2, UTF-8, LF, 2-space block style.
-- Zero manifests (all `!emit?` with false `$when`, all `$else: ""`, empty loops, false `$when` on `!emit-foreach`) → empty stdout, exit 0.
+- Zero manifests (all `!emit?` with false `$when`, all `$else-yield: ""`, empty loops, false `$when` on `!emit-foreach`) → empty stdout, exit 0.
 
 ## Helm comparison in the guide
 

@@ -86,7 +86,7 @@ $n: !len $Values.workers
 # $Values = {workers: [a]}
 !emit?
 $when: !len $Values.workers
-$then:
+$yield:
   kind: ConfigMap
 # error: !len is an int, not a bool
 ```
@@ -97,7 +97,7 @@ $then:
 # $Values = {workers: [a]}
 !emit?
 $when: !is-not-empty $Values.workers?
-$then:
+$yield:
   kind: ConfigMap
   name: workers
 # kind: ConfigMap / name: workers
@@ -225,7 +225,7 @@ kind: ConfigMap
 # $Values = {workers: [a]}
 !emit?
 $when: !is-not-empty $Values.workers?
-$then:
+$yield:
   kind: ConfigMap
 # kind: ConfigMap
 ```
@@ -233,7 +233,7 @@ $then:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result for a list. Helm `gt (len .) 0` ≡ `!is-not-empty`. `$then` is the whole document.
+Same result for a list. Helm `gt (len .) 0` ≡ `!is-not-empty`. `$yield` is the whole document.
 
 </td></tr>
 </table>

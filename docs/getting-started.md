@@ -133,7 +133,7 @@ Service on/off is a document [`$when`](guide/when.md), not an `if` inside YAML t
 ---
 !emit?
 $when: !ref $ShowSvc
-$then:
+$yield:
   apiVersion: v1
   kind: Service
   metadata:
@@ -141,7 +141,7 @@ $then:
 # kind: Service / name: demo
 ```
 
-**`!emit?`** means **emit nothing** when `$when` is false. On `!emit`, `$else: ""` does the same.
+**`!emit?`** means **emit nothing** when `$when` is false. On `!emit`, `$else-yield: ""` does the same.
 
 ## 6. Names you will reuse
 
@@ -210,8 +210,8 @@ when: !ref $ShowSvc
 # $ShowSvc = true
 !emit?
 $when: !ref $ShowSvc
-$then: { ... }
-# $then mapping
+$yield: { ... }
+# $yield mapping
 ```
 
 Next: [Tips and Tricks](tips-and-tricks.md) and [General Conventions](best-practices/general-conventions.md).

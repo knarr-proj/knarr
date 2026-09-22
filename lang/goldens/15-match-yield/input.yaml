@@ -15,5 +15,5 @@ $Values:
       name: !ref $Worker.name
     nodeSelector?: !match
       $if: !ref $Worker.pin? ?? false
-      $then:
+      $yield:
         disk: ssd

@@ -73,7 +73,7 @@ $when: !and
 # $Values = {a: 1}
 !emit?
 $when: !and []
-$then:
+$yield:
   kind: Service
 # error: empty !and
 ```
@@ -86,7 +86,7 @@ $then:
 $when: !and
   - !ref $Values.service.enabled
   - !expr "$Values.replicas > 1"
-$then:
+$yield:
   kind: Service
   name: !ref $Values.name
 # kind: Service
@@ -100,7 +100,7 @@ $then:
 !emit?
 $when: !and
   - !ref $Values.enabled?
-$then:
+$yield:
   kind: Service
 # error: omit child is not a bool
 ```
@@ -111,7 +111,7 @@ $then:
 # $Values = {enabled: true, name: api}
 !emit?
 $when: !ref $Values.enabled? ?? false
-$then:
+$yield:
   kind: Service
   name: !ref $Values.name
 # kind: Service
@@ -124,7 +124,7 @@ $then:
 # $Values = {service: {enabled: true}, tls: true}
 !emit?
 $when: !expr "and($Values.service.enabled, $Values.tls)"
-$then:
+$yield:
   kind: Service
 # error: no and() in !expr
 ```
@@ -135,7 +135,7 @@ $then:
 # $Values = {service: {enabled: true}, tls: true, name: api}
 !emit?
 $when: !expr "$Values.service.enabled && $Values.tls"
-$then:
+$yield:
   kind: Service
   name: !ref $Values.name
 # kind: Service
@@ -175,7 +175,7 @@ kind: Service
 $when: !and
   - !is-not-empty $Values.service?.enabled?
   - !expr "$Values.replicas? > 1 ?? false"
-$then:
+$yield:
   kind: Service
 # kind: Service
 ```
@@ -244,14 +244,14 @@ name: {{ and .Values.name .Values.image }}
 !emit
 name?: !match
   $if: !is-not-empty $Values.name?
-  $then: !skip-empty $Values.image?
+  $yield: !skip-empty $Values.image?
 # name: img
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Go `and x y` is if x then y else x. `$then: !skip-empty` on a `?:` `!match`. Not tag `!and`. See [`!skip-empty`](skip-empty.md).
+Same result. Go `and x y` is if x then y else x. `$yield: !skip-empty` on a `?:` `!match`. Not tag `!and`. See [`!skip-empty`](skip-empty.md).
 
 </td></tr>
 </table>
@@ -276,7 +276,7 @@ kind: Service
 $when: !and
   - !is-not-empty $Values.service?.enabled?
   - !is-not-empty $Values.tls?
-$then:
+$yield:
   kind: Service
 # kind: Service
 ```

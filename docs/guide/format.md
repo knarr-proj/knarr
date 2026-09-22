@@ -23,7 +23,7 @@ name: !format
 ```
 
 - Tagged **sequence**: first element is the format **string**; the rest are arguments in order.
-- Bind `$Name` / `$Name?:`, or a field of `!emit` / `$then` / `$yield` (same omit pair: `?:` ↔ an omit-capable argument). A literal format string on `?:` is allowed; one omit argument drops the whole value (unlike [`!merge`](merge.md)).
+- Bind `$Name` / `$Name?:`, or a field of `!emit` / `$yield` (same omit pair: `?:` ↔ an omit-capable argument). A literal format string on `?:` is allowed; one omit argument drops the whole value (unlike [`!merge`](merge.md)).
 - Dialect ≡ Go `fmt.Sprintf` for knarr scalars (string, int64, bool, float64).
 - Type mismatch is a **render error**, not a `%!s(int=…)` insertion.
 - seq/map arguments are errors (JSON-string first).
