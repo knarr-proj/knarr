@@ -327,7 +327,7 @@ kind: Service
 ```yaml
 !emit?
 $when: !and
-  - !not-empty $Values.service?.enabled?
+  - !is-not-empty $Values.service?.enabled?
   - !expr "$Values.replicas? > 1 ?? false"
 $then:
   kind: Service
@@ -354,7 +354,7 @@ replicas: {{ add (required "replicas" .Values.replicas) 1 }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.replicas?
+  - !is-not-empty $Values.replicas?
 $fail: "replicas"
 ---
 !emit
@@ -404,7 +404,7 @@ image: {{ required "image" (index .Values.images .name) }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.images?
+  - !is-not-empty $Values.images?
 $fail: "image"
 ---
 !emit
@@ -432,7 +432,7 @@ name: {{ required "name" .Values.name }}-svc
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "name"
 ---
 !bind

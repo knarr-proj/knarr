@@ -8,15 +8,15 @@ $Values:
 ---
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
   - !or
-    - !not-empty $Values.sidecars?
-    - !not-empty $Values.init?
+    - !is-not-empty $Values.sidecars?
+    - !is-not-empty $Values.init?
 $fail: "need name and sidecars or init"
 
 ---
 !emit
-$when: !not-empty $Values.sidecars?
+$when: !is-not-empty $Values.sidecars?
 $then:
   apiVersion: v1
   kind: ConfigMap

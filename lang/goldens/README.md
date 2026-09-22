@@ -54,7 +54,7 @@ lang/goldens/
 | 30-sha256 | `!sha256` `$of` string → hex (63) |
 | 31-merge | `!merge` deep mapping в `!bind` (64) |
 | 32-range | `!range` `$until` / `$to` (65) |
-| 33-empty-or | `!not-empty` / `!or` в `$rules` и `$when` (66) |
+| 33-empty-or | `!is-not-empty` / `!or` в `$rules` и `$when` (66) |
 | 34-coerce | `!int` / `!str` / `!bool` (67) |
 | 35-expr-lits | `?? [80, 443]` в `!ref` (кавычки YAML, **89**); map с `$` в `!expr` (68, 85) |
 | 44-unquoted-default-list | `!ref $X.p? ?? [80, 443]` без кавычек — ошибка (**119**) |

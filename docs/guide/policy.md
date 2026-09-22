@@ -181,7 +181,7 @@ name: {{ required "name" .Values.name }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "name"
 ---
 !emit

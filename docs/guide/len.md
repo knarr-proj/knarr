@@ -10,7 +10,7 @@ replicas: !len $Values.workers
 $N?: !len $Values.workers?
 ```
 
-Not a bool: `$when: !len` is an error. Use [`!not-empty`](not-empty.md).
+Not a bool: `$when: !len` is an error. Use [`!is-not-empty`](is-not-empty.md).
 
 ## Examples
 
@@ -82,11 +82,11 @@ $then:
 
 ```yaml
 !emit?
-$when: !not-empty $Values.workers?
+$when: !is-not-empty $Values.workers?
 $then:
   kind: ConfigMap
   name: workers
-# $when needs a bool: !not-empty, or !len then !expr "$N > 0"
+# $when needs a bool: !is-not-empty, or !len then !expr "$N > 0"
 ```
 
 </td></tr>
@@ -128,7 +128,7 @@ $N?: !len $Values.workers?
 
 ## See also
 
-- [`!not-empty`](not-empty.md)
+- [`!is-not-empty`](is-not-empty.md)
 - [`!expr`](expr.md)
 
 ## Comparison with Helm
@@ -148,7 +148,7 @@ replicas: {{ len (required "workers" .Values.workers) }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.workers?
+  - !is-not-empty $Values.workers?
 $fail: "workers"
 ---
 !emit
@@ -197,7 +197,7 @@ kind: ConfigMap
 
 ```yaml
 !emit?
-$when: !not-empty $Values.workers?
+$when: !is-not-empty $Values.workers?
 $then:
   kind: ConfigMap
 ```
@@ -205,7 +205,7 @@ $then:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result for a list. Helm `gt (len .) 0` ≡ `!not-empty`. `$then` is the whole document.
+Same result for a list. Helm `gt (len .) 0` ≡ `!is-not-empty`. `$then` is the whole document.
 
 </td></tr>
 </table>

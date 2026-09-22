@@ -314,7 +314,7 @@ $HostList: !join
 ---
 !validation
 $rules:
-  - !not-empty $Values.hosts?
+  - !is-not-empty $Values.hosts?
 $fail: "hosts"
 ---
 !emit
@@ -351,7 +351,7 @@ $Name: !join
 ---
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "name"
 ---
 !emit
@@ -384,7 +384,7 @@ $Pull: !join
 ---
 !validation
 $rules:
-  - !not-empty $Values.pullSecrets?
+  - !is-not-empty $Values.pullSecrets?
 $fail: "pullSecrets"
 ---
 !emit

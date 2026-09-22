@@ -13,7 +13,7 @@ replicas: !match
 
 - Mapping with `$if` + `$then`, optional `$else`.
 - Not a sequence of branches. Else-if = `$else: !match`.
-- `$if` is a bool predicate (same family as `$when`): tags or YAML `true` / `false`. Omit from `?.` without `??` is an error (not `false`); use `?? false` or [`!empty`](empty.md) / [`!not-empty`](not-empty.md).
+- `$if` is a bool predicate (same family as `$when`): tags or YAML `true` / `false`. Omit from `?.` without `??` is an error (not `false`); use `?? false` or [`!is-empty`](is-empty.md) / [`!is-not-empty`](is-not-empty.md).
 - Short-circuit: false `$if` does not evaluate `$then`.
 - One sort: `$then` and `$else` (when present) must match.
 - **Omit the key:** `affinity?: !match` **without** `$else` — false `$if` omits.
@@ -52,21 +52,19 @@ No `$else` + `?:` → key absent when replicas ≤ 1.
 An empty `[]` is a value. To omit the key when the list is missing **or** `[]`:
 
 ```yaml
-initContainers?: !match
-  $if: !not-empty $Values.init?
-  $then: !ref $Values.init
+initContainers?: !skip-empty $Values.init?
 ```
 
-Use [`!not-empty`](not-empty.md), not `initContainers?: !empty …`.
+On a `?:` key this is the short form of `$if: !is-not-empty` + `$then: !ref`. Do not write `initContainers?: !is-empty …` (bool). `$then: !skip-empty` is an error (`$then` is not an omit key).
 
 ### Else-if (Ingress vs ClusterIP)
 
 ```yaml
 type: !match
-  $if: !not-empty $Values.ingress?.enabled?
+  $if: !is-not-empty $Values.ingress?.enabled?
   $then: ClusterIP
   $else: !match
-    $if: !not-empty $Values.loadBalancer?
+    $if: !is-not-empty $Values.loadBalancer?
     $then: LoadBalancer
     $else: ClusterIP
 ```
@@ -104,9 +102,9 @@ replicas: !match
 ```yaml
 !emit
 type: !match
-  - $if: !not-empty $Values.ingress?.enabled?
+  - $if: !is-not-empty $Values.ingress?.enabled?
     $then: ClusterIP
-  - $if: !not-empty $Values.loadBalancer?
+  - $if: !is-not-empty $Values.loadBalancer?
     $then: LoadBalancer
 # !match is not a list of $if entries
 ```
@@ -116,10 +114,10 @@ type: !match
 ```yaml
 !emit
 type: !match
-  $if: !not-empty $Values.ingress?.enabled?
+  $if: !is-not-empty $Values.ingress?.enabled?
   $then: ClusterIP
   $else: !match
-    $if: !not-empty $Values.loadBalancer?
+    $if: !is-not-empty $Values.loadBalancer?
     $then: LoadBalancer
     $else: ClusterIP
 # nest $else: !match
@@ -156,6 +154,7 @@ replicas: !match
 - [`$when`](when.md)
 - [Omit](omit.md)
 - [`!pick`](pick.md)
+- [`!skip-empty`](skip-empty.md)
 
 ## Comparison with Helm
 
@@ -174,7 +173,7 @@ replicas: {{ if gt (required "replicas" .Values.replicas) 0 }}{{ .Values.replica
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.replicas?
+  - !is-not-empty $Values.replicas?
 $fail: "replicas"
 ---
 !emit
@@ -208,7 +207,7 @@ topologySpreadConstraints:
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.replicas?
+  - !is-not-empty $Values.replicas?
 $fail: "replicas"
 ---
 !emit
@@ -239,10 +238,10 @@ type: {{ if .Values.ingress.enabled }}ClusterIP{{ else if .Values.loadBalancer }
 ```yaml
 !emit
 type: !match
-  $if: !not-empty $Values.ingress?.enabled?
+  $if: !is-not-empty $Values.ingress?.enabled?
   $then: ClusterIP
   $else: !match
-    $if: !not-empty $Values.loadBalancer?
+    $if: !is-not-empty $Values.loadBalancer?
     $then: LoadBalancer
     $else: ClusterIP
 ```
@@ -250,7 +249,7 @@ type: !match
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Helm `if` is [`!not-empty`](not-empty.md) (omit / `""` / `[]` / `{}` / `false` / `0` / `0.0`). Each field that may be missing needs `?`.
+Same result. Helm `if` is [`!is-not-empty`](is-not-empty.md) (omit / `""` / `[]` / `{}` / `false` / `0` / `0.0`). Each field that may be missing needs `?`.
 
 </td></tr>
 </table>

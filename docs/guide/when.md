@@ -12,7 +12,7 @@ $then:
   name: !ref $Values.name
 ```
 
-Predicate: `!ref`, `!not`, `!expr`, `!empty`, `!not-empty`, `!and`, `!or`, or YAML `true` / `false`. Not `!len` (that is int). Not `!expr "true"` — that is no computation.
+Predicate: `!ref`, `!not`, `!expr`, `!is-empty`, `!is-not-empty`, `!and`, `!or`, or YAML `true` / `false`. Not `!len` (that is int). Not `!expr "true"` — that is no computation.
 
 `$else` on `!emit?` is a pair error. On `!emit`, `$else: ""` → emit nothing; `$else:` may be another mapping.
 
@@ -44,7 +44,7 @@ $when: !ref $Values.service.enabled
 
 ```yaml
 !emit?
-$when: !not-empty $Values.sidecars?
+$when: !is-not-empty $Values.sidecars?
 $then:
   kind: ConfigMap
   name: sidecars
@@ -99,11 +99,11 @@ $then:
 
 ```yaml
 !emit?
-$when: !not-empty $Values.workers?
+$when: !is-not-empty $Values.workers?
 $then:
   kind: ConfigMap
   name: workers
-# $when needs a bool: !not-empty, or !expr after !len
+# $when needs a bool: !is-not-empty, or !expr after !len
 ```
 
 </td></tr>
@@ -177,7 +177,7 @@ kind: Service
 
 ```yaml
 !emit?
-$when: !not-empty $Values.service?.enabled?
+$when: !is-not-empty $Values.service?.enabled?
 $then:
   kind: Service
 ```
@@ -185,7 +185,7 @@ $then:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Helm `if` ≡ `!not-empty`. Missing → omit → no document.
+Same result. Helm `if` ≡ `!is-not-empty`. Missing → omit → no document.
 
 </td></tr>
 </table>
@@ -204,7 +204,7 @@ kind: ConfigMap
 
 ```yaml
 !emit?
-$when: !not-empty $Values.sidecars?
+$when: !is-not-empty $Values.sidecars?
 $then:
   kind: ConfigMap
 ```
@@ -212,7 +212,7 @@ $then:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Helm `if` ≡ `!not-empty`.
+Same result. Helm `if` ≡ `!is-not-empty`.
 
 </td></tr>
 </table>
@@ -232,7 +232,7 @@ kind: Service
 ```yaml
 !emit?
 $when: !and
-  - !not-empty $Values.service?.enabled?
+  - !is-not-empty $Values.service?.enabled?
   - !expr "$Values.replicas? > 1 ?? false"
 $then:
   kind: Service
@@ -241,7 +241,7 @@ $then:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result when `replicas` is int/float. Helm `if` ≡ `!not-empty`. Helm `gt` ≡ `>`. Missing `service` / `enabled` / `replicas` → no document. Helm `gt` may coerce a numeric string; knarr `>` of a string is a type error.
+Same result when `replicas` is int/float. Helm `if` ≡ `!is-not-empty`. Helm `gt` ≡ `>`. Missing `service` / `enabled` / `replicas` → no document. Helm `gt` may coerce a numeric string; knarr `>` of a string is a type error.
 
 </td></tr>
 </table>
@@ -264,7 +264,7 @@ name: {{ .name }}
 
 ```yaml
 !emit-foreach
-$when: !not-empty $Values.deployWorkers?
+$when: !is-not-empty $Values.deployWorkers?
 $over: !ref $Values.workers?
 $as: $Worker
 $yield:
@@ -275,7 +275,7 @@ $yield:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same YAML documents. Helm `if` ≡ `!not-empty`. Comparison Helm must include `---` (without it the stream is not multi-doc). See [`!emit-foreach`](emit-foreach.md).
+Same YAML documents. Helm `if` ≡ `!is-not-empty`. Comparison Helm must include `---` (without it the stream is not multi-doc). See [`!emit-foreach`](emit-foreach.md).
 
 </td></tr>
 </table>

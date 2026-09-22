@@ -214,7 +214,7 @@ $Args: !concat
 ---
 !validation
 $rules:
-  - !not-empty $Values.extraArgs?
+  - !is-not-empty $Values.extraArgs?
 $fail: "extraArgs"
 ---
 !emit
@@ -247,8 +247,8 @@ $Ports: !concat
 ---
 !validation
 $rules:
-  - !not-empty $Values.fixedPorts?
-  - !not-empty $Values.dynamicPorts?
+  - !is-not-empty $Values.fixedPorts?
+  - !is-not-empty $Values.dynamicPorts?
 $fail: "fixed"
 ---
 !emit

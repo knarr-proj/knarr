@@ -1,7 +1,7 @@
 # Knarr — норматив языка (v1)
 
 Авторское описание: корневой [README.md](../README.md) и [docs/](../docs/README.md).  
-Q&A 1–139: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOALS.md). Язык: [SPEC_TODO.md](SPEC_TODO.md) / [SPEC_TODO_v2.md](SPEC_TODO_v2.md). CLI: [CLI_TODO.md](CLI_TODO.md) / [CLI_TODO_v2.md](CLI_TODO_v2.md).
+Q&A 1–140: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOALS.md). Язык: [SPEC_TODO.md](SPEC_TODO.md) / [SPEC_TODO_v2.md](SPEC_TODO_v2.md). CLI: [CLI_TODO.md](CLI_TODO.md) / [CLI_TODO_v2.md](CLI_TODO_v2.md).
 
 Инвентарь языка v1 **закрыт**. Носитель YAML 1.2; нет Go `{{ }}`; нет CLI `-f` / `--set`. Knarr делает только то, что явно записано: нет скрытого omit, нет неявного default, нет **значения** `null` (`a: null` ≡ нет ключа, решение **130**).
 
@@ -25,7 +25,7 @@ Q&A 1–139: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOAL
 
 - YAML 1.2, **несколько документов** в одном потоке/файле. **Кавычки tagged scalar (89):** `!ref` / `!expr` / `!not` / coerce — plain или quoted **как YAML 1.2**. Нет исключения knarr «не в начале строки». `/` без кавычек ок.
 - Порядок документов **после** раскрытия **`!import`**: опционально **`!policy`** (только первым), затем опционально **`!typedef`**, затем **`!bind`**, **`!validation`**, **`!emit`**, **`!emit?`**, **`!emit-foreach`** (вперемешку)
-- Локальные теги языка (`!policy`, `!typedef`, `!bind`, `!ref`, `!foreach`, `!emit`, **`!emit?`**, `!emit-foreach`, `!import`, `!read`, `!not`, `!expr`, `!match`, **`!concat`**, **`!join`**, **`!split`**, **`!format`**, **`!b64enc`**, **`!b64dec`**, **`!len`**, **`!sha256`**, **`!merge`**, **`!range`**, **`!empty`**, **`!not-empty`**, **`!and`**, **`!or`**, **`!int`**, **`!str`**, **`!bool`**, **`!float`**, **`!to-json-str`**, **`!from-json-str`**, **`!sha256-json`**, **`!pick`**, **`!validation`**); типы — **`!$Type`** (решение 28D). **Только handle `!` (54, 55):** в документе knarr **любой `!!` — ошибка** (`!!ref` / `!!str` / `!!null` в т.ч.).
+- Локальные теги языка (`!policy`, `!typedef`, `!bind`, `!ref`, `!foreach`, `!emit`, **`!emit?`**, `!emit-foreach`, `!import`, `!read`, `!not`, `!expr`, `!match`, **`!concat`**, **`!join`**, **`!split`**, **`!format`**, **`!b64enc`**, **`!b64dec`**, **`!len`**, **`!sha256`**, **`!merge`**, **`!range`**, **`!is-empty`**, **`!is-not-empty`**, **`!skip-empty`**, **`!and`**, **`!or`**, **`!int`**, **`!str`**, **`!bool`**, **`!float`**, **`!to-json-str`**, **`!from-json-str`**, **`!sha256-json`**, **`!pick`**, **`!validation`**); типы — **`!$Type`** (решение 28D). **Только handle `!` (54, 55):** в документе knarr **любой `!!` — ошибка** (`!!ref` / `!!str` / `!!null` в т.ч.). **`!empty` / `!not-empty` / `!omit-empty` — ошибка (140)**, не синоним.
 - Непомеченный документ — **ошибка** (нужен `!bind` / `!emit` / **`!emit?`** / `!emit-foreach` / **`!import`** / **`!validation`**, либо prelude `!policy`/`!typedef`)
 - Документы и поля с ролью «мета» / именованные значения — через **`$…`**
 - **Служебные ключи mapping (решение 77):** на knarr-meta (`!foreach`, `!join`, `!match`, `$when` у `!emit`, …) каждый служебный ключ **обязан** начинаться с `$`. Голый ident (`when:`, `over:`, `sep:`, `of:`, `if:`) — **ошибка**, не синоним `$when` / `$over` / …. Не относится к ключам K8s в теле `!emit` / `$yield` / `$then` (`apiVersion:`). Sequence-теги (`!concat` / `!format` / `!pick` / …) и scalar (`!ref` / `!len`) именованных служебных полей не имеют. Новый служебный ключ — тоже только `$…`.
@@ -64,10 +64,10 @@ spec:
 
 - `$Name: !bind` — ошибка (как `$Name: !emit` / `$Name: !emit-foreach` / **`$Name: !validation`**).
 - Ключ — **`BindingName`** или **`$Name?:`** (решение **51**). Пустой `!bind` / иной ключ — ошибка.
-- **`$Name?:` (51, **120**):** имя **в графе** (форс как обычный bind). Значение **обязано** быть omit-способным (`?.` / `$Other?` / `$Other?.…`). Во **всех** `!ref` / `!expr` / `!not` / **`!empty` / `!not-empty` / `!int` / `!str` / `!bool` / `!float` / `!to-json-str` / `!from-json-str` / `!sha256-json` / `!b64enc` / `!b64dec` / `!len` / `!format`** это имя пишется только как **`$Name?`** (маркер omit), дальше обычный trail: `!ref $Tls?`, `!ref $Tls.cert?`, `!expr "$Tls.host? == $H"`, **`!len $X.y?`**. Голый `$Tls` / `$Tls.cert` — ошибка (**проверять**). Если значение содержит `$Name?` / omit-путь, ключ YAML **обязан** `?:` (`tls?: !ref $Tls?`, **`$N?: !len $X.y?`**). `имя: !ref $Tls?` / `имя?: !ref $Tls` / **`$N: !len $X.y?`** — ошибка. Обязательный bind → `$Name?` в ссылке — ошибка (**проверять**).
+- **`$Name?:` (51, **120**):** имя **в графе** (форс как обычный bind). Значение **обязано** быть omit-способным (`?.` / `$Other?` / `$Other?.…`). Во **всех** `!ref` / `!expr` / `!not` / **`!is-empty` / `!is-not-empty` / `!skip-empty` / `!int` / `!str` / `!bool` / `!float` / `!to-json-str` / `!from-json-str` / `!sha256-json` / `!b64enc` / `!b64dec` / `!len` / `!format`** это имя пишется только как **`$Name?`** (маркер omit), дальше обычный trail: `!ref $Tls?`, `!ref $Tls.cert?`, `!expr "$Tls.host? == $H"`, **`!len $X.y?`**. Голый `$Tls` / `$Tls.cert` — ошибка (**проверять**). Если значение содержит `$Name?` / omit-путь, ключ YAML **обязан** `?:` (`tls?: !ref $Tls?`, **`$N?: !len $X.y?`**). `имя: !ref $Tls?` / `имя?: !ref $Tls` / **`$N: !len $X.y?`** — ошибка. Обязательный bind → `$Name?` в ссылке — ошибка (**проверять**).
 - **`$Name?: !$T`** — ошибка (v1). Объявить и `$Name:` и `$Name?:` — дубликат.
 - Ключ **`$Release` / `$Chart` / `$Capabilities`** — ошибка (решение 31), в т.ч. `$Release?:`.
-- Значения — обычные узлы knarr (`!$Type`, `!ref`, `!expr`, `!foreach`, `!read`, `!match`, **`!concat` (59)**, **`!join`/`!split` (62)**, **`!format` (75, `$Name?:` — 76)**, **`!b64enc`/`!b64dec`/`!len` (76)**, **`!sha256` (63)**, **`!merge` (64)**, **`!range` (65)**, **`!empty`/`!not-empty`/`!and`/`!or` (66)**, **`!int`/`!str`/`!bool` (67)**, **`!float` (81)**, **`!to-json-str`/`!from-json-str`/`!sha256-json` (71)**, **`!pick` (73)**, литералы). **`!import` не значение** (решение **44**). **`!range` (107):** корень `$Name` или **`$Name?:`** (пара с `$from`/`$to`/`$until`). **`!foreach` (97, 100, **108**):** корень `$Name` или **`$Name?:`** (пара с `$over` и/или **`$yield?:`**). **`!join` (99):** корень `$Name` или **`$Name?:`** (пара с `$over`). **`!split` (102) / `!sha256` (103):** корень `$Name` или **`$Name?:`** (пара с `$of`). **`!concat` (104) / `!format`:** корень `$Name` или **`$Name?:`** (пара с omit-ребёнком). **`!merge` (105):** корень `$Name` или **`$Name?:`** (все дети omit-способны). На **`$Name?:`** литерал / mapping без omit-пути — ошибка. **`!empty`/`!not-empty`/`!and`/`!or`** всегда bool, не omit: `$Name?:` с ними — ошибка. **`!pick`** всегда значение: `$Name?: !pick` — ошибка. **`!int`/`!str`/`!bool`/`!float`/`!to-json-str`/`!from-json-str`/`!sha256-json`/`!b64enc`/`!b64dec`/`!len`** omit-способны (`?.` / `$Name?`). **`$N?: !len $X.y?`** / **`$Fmt?: !format`** с omit-детьми — ок (**76**).
+- Значения — обычные узлы knarr (`!$Type`, `!ref`, `!expr`, `!foreach`, `!read`, `!match`, **`!concat` (59)**, **`!join`/`!split` (62)**, **`!format` (75, `$Name?:` — 76)**, **`!b64enc`/`!b64dec`/`!len` (76)**, **`!sha256` (63)**, **`!merge` (64)**, **`!range` (65)**, **`!is-empty`/`!is-not-empty`/`!and`/`!or` (66)**, **`!int`/`!str`/`!bool` (67)**, **`!float` (81)**, **`!to-json-str`/`!from-json-str`/`!sha256-json` (71)**, **`!pick` (73)**, литералы). **`!import` не значение** (решение **44**). **`!range` (107):** корень `$Name` или **`$Name?:`** (пара с `$from`/`$to`/`$until`). **`!foreach` (97, 100, **108**):** корень `$Name` или **`$Name?:`** (пара с `$over` и/или **`$yield?:`**). **`!join` (99):** корень `$Name` или **`$Name?:`** (пара с `$over`). **`!split` (102) / `!sha256` (103):** корень `$Name` или **`$Name?:`** (пара с `$of`). **`!concat` (104) / `!format`:** корень `$Name` или **`$Name?:`** (пара с omit-ребёнком). **`!merge` (105):** корень `$Name` или **`$Name?:`** (все дети omit-способны). На **`$Name?:`** литерал / mapping без omit-пути — ошибка. **`!is-empty`/`!is-not-empty`/`!and`/`!or`** всегда bool, не omit: `$Name?:` с ними — ошибка. **`!skip-empty` (140):** `$Name?: !skip-empty` ок; `$Name: !skip-empty` — ошибка. **`!pick`** всегда значение: `$Name?: !pick` — ошибка. **`!int`/`!str`/`!bool`/`!float`/`!to-json-str`/`!from-json-str`/`!sha256-json`/`!b64enc`/`!b64dec`/`!len`** omit-способны (`?.` / `$Name?`). **`$N?: !len $X.y?`** / **`$Fmt?: !format`** с omit-детьми — ок (**76**).
 - `!bind` не в stdout. Имена из всех `!bind` + ключи `!typedef` — глобальный граф; дубликат `$Name` — ошибка.
 
 ### 3.2.2 Зарезервированные `$Release` / `$Chart` / `$Capabilities`
@@ -159,7 +159,7 @@ $rules:
 $warning: !ref $Warn
 ```
 
-- **`$rules`:** sequence (≥1). Элемент — `!expr` / `!ref` / `!not` / **`!empty` / `!not-empty` / `!and` / `!or` (66)**. Пустой список / не sequence — ошибка. **`$rules` — утверждения: результат должен быть истинным** (must-true). Required values: **`!not-empty`**, не `!empty` (`!empty` как правило = «должно быть пусто»).
+- **`$rules`:** sequence (≥1). Элемент — `!expr` / `!ref` / `!not` / **`!is-empty` / `!is-not-empty` / `!and` / `!or` (66)**. Пустой список / не sequence — ошибка. **`$rules` — утверждения: результат должен быть истинным** (must-true). Required values: **`!is-not-empty`**, не `!is-empty` (`!is-empty` как правило = «должно быть пусто»).
 - Результат элемента: **omit** или **`false`** — нарушение; **`true`** или любое другое конкретное значение (string / seq / map / int) — ок (presence). Не bool-закон на непустую строку: `""` — ок. Смесь типов в списке можно.
 - Первое нарушение: сообщение из `$fail` / `$warning` (после оценки — **string**; `!expr` можно). Не string / omit сообщения — ошибка. Дальнейшие правила этого документа **не считают**.
 - **`$fail`:** сообщение в **stderr** (+ `\n`); **stdout пустой**; **exit 1**; остальные `!validation` / `!emit` **не считают**.
@@ -469,7 +469,7 @@ data:
 ```
 
 - **`!b64enc` / `!b64dec`:** аргумент и результат — **string**. Encode = UTF-8 байты, RFC 4648 без переносов. Decode: невалидный алфавит / не-UTF-8 — ошибка. Не string — ошибка. `""` → `""`.
-- **`!len`:** результат **int**. Sequence — число элементов; mapping — число ключей; string — **байты UTF-8** (не руны). bool / int / **float** / не тот сорт — ошибка. Пустой список / map / `""` → `0` (это значение, не omit). Не `size()`. `$when: !len` — ошибка (нужен bool: **`!not-empty`**).
+- **`!len`:** результат **int**. Sequence — число элементов; mapping — число ключей; string — **байты UTF-8** (не руны). bool / int / **float** / не тот сорт — ошибка. Пустой список / map / `""` → `0` (это значение, не omit). Не `size()`. `$when: !len` — ошибка (нужен bool: **`!is-not-empty`**).
 - Omit операнда (`?.` / `$Name?`) → omit тега. Пара **51**: `$N?: !len $X.y?` ок; `$N: !len $X.y?` / `$N?: !len $X.y` — ошибка.
 - Last (74): `$N: !len $Xs` затем `$I: !expr "$N - 1"` затем `$Xs[$I]`.
 
@@ -837,7 +837,7 @@ Omit в stdout (ключа нет), только если **оба** явные:
 1. ключ с суффиксом `?:`;
 2. значение дало omit (`?.` на пути, **без** `??`) **или** (решение 32) optional mapping **`{}`** **или** (**97**) **`!foreach`**, у которого **omit `$over`**, **или** (**108**) **`имя?: !foreach`** + **`$yield?:`** + печатать нечего.
 
-**`[]` не omit (94).** Пустой sequence — значение. `имя?: !ref $Values.init?` при `init: []` → `init: []` в stdout. Не схлопывать `[]` как пустой `{}`. **Исключение 108:** `имя?: !foreach` + `$yield?:` + пустой результат → нет ключа. Пропуск empty иначе — **`!not-empty` + `!match` без `$else` на ключе `?:`**, либо `$when` / `$filter`. **`!empty` как значение поля** — bool, не omit списка.
+**`[]` не omit (94).** Пустой sequence — значение. `имя?: !ref $Values.init?` при `init: []` → `init: []` в stdout. Не схлопывать `[]` как пустой `{}`. **Исключение 108:** `имя?: !foreach` + `$yield?:` + пустой результат → нет ключа. Пропуск empty на ключе `?:` — **`!skip-empty` (140)**; иначе **`!is-not-empty` + `!match` без `$else`**, либо `$when` / `$filter`. **`!is-empty` как значение поля** — bool, не omit списка.
 
 **Дерево `?:` (решение 32).** В mapping в `!emit` / `$yield` / `$then` (не bind):
 
@@ -899,13 +899,13 @@ host?: !ref "$Values.tls?.host ?? 'localhost'"
 **`??` (весь скаляр `!ref` / `!expr` / тот же `RefScalar` у coerce / `!len` / JSON / b64; **не `!not` (86)**; решения **82**, **83**, **84**, **85**):** ровно один (решение **73**: N-way — **`!pick`**). Слева путь (`!ref`) или **формула** (`!expr`, не чистый `RefPath` и не константа). Справа значение; результат всегда значение → ключ YAML есть. Поле: **`!ref $X.y? ?? '…'`**. Формула: **`!expr "$X.a? || $X.b? ?? false"`**. `$when` / `$filter`: `?? false` или YAML **`true`/`false`**. `$over` у **`имя: !foreach`** / **`$Name: !foreach`** / **`$Name: !join`**: **`?? []`** / **`?? {}`**. `$of` у **`$Name: !split`** / **`$Name: !sha256`**: **`?? ''`**. `$over` у **`имя?: !foreach`** / **`$Name?: !foreach`**: **без `??`**, кроме **`$yield?:` + `?? []`/`{}` (109)**. `$over` у **`$Name?: !join`**: **без `??` (99)**. `$of` у **`$Name?: !split`** / **`$Name?: !sha256`**: **без `??` (102, 103)**. **`!not … ??` — ошибка.**  
 Не канон: `?:`, ` : `, `!?:` как Elvis.
 
-Omit нельзя: элемент sequence, тело `!emit` кроме `$else: ""`, **`$when` / `$filter` / `$if`** с результатом omit (**112**: нужен `?? false`, обязательный bool или **`!empty` / `!not-empty`**; omit ≠ false).
+Omit нельзя: элемент sequence, тело `!emit` кроме `$else: ""`, **`$when` / `$filter` / `$if`** с результатом omit (**112**: нужен `?? false`, обязательный bool или **`!is-empty` / `!is-not-empty`**; omit ≠ false).
 
 Не-Ident ключ в **`!ref`**: `"$Values.labels['app.kubernetes.io/name']"` (решение **48**). То же в `!expr`: `$Values.labels["app.kubernetes.io/name"]`. Тега **`!path` нет**.
 
 ### 3.5 Условия — `$when`
 
-`$when` живёт на **`!emit?`** (`$when` + `$then`, **без** `$else` — **133**), на **`!emit`** (обязательны `$then` **и** `$else`) или опционально на **`!emit-foreach`** (решение **40**, без `$then`/`$else`). Не на bind. Значение — предикат **bool (66):** `!ref` / `!not` / **`!expr`** / **`!empty` / `!not-empty` / `!and` / `!or`** / YAML **`true`/`false`** (**85**: не `!expr "true"`). Omit — **ошибка (112)** и на `!emit?`, не `false`.
+`$when` живёт на **`!emit?`** (`$when` + `$then`, **без** `$else` — **133**), на **`!emit`** (обязательны `$then` **и** `$else`) или опционально на **`!emit-foreach`** (решение **40**, без `$then`/`$else`). Не на bind. Значение — предикат **bool (66):** `!ref` / `!not` / **`!expr`** / **`!is-empty` / `!is-not-empty` / `!and` / `!or`** / YAML **`true`/`false`** (**85**: не `!expr "true"`). Omit — **ошибка (112)** и на `!emit?`, не `false`.
 
 ```yaml
 $when: true
@@ -955,44 +955,63 @@ $when: !not
   of: !ref $SomeBool
 ```
 
-### 3.5.0 Предикаты — `!empty` / `!not-empty` / `!and` / `!or`
+### 3.5.0 Предикаты — `!is-empty` / `!is-not-empty` / `!and` / `!or`
 
 **Решение 66:** пустота и булева сборка — теги, не host `empty`. Результат — **bool**. Документ с этими тегами — ошибка.
 
-**`!empty` / `!not-empty`:** tagged **scalar**, тот же `RefScalar`, что у `!ref`. Один узел — один тег. Не `!nempty`. Не `!empty { $of: … }`.
+**`!is-empty` / `!is-not-empty`:** tagged **scalar**, тот же `RefScalar`, что у `!ref`. Один узел — один тег. Не `!nempty`. Не `!is-empty { $of: … }`. **`!empty` / `!not-empty` — ошибка (140)**, не синоним.
 
-Helm `empty` (заморожено, **128**): **true** для omit (`?` на поле / `$Name?` без значения), `""`, `[]`, `{}`, `false`, int **`0`**, float **`0.0` / `-0.0`**. Иначе **false** (непустая строка / seq / map, `true`, ненулевой int / float). Missing **без** `?` на шаге — ошибка пути (8). **`!not-empty`** ≡ отрицание `!empty` того же пути. Helm **`| default`** в guide (**134**) = **`!match`** + **`!empty`**, не `??`.
+Helm `empty` (заморожено, **128**): **true** для omit (`?` на поле / `$Name?` без значения), `""`, `[]`, `{}`, `false`, int **`0`**, float **`0.0` / `-0.0`**. Иначе **false** (непустая строка / seq / map, `true`, ненулевой int / float). Missing **без** `?` на шаге — ошибка пути (8). **`!is-not-empty`** ≡ отрицание `!is-empty` того же пути. Helm **`| default`** в guide (**134**) = **`!match`** + **`!is-empty`**, не `??`.
 
 ```yaml
 ---
 !emit
-$when: !not-empty $Values.sidecars?
+$when: !is-not-empty $Values.sidecars?
 $then:
   kind: ConfigMap
 $else: ""
 ```
 
-**`!and` / `!or`:** tagged **sequence**. Дети — предикаты bool: `!ref` / `!not` / `!empty` / `!not-empty` / `!and` / `!or` / `!expr` (результат bool) / литерал bool. ≥1 элемент. Пустой `[]` — ошибка. Mapping-носитель — ошибка. Вложение `!and`/`!or` можно. Считают **всех** детей (нет short-circuit). Omit ребёнка — ошибка. Не bool — ошибка.
+**`!skip-empty` (140):** tagged **scalar**, тот же `RefScalar`. Empty (как у `!is-empty`) → **omit значения**; иначе значение без изменения. Не bool. Не предикат.
 
-**Comparison Helm `and` + `gt` (136):** `if and .Values.service.enabled (gt .Values.replicas 1)` — пара `!emit?` + `$when: !and` (`!not-empty` на `service?.enabled?`; `!expr "$Values.replicas? > 1 ?? false"`). Не Impossible.
+Только **целое значение ключа, где omit уже законен:**
 
-**Comparison Helm `range` + `if and .ports .enabled` (138):** `env:` + фильтр элемента = `env?: !foreach` + `$filter: !and` двух `!not-empty` + `$yield?:` mapping `name`. Не Impossible. Не `!and` сырого seq/bool.
+- `имя?:` в mapping `!emit` / `$yield` / `$then` / `$else`;
+- **`$Name?:`** в `!bind`;
+- **`$yield?:`**.
 
-**Comparison Helm `and` строк в поле (139):** `name: {{ and .Values.name .Values.image }}` — пара `name?: !match` + `!not-empty` (Go `and x y` = если x truthy то y иначе x). Не Impossible. Не `!and` строк.
+Иначе **ошибка**, в т.ч. `имя:` без `?:`, `$when` / `$filter` / `$if`, ключ `$then` / `$else` / `$over` / `$of`, элемент sequence, ребёнок `!pick` / `!and` / `!or` / `!concat`. Нет `!skip-not-empty`. Нет `!omit-empty`. `??` на том же скаляре с `имя?:` — ошибка пары листа (**111**).
+
+**Comparison `if .Values.tls` + поле (140, снимает 135):** `tls?: !skip-empty $Values.tls?`. Не `tls?: !ref` (печатает `false` / `""` / `[]`).
+
+```yaml
+tls?: !skip-empty $Values.tls?
+initContainers?: !skip-empty $Values.init?
+$Tls?: !skip-empty $Values.tls?
+$yield?: !skip-empty $Worker.sidecar?
+```
+
+**`!and` / `!or`:** tagged **sequence**. Дети — предикаты bool: `!ref` / `!not` / `!is-empty` / `!is-not-empty` / `!and` / `!or` / `!expr` (результат bool) / литерал bool. ≥1 элемент. Пустой `[]` — ошибка. Mapping-носитель — ошибка. Вложение `!and`/`!or` можно. Считают **всех** детей (нет short-circuit). Omit ребёнка — ошибка. Не bool — ошибка. **`!skip-empty` в `!and` / `!or` — ошибка.**
+
+**Comparison Helm `and` + `gt` (136):** `if and .Values.service.enabled (gt .Values.replicas 1)` — пара `!emit?` + `$when: !and` (`!is-not-empty` на `service?.enabled?`; `!expr "$Values.replicas? > 1 ?? false"`). Не Impossible.
+
+**Comparison Helm `range` + `if and .ports .enabled` (138):** `env:` + фильтр элемента = `env?: !foreach` + `$filter: !and` двух `!is-not-empty` + `$yield?:` mapping `name`. Не Impossible. Не `!and` сырого seq/bool.
+
+**Comparison Helm `and` строк в поле (139):** `name: {{ and .Values.name .Values.image }}` — пара `name?: !match` + `!is-not-empty` (Go `and x y` = если x truthy то y иначе x). Не Impossible. Не `!and` строк.
 
 ```yaml
 $when: !or
-  - !empty $Values.tls?
-  - !empty $Values.cert?
+  - !is-empty $Values.tls?
+  - !is-empty $Values.cert?
 
 $filter: !and
-  - !not-empty $S.ports?
-  - !not-empty $S.enabled?
+  - !is-not-empty $S.ports?
+  - !is-not-empty $S.enabled?
 ```
 
-**`!not` не оборачивает** `!empty` / `!and` / `!or` (по-прежнему только scalar-путь). Invert `!or` — De Morgan: `!and` + `!not-empty`, либо `||` / `&&` в `!expr` для уже-bool.
+**`!not` не оборачивает** `!is-empty` / `!and` / `!or` (по-прежнему только scalar-путь). Invert `!or` — De Morgan: `!and` + `!is-not-empty`, либо `||` / `&&` в `!expr` для уже-bool.
 
-`$Name?: !empty` / `!$T` на том же узле — ошибка (всегда bool, не omit).
+`$Name?: !is-empty` / `!$T` на том же узле — ошибка (всегда bool, не omit).
 
 Host **`empty`** в `!expr` — ошибка. `has()` нет.
 
@@ -1014,7 +1033,7 @@ spec:
 ```
 
 - Ровно ключи **`$if`** + **`$then`**; **`$else`** можно. Других ключей нет. `$when` внутри `!match` — ошибка.
-- `$if` — предикат bool (66): `!ref` / `!not` / **`!expr`** / **`!empty` / `!not-empty` / `!and` / `!or`** / YAML **`true`/`false`**. Голое `$if: $Values.ha` — ошибка. Omit без `??` — **ошибка (112)**.
+- `$if` — предикат bool (66): `!ref` / `!not` / **`!expr`** / **`!is-empty` / `!is-not-empty` / `!and` / `!or`** / YAML **`true`/`false`**. Голое `$if: $Values.ha` — ошибка. Omit без `??` — **ошибка (112)**.
 - **`!match` как sequence** (список веток `- $if` / `- $else`) — **ошибка** (37). Else-if — только вложенный `$else: !match` (тот же mapping).
 - `$if` истинно → `$then`; иначе `$else`; нет `$else` → **omit**. Невзятую сторону **не считают** (36).
 - Omit ключа stdout только при **`имя?: !match`**. **`имя: !match`** без `$else` — ошибка. Omit как элемент sequence — ошибка. Omit корня **`$yield:`** — ошибка (дырка). Omit корня **`$yield?:`** — пропуск итерации (**52**).
@@ -1171,7 +1190,7 @@ spec:
 ```yaml
 ---
 !emit-foreach
-  $when: !not-empty $Values.deployWorkers?
+  $when: !is-not-empty $Values.deployWorkers?
   $over: !ref $Values.workers?
   $as: $Worker
   $filter: !ref $Worker.enabled? ?? false
@@ -1234,7 +1253,7 @@ metadata:
 
 - Ровно **один** YAML-документ (**69**); JSON как YAML 1.2 — ок; multi-doc — ошибка. Пустой файл — ошибка.
 - **Якоря (70):** `&` / `*` / `<<:` в файле `!read` допустимы; результат — развёрнутое дерево. Цикл — ошибка. В knarr-документе (в т.ч. `!import`) те же конструкции — ошибка.
-- Локальные теги knarr (`!bind`, `!ref`, `!expr`, `!match`, `!foreach`, `!concat`, `!join`, `!split`, `!format`, `!b64enc`, `!b64dec`, `!len`, `!sha256`, `!merge`, `!range`, `!empty`, `!not-empty`, `!and`, `!or`, `!int`, `!str`, `!bool`, `!float`, `!to-json-str`, `!from-json-str`, `!sha256-json`, `!pick`, `!validation`, `!emit`, `!emit?`, `!emit-foreach`, `!import`, `!read`, `!policy`, `!typedef`, `!not`, `!$Type`) — **ошибка**. Core-теги YAML 1.2 (`!!str`, `!!int`, …) **в файле `!read` допустимы** (данные, не knarr; решение **55**). **`!!ref`** в `!read` — ошибка. **`!!null`** в `!read` = YAML null ≡ нет ключа / omit корня (**130**).
+- Локальные теги knarr (`!bind`, `!ref`, `!expr`, `!match`, `!foreach`, `!concat`, `!join`, `!split`, `!format`, `!b64enc`, `!b64dec`, `!len`, `!sha256`, `!merge`, `!range`, `!is-empty`, `!is-not-empty`, `!skip-empty`, `!and`, `!or`, `!int`, `!str`, `!bool`, `!float`, `!to-json-str`, `!from-json-str`, `!sha256-json`, `!pick`, `!validation`, `!emit`, `!emit?`, `!emit-foreach`, `!import`, `!read`, `!policy`, `!typedef`, `!not`, `!$Type`) — **ошибка**. Core-теги YAML 1.2 (`!!str`, `!!int`, …) **в файле `!read` допустимы** (данные, не knarr; решение **55**). **`!!ref`** в `!read` — ошибка. **`!!null`** в `!read` = YAML null ≡ нет ключа / omit корня (**130**).
 - `$Name: !$T` и `$Name: !read` — два тега, нельзя.
 - Свои ключи файла **не** становятся `$Name`.
 

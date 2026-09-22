@@ -1,4 +1,4 @@
-# `!empty`
+# `!is-empty`
 
 **Empty** test → bool.
 
@@ -7,15 +7,17 @@
 
 Missing **without** `?` on that field is a path error, not empty.
 
-Inverse: [`!not-empty`](not-empty.md).
+Inverse: [`!is-not-empty`](is-not-empty.md). To drop an empty **field** (not a bool), use [`!skip-empty`](skip-empty.md) on a `?:` key.
+
+`!empty` is not a tag (error, not a synonym).
 
 ## Syntax
 
 ```yaml
-$when: !empty $Values.tls?
+$when: !is-empty $Values.tls?
 ```
 
-Tagged scalar `RefScalar`. Result is bool — not omit (so `$Name?: !empty` is an error).
+Tagged scalar `RefScalar`. Result is bool — not omit (so `$Name?: !is-empty` is an error).
 
 ## Examples
 
@@ -23,37 +25,35 @@ Tagged scalar `RefScalar`. Result is bool — not omit (so `$Name?: !empty` is a
 
 ```yaml
 !emit?
-$when: !empty $Values.tls?
+$when: !is-empty $Values.tls?
 $then:
   kind: ConfigMap
   name: no-tls
 ```
 
-Usually you want the opposite: [`!not-empty`](not-empty.md) to emit when TLS exists.
+Usually you want the opposite: [`!is-not-empty`](is-not-empty.md) to emit when TLS exists.
 
 ### Validation: field must be empty
 
 ```yaml
 !validation
 $rules:
-  - !empty $Values.deprecated?
+  - !is-empty $Values.deprecated?
 $fail: "remove deprecated"
 ```
 
 ### Filter empty hostnames
 
 ```yaml
-$filter: !empty $E.optionalNote?
+$filter: !is-empty $E.optionalNote?
 ```
 
-### Do not put `!empty` on a field
+### Do not put `!is-empty` on a field
 
-`[]` stays in output. `!empty` is a bool. To drop an empty list, use [`!not-empty`](not-empty.md) with [`!match`](match.md):
+`[]` stays in output. `!is-empty` is a bool. To drop an empty list, use [`!skip-empty`](skip-empty.md):
 
 ```yaml
-initContainers?: !match
-  $if: !not-empty $Values.init?
-  $then: !ref $Values.init
+initContainers?: !skip-empty $Values.init?
 ```
 
 ## Common mistakes
@@ -74,11 +74,11 @@ $then:
 
 ```yaml
 !emit?
-$when: !empty $Values.tls?
+$when: !is-empty $Values.tls?
 $then:
   kind: ConfigMap
   name: no-tls
-# emptiness is the !empty tag
+# emptiness is the !is-empty tag
 ```
 
 </td></tr>
@@ -96,11 +96,11 @@ $then:
 
 ```yaml
 !emit?
-$when: !not-empty $Values.sidecars?
+$when: !is-not-empty $Values.sidecars?
 $then:
   kind: ConfigMap
   name: sidecars
-# use !not-empty
+# use !is-not-empty
 ```
 
 </td></tr>
@@ -108,17 +108,15 @@ $then:
 
 ```yaml
 !emit
-initContainers?: !empty $Values.init?
-# !empty is bool, not omit of []
+initContainers?: !is-empty $Values.init?
+# !is-empty is bool, not omit of []
 ```
 
 </td><td>
 
 ```yaml
 !emit
-initContainers?: !match
-  $if: !not-empty $Values.init?
-  $then: !ref $Values.init
+initContainers?: !skip-empty $Values.init?
 # skip missing and []
 ```
 
@@ -127,21 +125,21 @@ initContainers?: !match
 
 ```yaml
 !emit?
-$when: !not !empty $Values.tls?
+$when: !not !is-empty $Values.tls?
 $then:
   kind: ConfigMap
-# !not does not wrap !empty
+# !not does not wrap !is-empty
 ```
 
 </td><td>
 
 ```yaml
 !emit?
-$when: !not-empty $Values.tls?
+$when: !is-not-empty $Values.tls?
 $then:
   kind: ConfigMap
   name: tls
-# use !not-empty or !expr
+# use !is-not-empty or !expr
 ```
 
 </td></tr>
@@ -149,21 +147,42 @@ $then:
 
 ```yaml
 !emit?
-$when: !empty $Values.tls
+$when: !is-empty $Values.tls
 $then:
   kind: ConfigMap
-# missing tls without ?. is an error, not empty
+# missing tls without ? on the field is an error, not empty
 ```
 
 </td><td>
 
 ```yaml
 !emit?
-$when: !empty $Values.tls?
+$when: !is-empty $Values.tls?
 $then:
   kind: ConfigMap
   name: no-tls
-# ?. turns a missing path into omit, which !empty treats as true
+# ? turns a missing path into omit, which !is-empty treats as true
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!emit?
+$when: !empty $Values.tls?
+$then:
+  kind: ConfigMap
+# !empty is not a tag
+```
+
+</td><td>
+
+```yaml
+!emit?
+$when: !is-empty $Values.tls?
+$then:
+  kind: ConfigMap
+  name: no-tls
 ```
 
 </td></tr>
@@ -171,12 +190,13 @@ $then:
 
 ## See also
 
-- [`!not-empty`](not-empty.md)
+- [`!is-not-empty`](is-not-empty.md)
+- [`!skip-empty`](skip-empty.md)
 - [`!and`](and.md)
 
 ## Comparison with Helm
 
-`!empty` is true for omit, `""`, `[]`, `{}`, `false`, `0`, `0.0`. Missing without `?` on that field still errors.
+`!is-empty` is true for omit, `""`, `[]`, `{}`, `false`, `0`, `0.0`. Missing without `?` on that field still errors.
 
 <table>
 <tr><th>Helm</th><td>
@@ -192,7 +212,7 @@ kind: ConfigMap
 
 ```yaml
 !emit?
-$when: !empty $Values.tls?
+$when: !is-empty $Values.tls?
 $then:
   kind: ConfigMap
 ```
@@ -200,7 +220,7 @@ $then:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. `$then` is the whole document. Helm `empty` ≡ `!empty`.
+Same result. `$then` is the whole document. Helm `empty` ≡ `!is-empty`.
 
 </td></tr>
 </table>
@@ -248,7 +268,7 @@ env:
 env?: !foreach
   $over: !ref $Values.env?
   $as: $E
-  $filter: !empty $E.optionalNote?
+  $filter: !is-empty $E.optionalNote?
   $yield?:
     name: !ref $E.name
 ```
@@ -256,7 +276,7 @@ env?: !foreach
 </td></tr>
 <tr><th>Difference</th><td>
 
-Empty range: Helm `env: null` ≡ no `env`.
+Same result. Helm `if empty` ≡ `!is-empty`.
 
 </td></tr>
 </table>

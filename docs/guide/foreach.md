@@ -27,7 +27,7 @@ One `$over` for a sequence **or** a mapping (`?? []` or `?? {}` — you pick the
 
 `$yield?:` — if the value omits, **skip the iteration** (list shrinks). On `env?:` / `$Items?:`, a fully empty result also **omits the key / bind**. `$yield:` + omit is an error. `$yield?` without `:` is an error.
 
-An empty list **value** (`[]` in values) stays `[]` unless the field is `?:` **and** the loop uses `$yield?:`. Otherwise skip empty lists with [`!not-empty`](not-empty.md) + [`!match`](match.md) on a `?:` key.
+An empty list **value** (`[]` in values) stays `[]` unless the field is `?:` **and** the loop uses `$yield?:`. Otherwise skip empty lists with [`!skip-empty`](skip-empty.md) on a `?:` key.
 
 `$over?:` is an error. Omit **value** of `$over` is allowed with `key?:`, `$Name?:` in bind, or on [`!emit-foreach`](emit-foreach.md) → zero documents.
 
@@ -441,7 +441,7 @@ env:
 env?: !foreach
   $over: !ref $Values.env?
   $as: $E
-  $filter: !not-empty $E.enabled?
+  $filter: !is-not-empty $E.enabled?
   $yield?:
     name: !ref $E.name
     value: !ref $E.value
@@ -450,7 +450,7 @@ env?: !foreach
 </td></tr>
 <tr><th>Difference</th><td>
 
-All filtered out: Helm `env: null` ≡ no `env`. Helm `if` ≡ `!not-empty`. `| quote` is text quotes.
+All filtered out: Helm `env: null` ≡ no `env`. Helm `if` ≡ `!is-not-empty`. `| quote` is text quotes.
 
 </td></tr>
 </table>

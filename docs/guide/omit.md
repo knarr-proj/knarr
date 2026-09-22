@@ -13,10 +13,11 @@ This page is the **hub** for omit markers. Tag guides (`!ref`, `!expr`, `!foreac
 | `?` on a path field | `!ref` / `!expr` / `!not` / coerce (`$Values.tls?`, `$Values.ingress?.enabled?`) | That **field** may be absent → **omit value**, not error. No `?.` operator. |
 | `$Name?:` | bind key | Optional bind; elsewhere write **`$Name?`** |
 | `??` | one on the whole `!ref` or `!expr` (not `!not`) | Default of that value; key stays |
+| [`!skip-empty`](skip-empty.md) | whole value of `имя?:` / `$Name?:` / `$yield?:` | Empty (same set as `!is-empty`) → omit the value; else keep it |
 
 Leaf omit needs **both** `?:` on the key and an omit-capable value.
 
-Optional mapping: every child is `?:` iff the parent is. Empty optional `{}` → parent omitted (no `spec: {}`). An empty list `[]` is a **value** (the key stays), except [`!foreach`](foreach.md) on `имя?:` with `$yield?:` and nothing to print — then the key is absent. To skip other empty lists the Helm way, use [`!not-empty`](not-empty.md) with [`!match`](match.md) on a `?:` key, or `$when` / `$filter` — not `!empty` as the field value.
+Optional mapping: every child is `?:` iff the parent is. Empty optional `{}` → parent omitted (no `spec: {}`). An empty list `[]` is a **value** (the key stays), except [`!foreach`](foreach.md) on `имя?:` with `$yield?:` and nothing to print — then the key is absent. To skip other empty lists the Helm way, use [`!skip-empty`](skip-empty.md) on a `?:` key — not `!is-empty` as the field value.
 
 ## Examples
 
@@ -108,15 +109,13 @@ env: !foreach
     value: !ref $E.value
 ```
 
-`[]` from [`!ref`](ref.md) is not omitted. Drop an empty list with [`!not-empty`](not-empty.md):
+`[]` from [`!ref`](ref.md) is not omitted. Drop an empty list with [`!skip-empty`](skip-empty.md):
 
 ```yaml
-initContainers?: !match
-  $if: !not-empty $Values.init?
-  $then: !ref $Values.init
+initContainers?: !skip-empty $Values.init?
 ```
 
-No `$else` + `?:` → no key when `init` is missing or `[]`. Do not write `initContainers?: !empty $Values.init?` — that is a bool.
+Do not write `initContainers?: !is-empty $Values.init?` — that is a bool.
 
 ### Optional join bind
 
@@ -424,7 +423,7 @@ host: {{ .Values.tls.host | default "localhost" }}
 ```yaml
 !emit
 host: !match
-  $if: !empty $Values.tls?.host?
+  $if: !is-empty $Values.tls?.host?
   $then: localhost
   $else: !ref $Values.tls.host
 ```
@@ -432,7 +431,7 @@ host: !match
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Helm `| default` ≡ `!empty` then fallback. `??` still fills omit only.
+Same result. Helm `| default` ≡ `!is-empty` then fallback. `??` still fills omit only.
 
 </td></tr>
 </table>
@@ -473,10 +472,10 @@ name: {{ coalesce .Values.fullnameOverride .Values.name "app" }}
 ```yaml
 !emit
 name: !match
-  $if: !not-empty $Values.fullnameOverride?
+  $if: !is-not-empty $Values.fullnameOverride?
   $then: !ref $Values.fullnameOverride
   $else: !match
-    $if: !not-empty $Values.name?
+    $if: !is-not-empty $Values.name?
     $then: !ref $Values.name
     $else: app
 ```
@@ -484,7 +483,7 @@ name: !match
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Helm `coalesce` ≡ nested `!match` + `!not-empty` (empty set, not omit). `!pick` skips omit only.
+Same result. Helm `coalesce` ≡ nested `!match` + `!is-not-empty` (empty set, not omit). `!pick` skips omit only.
 
 </td></tr>
 </table>
@@ -501,12 +500,15 @@ tls: ...
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+tls?: !skip-empty $Values.tls?
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` is truthiness: `false` / `""` / `0` / `[]` skip. Missing / `tls: null` / `{}` omit on both (`?:` and optional `{}` collapse). Do not pair this snippet with `tls?:` or `!match` + `!not-empty`: that would be a different program. Impossible when `tls` is a present empty-looking scalar.
+Same result. Helm `if` on the field ≡ `?:` + `!skip-empty`. Do not pair this with `tls?: !ref` (that prints `false` / `""` / `[]`).
 
 </td></tr>
 </table>

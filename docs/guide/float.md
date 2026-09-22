@@ -151,7 +151,7 @@ cpu: {{ required "cpu" .Values.cpu }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.cpu?
+  - !is-not-empty $Values.cpu?
 $fail: "cpu"
 ---
 !emit

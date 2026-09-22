@@ -6,8 +6,8 @@ Boolean OR of a sequence of predicates. All children are evaluated (no short-cir
 
 ```yaml
 $when: !or
-  - !empty $Values.tls?
-  - !empty $Values.cert?
+  - !is-empty $Values.tls?
+  - !is-empty $Values.cert?
 ```
 
 Same child rules as [`!and`](and.md).
@@ -26,8 +26,8 @@ $when: !or
 
 ```yaml
 $when: !and
-  - !empty $Values.tls?
-  - !empty $Values.cert?
+  - !is-empty $Values.tls?
+  - !is-empty $Values.cert?
 ```
 
 (`!or` of empties is “at least one missing”.)

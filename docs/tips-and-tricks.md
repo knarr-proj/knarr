@@ -145,11 +145,11 @@ Omit yield → no element (foreach) / no document (emit-foreach). Details: [`!fo
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "set Values.name"
 ```
 
-Details: [`!validation`](guide/validation.md), [`!not-empty`](guide/not-empty.md).
+Details: [`!validation`](guide/validation.md), [`!is-not-empty`](guide/is-not-empty.md).
 
 ## Load values.yaml
 

@@ -190,8 +190,8 @@ $FullName: !format
 ---
 !validation
 $rules:
-  - !not-empty $Values.env?
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.env?
+  - !is-not-empty $Values.name?
 $fail: "env"
 ---
 !emit
@@ -223,7 +223,7 @@ $Values:
 ---
 !validation
 $rules:
-  - !not-empty $Values.replicas?
+  - !is-not-empty $Values.replicas?
 $fail: "replicas"
 ---
 !emit

@@ -312,7 +312,7 @@ name: {{ .name }}
 
 ```yaml
 !emit-foreach
-$when: !not-empty $Values.deployWorkers?
+$when: !is-not-empty $Values.deployWorkers?
 $over: !ref $Values.workers?
 $as: $Worker
 $yield:
@@ -323,7 +323,7 @@ $yield:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same YAML documents. Helm `if` is [`!not-empty`](not-empty.md) (omit / `""` / `[]` / `{}` / `false` / `0` / `0.0`).
+Same YAML documents. Helm `if` is [`!is-not-empty`](is-not-empty.md) (omit / `""` / `[]` / `{}` / `false` / `0` / `0.0`).
 
 </td></tr>
 </table>

@@ -121,7 +121,7 @@ password: {{ required "password" .Values.password | b64enc }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.password?
+  - !is-not-empty $Values.password?
 $fail: "password"
 ---
 !emit
@@ -169,7 +169,7 @@ tls.crt: {{ required "cert" .Values.certPem | b64enc }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.certPem?
+  - !is-not-empty $Values.certPem?
 $fail: "cert"
 ---
 !emit

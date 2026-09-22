@@ -192,7 +192,7 @@ name: {{ required "name" .Values.name }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "name"
 ---
 !emit
@@ -374,7 +374,7 @@ app: {{ required "label" (index .Values.labels "app.kubernetes.io/name") }}
 ```yaml
 !validation
 $rules:
-  - !not-empty "$Values.labels['app.kubernetes.io/name']?"
+  - !is-not-empty "$Values.labels['app.kubernetes.io/name']?"
 $fail: "label"
 ---
 !emit

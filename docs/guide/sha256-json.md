@@ -106,7 +106,7 @@ $Sum: !sha256-json $Values.config
 ---
 !validation
 $rules:
-  - !not-empty $Values.config?
+  - !is-not-empty $Values.config?
 $fail: "config"
 ---
 !emit
@@ -165,7 +165,7 @@ $Sum: !sha256-json $Values.secretData
 ---
 !validation
 $rules:
-  - !not-empty $Values.secretData?
+  - !is-not-empty $Values.secretData?
 $fail: "secret"
 ---
 !emit

@@ -33,7 +33,7 @@ $else:
   kind: Deployment
 ```
 
-- `$when` is a bool predicate (`!ref`, `!not`, `!expr`, `!empty`, `!not-empty`, `!and`, `!or`, or YAML `true` / `false`).
+- `$when` is a bool predicate (`!ref`, `!not`, `!expr`, `!is-empty`, `!is-not-empty`, `!and`, `!or`, or YAML `true` / `false`).
 - `$then` is a mapping (the manifest).
 - On `!emit`, `$else: ""` skips the document; `$else:` may be another mapping.
 - `$Name: !emit` / `$Name: !emit?` is an error.
@@ -220,7 +220,7 @@ name: {{ required "name" .Values.name }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "name"
 ---
 !emit
@@ -251,7 +251,7 @@ name: {{ .Values.name }}
 
 ```yaml
 !emit?
-$when: !not-empty $Values.service?.enabled?
+$when: !is-not-empty $Values.service?.enabled?
 $then:
   kind: Service
   name: !ref $Values.name
@@ -260,7 +260,7 @@ $then:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Helm `if` ≡ `!not-empty`. Missing `service` / `enabled` → omit → no document.
+Same result. Helm `if` ≡ `!is-not-empty`. Missing `service` / `enabled` → omit → no document.
 
 </td></tr>
 </table>

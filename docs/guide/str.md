@@ -131,7 +131,7 @@ replicas: {{ required "replicas" .Values.replicas | toString | quote }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.replicas?
+  - !is-not-empty $Values.replicas?
 $fail: "replicas"
 ---
 !emit
@@ -159,7 +159,7 @@ ha: {{ required "ha" .Values.ha | toString }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.ha?
+  - !is-not-empty $Values.ha?
 $fail: "ha"
 ---
 !emit
@@ -209,7 +209,7 @@ prometheus.io/port: {{ required "port" .Values.port | quote }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.port?
+  - !is-not-empty $Values.port?
 $fail: "port"
 ---
 !emit

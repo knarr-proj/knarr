@@ -29,12 +29,12 @@ These rules apply to every knarr file. This page is the checklist for authors.
 ```yaml
 # Wrong
 port: !int !expr "$Values.port"
-$when: !not !empty $Values.x?
+$when: !not !is-empty $Values.x?
 
 # Right
 $Port: !int $Values.port
 port: !ref $Port
-$when: !not-empty $Values.x?
+$when: !is-not-empty $Values.x?
 ```
 
 [`!not`](../guide/not.md) takes a path scalar, not another tagged node.
@@ -57,7 +57,7 @@ knarr never drops a key because a value “looks empty”.
 
 Both markers are required for omit: key `?:` **and** an omit-capable value (`$Values.tls?` / `$Name?`). See [Omit](../guide/omit.md).
 
-Optional mappings: every child key uses `?:` if and only if the parent does. An optional mapping that evaluates to `{}` is omitted (no `spec: {}`). An empty list `[]` stays, except [`!foreach`](../guide/foreach.md) on a `?:` key with `$yield?:` and nothing to print. To drop other empty lists, [`!not-empty`](../guide/not-empty.md) with [`!match`](../guide/match.md) on a `?:` key.
+Optional mappings: every child key uses `?:` if and only if the parent does. An optional mapping that evaluates to `{}` is omitted (no `spec: {}`). An empty list `[]` stays, except [`!foreach`](../guide/foreach.md) on a `?:` key with `$yield?:` and nothing to print. To drop other empty lists, [`!skip-empty`](../guide/skip-empty.md) on a `?:` key.
 
 ## Expressions
 
@@ -86,9 +86,9 @@ Kubernetes quantities like `"500m"` stay **strings**.
 
 Construct pages compare Helm only when the **result matches**, or they state **impossible** with no fake knarr snippet. “Almost the same” is not a row.
 
-Helm `required` that fails **aborts**: no stdout, stderr only. In a pair that is [`!validation`](../guide/validation.md) (`$fail` + `!not-empty` on the same path). A successful `required` still prints in Helm; knarr prints with `!emit` / `!ref`, not with `!validation` alone. Every Helm `required` in a Comparison row has a knarr `!validation`.
+Helm `required` that fails **aborts**: no stdout, stderr only. In a pair that is [`!validation`](../guide/validation.md) (`$fail` + `!is-not-empty` on the same path). A successful `required` still prints in Helm; knarr prints with `!emit` / `!ref`, not with `!validation` alone. Every Helm `required` in a Comparison row has a knarr `!validation`.
 
-Helm **`| default`** (empty → fallback) is [`!match`](../guide/match.md) with [`!empty`](../guide/empty.md), not `??` / [`!pick`](../guide/pick.md) (those fill omit only).
+Helm **`| default`** (empty → fallback) is [`!match`](../guide/match.md) with [`!is-empty`](../guide/is-empty.md), not `??` / [`!pick`](../guide/pick.md) (those fill omit only).
 
 ## Habits to drop
 

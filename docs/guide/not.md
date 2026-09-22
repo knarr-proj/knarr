@@ -9,7 +9,7 @@ $when: !not $Values.service.enabled
 $Hide: !not $ShowSvc
 ```
 
-One tag, one scalar path. Does **not** wrap `!empty` / `!and` / `!or` (those have [`!not-empty`](not-empty.md) / De Morgan / `!expr`). `??` on `!not` is an error.
+One tag, one scalar path. Does **not** wrap `!is-empty` / `!and` / `!or` (those have [`!is-not-empty`](is-not-empty.md) / De Morgan / `!expr`). `??` on `!not` is an error.
 
 ## Examples
 
@@ -73,21 +73,21 @@ $then:
 
 ```yaml
 !emit?
-$when: !not !empty $Values.tls?
+$when: !not !is-empty $Values.tls?
 $then:
   kind: ConfigMap
-# !not does not wrap !empty
+# !not does not wrap !is-empty
 ```
 
 </td><td>
 
 ```yaml
 !emit?
-$when: !not-empty $Values.tls?
+$when: !is-not-empty $Values.tls?
 $then:
   kind: ConfigMap
   name: tls
-# use !not-empty or !expr
+# use !is-not-empty or !expr
 ```
 
 </td></tr>
@@ -120,7 +120,7 @@ $then:
 
 ## See also
 
-- [`!not-empty`](not-empty.md)
+- [`!is-not-empty`](is-not-empty.md)
 - [`$when`](when.md)
 - [`!ref`](ref.md)
 - [`!expr`](expr.md)
@@ -165,7 +165,7 @@ kind: Deployment
 
 ```yaml
 !emit?
-$when: !empty $Values.debug?
+$when: !is-empty $Values.debug?
 $then:
   kind: Deployment
 ```
@@ -173,7 +173,7 @@ $then:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Helm `not` on empty ≡ `!empty`. `$then` is the whole document.
+Same result. Helm `not` on empty ≡ `!is-empty`. `$then` is the whole document.
 
 </td></tr>
 </table>

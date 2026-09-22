@@ -10,7 +10,6 @@
 
 ---
 
-- {{- if .Values.tls }}tls: ...{{- end }} не решается для `tls: false` / `""` / `[]` knarr печатает, helm - нет.
+- Helm Comparison `if and .Values.service.enabled .Values.tls` → `kind: Service`: пара с `!emit?` + `$when: !and` из `!is-not-empty $Values.service?.enabled?` и `!is-not-empty $Values.tls?`, или Impossible (ворота документа vs поле `tls:` как в omit.md). Отложено.
 
-- Helm Comparison `if and .Values.service.enabled .Values.tls` → `kind: Service`: пара с `!emit?` + `$when: !and` из `!not-empty $Values.service?.enabled?` и `!not-empty $Values.tls?`, или Impossible (ворота документа vs поле `tls:` как в omit.md). Отложено.
-
+- `!skip-empty` только на ключе `?:` / `$Name?:` / `$yield?:`: разрешить ли тот же тег в других слотах, где значение и так может стать omit (`$then` / `$else` у `!match` на ключе `?:`, ребёнок `!pick` кроме последнего, `$over` у `имя?: !foreach`)? Сейчас `$then: !skip-empty` — ошибка, поэтому `name: {{ and .Values.name .Values.image }}` остаётся вложенным `!match` + `!is-not-empty`.

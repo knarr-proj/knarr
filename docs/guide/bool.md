@@ -159,7 +159,7 @@ enabled: {{ required "enabled" .Values.service.enabled }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.service.enabled?
+  - !is-not-empty $Values.service.enabled?
 $fail: "enabled"
 ---
 !emit

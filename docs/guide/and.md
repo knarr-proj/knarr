@@ -10,7 +10,7 @@ $when: !and
   - !expr "$Values.replicas > 1"
 ```
 
-Children: `!ref` / `!not` / `!empty` / `!not-empty` / `!and` / `!or` / `!expr` (bool) / bool literal. ≥1 element. Omit child is an error.
+Children: `!ref` / `!not` / `!is-empty` / `!is-not-empty` / `!and` / `!or` / `!expr` (bool) / bool literal. ≥1 element. Omit child is an error.
 
 Prefer `&&` in [`!expr`](expr.md) when both sides are already bool paths.
 
@@ -28,7 +28,7 @@ $when: !and
 
 ```yaml
 $filter: !and
-  - !not-empty $W.ports?
+  - !is-not-empty $W.ports?
   - !ref $W.enabled
 ```
 
@@ -37,8 +37,8 @@ $filter: !and
 ```yaml
 $rules:
   - !and
-    - !not-empty $Values.name?
-    - !not-empty $Values.image?
+    - !is-not-empty $Values.name?
+    - !is-not-empty $Values.image?
 ```
 
 (Or two `$rules` items — first failure wins anyway.)
@@ -48,8 +48,8 @@ $rules:
 ```yaml
 $when: !and
   - !or
-    - !empty $Values.tls?
-    - !not-empty $Values.cert?
+    - !is-empty $Values.tls?
+    - !is-not-empty $Values.cert?
   - !ref $Values.service.enabled
 ```
 
@@ -132,6 +132,7 @@ $then:
 
 - [`!or`](or.md)
 - [`!expr`](expr.md)
+- [`!is-not-empty`](is-not-empty.md)
 
 ## Comparison with Helm
 
@@ -152,7 +153,7 @@ kind: Service
 ```yaml
 !emit?
 $when: !and
-  - !not-empty $Values.service?.enabled?
+  - !is-not-empty $Values.service?.enabled?
   - !expr "$Values.replicas? > 1 ?? false"
 $then:
   kind: Service
@@ -161,7 +162,7 @@ $then:
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result when `replicas` is int/float. Helm `if` ≡ `!not-empty`. Helm `gt` ≡ `>`. `!and` evaluates every child. Helm `gt` may coerce a numeric string; knarr `>` of a string is a type error.
+Same result when `replicas` is int/float. Helm `if` ≡ `!is-not-empty`. Helm `gt` ≡ `>`. `!and` evaluates every child. Helm `gt` may coerce a numeric string; knarr `>` of a string is a type error.
 
 </td></tr>
 </table>
@@ -187,8 +188,8 @@ env?: !foreach
   $over: !ref $Values.workers?
   $as: $Worker
   $filter: !and
-    - !not-empty $Worker.ports?
-    - !not-empty $Worker.enabled?
+    - !is-not-empty $Worker.ports?
+    - !is-not-empty $Worker.enabled?
   $yield?:
     name: !ref $Worker.name
 ```
@@ -196,7 +197,7 @@ env?: !foreach
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Helm `if` ≡ `!not-empty`. Item is a mapping (`- name:`), not a string. `!and` stays boolean (children are `!not-empty`, not the raw list).
+Same result. Helm `if` ≡ `!is-not-empty`. Item is a mapping (`- name:`), not a string. `!and` stays boolean (children are `!is-not-empty`, not the raw list).
 
 </td></tr>
 </table>
@@ -214,19 +215,19 @@ name: {{ and .Values.name .Values.image }}
 ```yaml
 !emit
 name?: !match
-  $if: !not-empty $Values.name?
+  $if: !is-not-empty $Values.name?
   $then: !match
-    $if: !not-empty $Values.image?
+    $if: !is-not-empty $Values.image?
     $then: !ref $Values.image
   $else: !match
-    $if: !not-empty $Values.name?
+    $if: !is-not-empty $Values.name?
     $then: !ref $Values.name
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Go `and x y` is if x then y else x. Helm `if` ≡ `!not-empty`. Not tag `!and` (boolean only). See [`!match`](match.md).
+Same result. Go `and x y` is if x then y else x. Helm `if` ≡ `!is-not-empty`. Not tag `!and` (boolean only). See [`!match`](match.md).
 
 </td></tr>
 </table>

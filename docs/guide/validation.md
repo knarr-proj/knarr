@@ -7,7 +7,7 @@ A **check document**. It never emits a manifest. Run after all binds, before emi
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "set Values.name"
 ```
 
@@ -20,7 +20,7 @@ XOR: **either** `$fail` **or** `$warning`, not both, not neither.
 
 `$rules` is a non-empty sequence of predicates. Each rule is **must-true**: omit or `false` is a violation; `true` or any other concrete value (including `""`) passes.
 
-Use [`!not-empty`](not-empty.md) for “required string”, not `!empty`.
+Use [`!is-not-empty`](is-not-empty.md) for “required string”, not `!is-empty`.
 
 ## Examples
 
@@ -29,7 +29,7 @@ Use [`!not-empty`](not-empty.md) for “required string”, not `!empty`.
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "set Values.name"
 ```
 
@@ -86,9 +86,9 @@ $fail: "set name"
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "set name"
-# required is !not-empty on $rules
+# required is !is-not-empty on $rules
 ```
 
 </td></tr>
@@ -97,7 +97,7 @@ $fail: "set name"
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "set name"
 $warning: "missing name"
 # $fail and $warning cannot both be set
@@ -108,7 +108,7 @@ $warning: "missing name"
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "set name"
 # pick $fail or $warning
 ```
@@ -119,9 +119,9 @@ $fail: "set name"
 ```yaml
 !validation
 $rules:
-  - !empty $Values.name?
+  - !is-empty $Values.name?
 $fail: "set name"
-# !empty as a rule means the value must be empty
+# !is-empty as a rule means the value must be empty
 ```
 
 </td><td>
@@ -129,9 +129,9 @@ $fail: "set name"
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "set name"
-# required values use !not-empty
+# required values use !is-not-empty
 ```
 
 </td></tr>
@@ -139,7 +139,7 @@ $fail: "set name"
 
 ## See also
 
-- [`!not-empty`](not-empty.md)
+- [`!is-not-empty`](is-not-empty.md)
 - [`!and`](and.md)
 
 ## Comparison with Helm
@@ -159,7 +159,7 @@ name: {{ required "set name" .Values.name }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "set name"
 ---
 !emit

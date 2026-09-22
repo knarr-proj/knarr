@@ -193,8 +193,8 @@ $FullName: !format
 ---
 !validation
 $rules:
-  - !not-empty $Values.env?
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.env?
+  - !is-not-empty $Values.name?
 $fail: "env"
 ---
 !emit
@@ -247,7 +247,7 @@ $Ann: !format
 ---
 !validation
 $rules:
-  - !not-empty $Values.name?
+  - !is-not-empty $Values.name?
 $fail: "name"
 ---
 !emit

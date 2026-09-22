@@ -97,7 +97,7 @@ $Ca: !b64dec $Values.caB64
 ---
 !validation
 $rules:
-  - !not-empty $Values.caB64?
+  - !is-not-empty $Values.caB64?
 $fail: "ca"
 ---
 !emit

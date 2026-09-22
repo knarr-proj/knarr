@@ -113,7 +113,7 @@ config.json: {{ toJson (required "config" .Values.config) }}
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values.config?
+  - !is-not-empty $Values.config?
 $fail: "config"
 ---
 !emit
