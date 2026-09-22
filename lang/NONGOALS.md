@@ -68,7 +68,7 @@
 - Host **`sha256sum`**; **`!sha256` в `!emit`**; тихий хэш mapping без JSON (решение **63**; дерево — **`!sha256-json`**, **71**)
 - Host **`merge`**; **`!merge` в `!emit`**; **`!merge-overwrite`** / тихий overwrite вложенного map (решение **64**)
 - Host **`until` / `untilStep` / `seq`**; **`!range` в `$over` / `!emit`**; один `$to` с двумя смыслами; нет ключа **`$from`** → `0`; omit написанного **`$step`** → `1`; **`$Name?: !range`** без omit `$from`/`$to`/`$until` (решения **65**, **107**: `$from` явный; ключа `$step` нет → `1`; `?:` как concat)
-- Host **`empty`**; тег **`!nempty`**; теги **`!empty` / `!not-empty`** (имена — **`!is-empty` / `!is-not-empty`**, решение **140**); **`!omit-empty` / `!skip-not-empty`**; **`!not` вокруг `!is-empty`/`!and`/`!or`** (решение **66**); **`!skip-empty`** не на ключе omit (`имя:`, `$when`, `$then`, `$over`, seq, ребёнок `!pick`)
+- Host **`empty`**; тег **`!nempty`**; теги **`!empty` / `!not-empty`** (имена — **`!is-empty` / `!is-not-empty`**, решение **140**); **`!omit-empty` / `!skip-not-empty`**; **`!not` вокруг `!is-empty`/`!and`/`!or`** (решение **66**); **`!skip-empty`** на `имя:` / `$when` / `$then` **документа** `!emit` / `$over` / seq / ребёнок **`!pick`** (решения **140**, **141**: `$then`/`$else` только у `!match` в omit-слоте)
 - Host **`int` / `str` / `bool` / `float64`**; `string()`/`int()` в `!expr`; **`!!int`/`!!bool` как coerce**; `1`/`yes` → bool; **`!int` от float** (усечение); **`.nan`/`.inf`**; тип Quantity/`500m` как число (решение **67**, **81**: `!float`; Inf ошибка)
 - Host **`list` / `dict`**; YAML-вид `{a: 1}` внутри `!expr`; `[a, b]` как concat (решение **68**)
 - Host **`keys` / `values`**; теги **`!keys` / `!values`** (решение **72**: `!foreach` + `$key`)

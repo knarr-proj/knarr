@@ -2,9 +2,14 @@
 
 If the path is **empty** (same set as [`!is-empty`](is-empty.md)), the value is **omit**. Otherwise the value is unchanged.
 
-Not a bool. Not a predicate. [`!is-empty`](is-empty.md) asks; `!skip-empty` drops the key.
+Allowed as the whole value of:
 
-Allowed **only** as the whole value of a key that may omit: `имя?:` in a mapping, `$Name?:` in bind, `$yield?:`. Anywhere else is an error (`имя:`, `$when`, `$then`, `$over`, a sequence item, a [`!pick`](pick.md) child).
+- `имя?:` / `$Name?:` / `$yield?:`
+- `$then` or `$else` of [`!match`](match.md) when that `!match` is already in one of those slots (or nested `$then` / `$else` of such a match)
+
+Not a bool. Not a predicate. [`!is-empty`](is-empty.md) asks; `!skip-empty` omits the value.
+
+Error anywhere else: `имя:`, `$when`, `$then` of `!emit` / `!emit?`, `$over`, a sequence item, a [`!pick`](pick.md) child.
 
 No `!skip-not-empty`. `!omit-empty` is not a tag.
 
@@ -34,6 +39,16 @@ $Tls?: !skip-empty $Values.tls?
 ```
 
 Empty `tls` omits the bind. Elsewhere write `$Tls?`.
+
+### Inside `!match` on a `?:` key
+
+```yaml
+name?: !match
+  $if: !is-not-empty $Values.name?
+  $then: !skip-empty $Values.image?
+```
+
+Go `and x y`: if `x` is not empty, then `y` (omit `y` when empty). `$then` of `!emit?` cannot use this tag (body is a mapping).
 
 ### Skip a foreach item
 
@@ -87,10 +102,10 @@ $then:
 
 ```yaml
 !emit
-name?: !match
+name: !match
   $if: !is-not-empty $Values.name?
   $then: !skip-empty $Values.image?
-# $then is not an omit key
+# required key: omit $then is a pair error
 ```
 
 </td><td>
@@ -99,9 +114,28 @@ name?: !match
 !emit
 name?: !match
   $if: !is-not-empty $Values.name?
-  $then: !match
-    $if: !is-not-empty $Values.image?
-    $then: !ref $Values.image
+  $then: !skip-empty $Values.image?
+```
+
+</td></tr>
+<tr><td>
+
+```yaml
+!emit
+name: !pick
+  - !skip-empty $Values.a?
+  - app
+# !pick is omit only, not empty
+```
+
+</td><td>
+
+```yaml
+!emit
+name: !match
+  $if: !is-empty $Values.a?
+  $then: app
+  $else: !ref $Values.a
 ```
 
 </td></tr>
@@ -128,6 +162,7 @@ initContainers?: !skip-empty $Values.init?
 - [Omit](omit.md)
 - [`!is-empty`](is-empty.md)
 - [`!is-not-empty`](is-not-empty.md)
+- [`!match`](match.md)
 
 ## Comparison with Helm
 

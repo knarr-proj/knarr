@@ -18,8 +18,8 @@ Same child rules as [`!and`](and.md).
 
 ```yaml
 $when: !or
-  - !ref $Values.ingress.enabled
-  - !ref $Values.mesh.enabled
+  - !is-not-empty $Values.ingress?.enabled?
+  - !is-not-empty $Values.mesh?.enabled?
 ```
 
 ### Skip TLS only if both missing
@@ -96,6 +96,8 @@ $then:
 
 - [`!and`](and.md)
 - [`$when`](when.md)
+- [`!match`](match.md)
+- [`!is-empty`](is-empty.md)
 
 ## Comparison with Helm
 
@@ -113,12 +115,19 @@ kind: Ingress
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !or
+  - !is-not-empty $Values.ingress?.enabled?
+  - !is-not-empty $Values.mesh?.enabled?
+$then:
+  kind: Ingress
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `or` of missing is false. Knarr `!or` of a missing required path is an error. `!or` also evaluates every child.
+Same result. Helm `if` ≡ `!is-not-empty`. `!or` evaluates every child.
 
 </td></tr>
 </table>
@@ -133,34 +142,18 @@ host: {{ or .Values.host "localhost" }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
-
-</td></tr>
-<tr><th>Difference</th><td>
-
-Helm `or` treats `""` as false. Knarr `??` fills omit only (`""` wins).
-
-</td></tr>
-</table>
-
-<table>
-<tr><th>Helm</th><td>
-
-```gotemplate
-{{- if or .Values.ingress.enabled .Values.mesh.enabled }}
-kind: Ingress
-{{- end }}
+```yaml
+!emit
+host: !match
+  $if: !is-empty $Values.host?
+  $then: localhost
+  $else: !ref $Values.host
 ```
 
 </td></tr>
-<tr><th>Knarr</th><td>
-
-Impossible in v1.
-
-</td></tr>
 <tr><th>Difference</th><td>
 
-Missing nested keys are empty in Helm. Knarr omit is not false. `true || omit` is true and does not take `?? false`.
+Same result. Go `or x y` is if x then x else y. Empty → fallback ≡ `!match` + `!is-empty` (same as `| default`). Not tag `!or`. Not `??`. Not `host?: !skip-empty`. See [`!match`](match.md).
 
 </td></tr>
 </table>

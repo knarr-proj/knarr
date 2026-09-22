@@ -332,6 +332,7 @@ Same list `0,1,2`. Helm end exclusive; knarr `$to` inclusive.
 
 ```gotemplate
 {{- range until .Values.completions }}
+---
 kind: Job
 name: {{ . }}
 {{- end }}
@@ -340,12 +341,24 @@ name: {{ . }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!bind
+$Idx: !range
+  $from: 0
+  $until: !ref $Values.completions
+---
+!emit-foreach
+$over: !ref $Idx
+$as: $I
+$yield:
+  kind: Job
+  name: !str $I
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `name:` is an int. Knarr field names are strings (`!str`). Helm `range` here is not `---` documents.
+Same documents when `completions` is an int. Helm `name:` is an int; knarr `!str` is a string. Without `---` Helm is one stream, not documents.
 
 </td></tr>
 </table>

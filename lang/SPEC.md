@@ -1,7 +1,7 @@
 # Knarr — норматив языка (v1)
 
 Авторское описание: корневой [README.md](../README.md) и [docs/](../docs/README.md).  
-Q&A 1–140: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOALS.md). Язык: [SPEC_TODO.md](SPEC_TODO.md) / [SPEC_TODO_v2.md](SPEC_TODO_v2.md). CLI: [CLI_TODO.md](CLI_TODO.md) / [CLI_TODO_v2.md](CLI_TODO_v2.md).
+Q&A 1–143: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOALS.md). Язык: [SPEC_TODO.md](SPEC_TODO.md) / [SPEC_TODO_v2.md](SPEC_TODO_v2.md). CLI: [CLI_TODO.md](CLI_TODO.md) / [CLI_TODO_v2.md](CLI_TODO_v2.md).
 
 Инвентарь языка v1 **закрыт**. Носитель YAML 1.2; нет Go `{{ }}`; нет CLI `-f` / `--set`. Knarr делает только то, что явно записано: нет скрытого omit, нет неявного default, нет **значения** `null` (`a: null` ≡ нет ключа, решение **130**).
 
@@ -323,6 +323,8 @@ $yield:
 - Знак шага не совпадает с направлением (`$from: 5`, `$to: 0`, `$step: 1`) → **`[]`**, не ошибка. Пустой интервал на **`$Name?:`** при живых концах → `[]`, не omit.
 - Отрицательный шаг: `$from: 5`, `$to: 0`, `$step: -1` → `[5, 4, 3, 2, 1, 0]`; с `$until: 0` → `[5, 4, 3, 2, 1]`.
 - Второй тег `!$T` — ошибка. Host **`until` / `untilStep` / `seq`** в `!expr` — ошибка. Inclusive `seq 1 n` — `$from: 1` + `$to`.
+
+**Comparison Helm `range until` документов (143):** в guide сниппет с **`---`** на каждый Job = `$Idx: !range` + `!emit-foreach` + `name: !str $I`. Без `---` — не пара (как `if`+`range` документов).
 
 ### 3.2.9 Приведение типов — `!int` / `!str` / `!bool` / `!float`
 
@@ -972,15 +974,16 @@ $then:
 $else: ""
 ```
 
-**`!skip-empty` (140):** tagged **scalar**, тот же `RefScalar`. Empty (как у `!is-empty`) → **omit значения**; иначе значение без изменения. Не bool. Не предикат.
+**`!skip-empty` (140, **141**):** tagged **scalar**, тот же `RefScalar`. Empty (как у `!is-empty`) → **omit значения**; иначе значение без изменения. Не bool. Не предикат.
 
-Только **целое значение ключа, где omit уже законен:**
+Целое значение:
 
-- `имя?:` в mapping `!emit` / `$yield` / `$then` / `$else`;
+- ключа **`имя?:`** в mapping `!emit` / `$yield` / `$then` / `$else` тела манифеста;
 - **`$Name?:`** в `!bind`;
-- **`$yield?:`**.
+- **`$yield?:`**;
+- **`$then` / `$else` у `!match` (141)**, если этот `!match` сам в одном из слотов выше (вложение `$then: !match` … `$then: !skip-empty` ок).
 
-Иначе **ошибка**, в т.ч. `имя:` без `?:`, `$when` / `$filter` / `$if`, ключ `$then` / `$else` / `$over` / `$of`, элемент sequence, ребёнок `!pick` / `!and` / `!or` / `!concat`. Нет `!skip-not-empty`. Нет `!omit-empty`. `??` на том же скаляре с `имя?:` — ошибка пары листа (**111**).
+Иначе **ошибка**: `имя:` без `?:`; `$when` / `$filter` / `$if`; **`$then` / `$else` документа `!emit` / `!emit?`**; `$over` / `$of`; элемент sequence; ребёнок **`!pick`** / `!and` / `!or` / `!concat`. На `имя: !match` omit `$then` ловит пара `!match` без `?:`. Нет `!skip-not-empty`. Нет `!omit-empty`. `??` на том же скаляре с `имя?:` — ошибка пары листа (**111**).
 
 **Comparison `if .Values.tls` + поле (140, снимает 135):** `tls?: !skip-empty $Values.tls?`. Не `tls?: !ref` (печатает `false` / `""` / `[]`).
 
@@ -989,6 +992,9 @@ tls?: !skip-empty $Values.tls?
 initContainers?: !skip-empty $Values.init?
 $Tls?: !skip-empty $Values.tls?
 $yield?: !skip-empty $Worker.sidecar?
+name?: !match
+  $if: !is-not-empty $Values.name?
+  $then: !skip-empty $Values.image?
 ```
 
 **`!and` / `!or`:** tagged **sequence**. Дети — предикаты bool: `!ref` / `!not` / `!is-empty` / `!is-not-empty` / `!and` / `!or` / `!expr` (результат bool) / литерал bool. ≥1 элемент. Пустой `[]` — ошибка. Mapping-носитель — ошибка. Вложение `!and`/`!or` можно. Считают **всех** детей (нет short-circuit). Omit ребёнка — ошибка. Не bool — ошибка. **`!skip-empty` в `!and` / `!or` — ошибка.**
@@ -997,7 +1003,11 @@ $yield?: !skip-empty $Worker.sidecar?
 
 **Comparison Helm `range` + `if and .ports .enabled` (138):** `env:` + фильтр элемента = `env?: !foreach` + `$filter: !and` двух `!is-not-empty` + `$yield?:` mapping `name`. Не Impossible. Не `!and` сырого seq/bool.
 
-**Comparison Helm `and` строк в поле (139):** `name: {{ and .Values.name .Values.image }}` — пара `name?: !match` + `!is-not-empty` (Go `and x y` = если x truthy то y иначе x). Не Impossible. Не `!and` строк.
+**Comparison Helm `and` строк в поле (139, канон **141**):** `name: {{ and .Values.name .Values.image }}` — `name?: !match` `$if: !is-not-empty $Values.name?` / `$then: !skip-empty $Values.image?`. Не Impossible. Не `!and` строк.
+
+**Comparison Helm `if and enabled tls` документ (142):** `kind: Service` = `!emit?` + `$when: !and` двух `!is-not-empty` (`service?.enabled?`, `tls?`). Не поле `tls?:`.
+
+**Comparison Helm `or` (142):** `if or .Values.ingress.enabled .Values.mesh.enabled` — пара `!emit?` + `$when: !or` двух `!is-not-empty` на `?.enabled?`. `host: {{ or .Values.host "localhost" }}` — пара `!match` + `!is-empty` (как `\| default`), не `!or` строк и не `??`.
 
 ```yaml
 $when: !or
@@ -1202,6 +1212,8 @@ spec:
 ```
 
 **Comparison Helm `if` + `range` документов (137):** в guide сниппет с **`---`** на каждый ресурс = этот тег; без `---` — не пара.
+
+**Comparison Helm `range until` документов (143):** `until .Values.completions` + ресурс = `$Idx: !range` `$until` + этот тег + `name: !str $I`; в Helm тоже **`---`**.
 
 - **`$when` (40):** как предикат `!emit`, но **без** `$then`/`$else`. Нет `$when` — цикл как без ворот. Ложь → **ноль документов**; `$over` / `$filter` / `$yield` **не считают**. `$as` / `$key` в `$when` нет. Не bool / omit без `??` — ошибка. **`$when?:`** — ошибка. `has()` нет.
 - **Omit `$over` (97):** `$over: !ref $Values.workers?` — нет workers → **ноль документов**, `$filter` / `$yield` не считают. **`$over?:` нет.** `$over: !ref "$Values.workers? ?? []"` — нет workers → пустой `$over` → тоже ноль документов.

@@ -141,12 +141,17 @@ kind: Service
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !is-empty $Values.service?.enabled?
+$then:
+  kind: Service
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `not` is truthiness. Knarr `!not` needs a bool.
+Same result. Helm `not` on empty ≡ `!is-empty`. `!not` still needs a bool path.
 
 </td></tr>
 </table>
@@ -193,12 +198,20 @@ env:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+env?: !foreach
+  $over: !ref $Values.workers?
+  $as: $W
+  $filter: !is-empty $W.disabled?
+  $yield?:
+    name: !ref $W.name
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `not .disabled` of missing is true. Knarr `!not` of omit is an error. Empty range: Helm `env: null` ≡ no `env`; knarr `env: []` if the key is not `?:`.
+Same result. Helm `not` on empty ≡ `!is-empty`. Item is a mapping (`- name:`).
 
 </td></tr>
 </table>

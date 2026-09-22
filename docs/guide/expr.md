@@ -381,12 +381,19 @@ kind: Ingress
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !or
+  - !is-not-empty $Values.ingress?.enabled?
+  - !is-not-empty $Values.mesh?.enabled?
+$then:
+  kind: Ingress
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `or` of missing is empty/false. Knarr omit is not false. `true || omit` is true and does not take `?? false`.
+Same result. Helm `if` ≡ `!is-not-empty`. Short-circuit bools that are already bool use `||` in `!expr`.
 
 </td></tr>
 </table>

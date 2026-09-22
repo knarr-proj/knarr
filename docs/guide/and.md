@@ -133,6 +133,7 @@ $then:
 - [`!or`](or.md)
 - [`!expr`](expr.md)
 - [`!is-not-empty`](is-not-empty.md)
+- [`!skip-empty`](skip-empty.md)
 
 ## Comparison with Helm
 
@@ -216,18 +217,13 @@ name: {{ and .Values.name .Values.image }}
 !emit
 name?: !match
   $if: !is-not-empty $Values.name?
-  $then: !match
-    $if: !is-not-empty $Values.image?
-    $then: !ref $Values.image
-  $else: !match
-    $if: !is-not-empty $Values.name?
-    $then: !ref $Values.name
+  $then: !skip-empty $Values.image?
 ```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Go `and x y` is if x then y else x. Helm `if` ≡ `!is-not-empty`. Not tag `!and` (boolean only). See [`!match`](match.md).
+Same result. Go `and x y` is if x then y else x. `$then: !skip-empty` on a `?:` `!match`. Not tag `!and`. See [`!skip-empty`](skip-empty.md).
 
 </td></tr>
 </table>
@@ -244,12 +240,19 @@ kind: Service
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !and
+  - !is-not-empty $Values.service?.enabled?
+  - !is-not-empty $Values.tls?
+$then:
+  kind: Service
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `and` treats a present map as true. Knarr `&&` needs bools.
+Same result. Helm `if` ≡ `!is-not-empty` (a present non-empty map is true). Not the field snippet `tls?:`. See [`!skip-empty`](skip-empty.md) for `if` on a field.
 
 </td></tr>
 </table>

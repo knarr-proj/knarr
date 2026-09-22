@@ -179,6 +179,7 @@ Same result. `required` abort = `$fail`. Fail text differs.
 
 ```gotemplate
 {{- range until .Values.completions }}
+---
 name: {{ . }}
 {{- end }}
 ```
@@ -186,12 +187,23 @@ name: {{ . }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!bind
+$Idx: !range
+  $from: 0
+  $until: !ref $Values.completions
+---
+!emit-foreach
+$over: !ref $Idx
+$as: $I
+$yield:
+  name: !str $I
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `name:` is an int. Knarr `!str` is a string.
+Same documents when `completions` is an int. Helm `name:` is an int; knarr `!str` is a string. Without `---` Helm is one stream, not documents.
 
 </td></tr>
 </table>

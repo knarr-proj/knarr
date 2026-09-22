@@ -10,6 +10,4 @@
 
 ---
 
-- Helm Comparison `if and .Values.service.enabled .Values.tls` → `kind: Service`: пара с `!emit?` + `$when: !and` из `!is-not-empty $Values.service?.enabled?` и `!is-not-empty $Values.tls?`, или Impossible (ворота документа vs поле `tls:` как в omit.md). Отложено.
-
-- `!skip-empty` только на ключе `?:` / `$Name?:` / `$yield?:`: разрешить ли тот же тег в других слотах, где значение и так может стать omit (`$then` / `$else` у `!match` на ключе `?:`, ребёнок `!pick` кроме последнего, `$over` у `имя?: !foreach`)? Сейчас `$then: !skip-empty` — ошибка, поэтому `name: {{ and .Values.name .Values.image }}` остаётся вложенным `!match` + `!is-not-empty`.
+- **`!format` в `$yield` цикла.** Helm `name: {{ printf "w-%04d" $i }}` внутри `range until` печатает поле в каждом документе. knarr: `!format` только корень bind, в `$yield` / поле `!emit` — ошибка. Префикс `w-0000` из индекса `!range` в Comparison остаётся Impossible. Разрешить `!format` как значение в `$yield` / `!emit`, оставить bind-only, или другой канон с тем же stdout?

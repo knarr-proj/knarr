@@ -55,7 +55,7 @@ An empty `[]` is a value. To omit the key when the list is missing **or** `[]`:
 initContainers?: !skip-empty $Values.init?
 ```
 
-On a `?:` key this is the short form of `$if: !is-not-empty` + `$then: !ref`. Do not write `initContainers?: !is-empty …` (bool). `$then: !skip-empty` is an error (`$then` is not an omit key).
+On a `?:` key this is the short form of `$if: !is-not-empty` + `$then: !ref`. Do not write `initContainers?: !is-empty …` (bool). On `name?: !match`, `$then: !skip-empty` is allowed; on `$then` of `!emit?` it is not.
 
 ### Else-if (Ingress vs ClusterIP)
 

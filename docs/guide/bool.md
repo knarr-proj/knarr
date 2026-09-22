@@ -136,12 +136,17 @@ kind: PodDisruptionBudget
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !expr "$Values.ha == 'true'"
+$then:
+  kind: PodDisruptionBudget
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm prints only `kind`. Extra `$then` keys change the document.
+Same result. `$then` is the whole document (`kind` only).
 
 </td></tr>
 </table>
@@ -186,12 +191,17 @@ kind: Ingress
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !is-not-empty $Values.ingress?.tls?
+$then:
+  kind: Ingress
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` is truthiness. Knarr `!bool` accepts only a bool or `"true"` / `"false"`.
+Same result. Helm `if` ≡ `!is-not-empty`. Not `!bool` (that is coerce, not truthiness).
 
 </td></tr>
 </table>

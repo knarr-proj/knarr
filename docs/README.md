@@ -83,7 +83,7 @@ These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where not
 |-----------|---------|-------|
 | `!is-empty` | True if omit / empty / false / 0 | [is-empty](guide/is-empty.md) |
 | `!is-not-empty` | Inverse of `!is-empty` | [is-not-empty](guide/is-not-empty.md) |
-| `!skip-empty` | Empty → omit value; only on `?:` / `$Name?:` / `$yield?:` | [skip-empty](guide/skip-empty.md) |
+| `!skip-empty` | Empty → omit value; `?:` keys and `$then`/`$else` of omit `!match` | [skip-empty](guide/skip-empty.md) |
 | `!and` | All predicates true | [and](guide/and.md) |
 | `!or` | Any predicate true | [or](guide/or.md) |
 | `!int` | Coerce to int | [int](guide/int.md) |

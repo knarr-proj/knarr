@@ -13,7 +13,7 @@ This page is the **hub** for omit markers. Tag guides (`!ref`, `!expr`, `!foreac
 | `?` on a path field | `!ref` / `!expr` / `!not` / coerce (`$Values.tls?`, `$Values.ingress?.enabled?`) | That **field** may be absent → **omit value**, not error. No `?.` operator. |
 | `$Name?:` | bind key | Optional bind; elsewhere write **`$Name?`** |
 | `??` | one on the whole `!ref` or `!expr` (not `!not`) | Default of that value; key stays |
-| [`!skip-empty`](skip-empty.md) | whole value of `имя?:` / `$Name?:` / `$yield?:` | Empty (same set as `!is-empty`) → omit the value; else keep it |
+| [`!skip-empty`](skip-empty.md) | `имя?:` / `$Name?:` / `$yield?:`, or `$then`/`$else` of `!match` there | Empty (same set as `!is-empty`) → omit the value; else keep it |
 
 Leaf omit needs **both** `?:` on the key and an omit-capable value.
 
