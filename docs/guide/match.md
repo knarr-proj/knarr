@@ -53,7 +53,7 @@ An empty `[]` is a value. To omit the key when the list is missing **or** `[]`:
 
 ```yaml
 initContainers?: !match
-  $if: !not-empty $Values?.init
+  $if: !not-empty $Values.init?
   $then: !ref $Values.init
 ```
 
@@ -63,10 +63,10 @@ Use [`!not-empty`](not-empty.md), not `initContainers?: !empty …`.
 
 ```yaml
 type: !match
-  $if: !not-empty $Values?.ingress?.enabled
+  $if: !not-empty $Values.ingress?.enabled?
   $then: ClusterIP
   $else: !match
-    $if: !not-empty $Values?.loadBalancer
+    $if: !not-empty $Values.loadBalancer?
     $then: LoadBalancer
     $else: ClusterIP
 ```
@@ -104,9 +104,9 @@ replicas: !match
 ```yaml
 !emit
 type: !match
-  - $if: !not-empty $Values?.ingress?.enabled
+  - $if: !not-empty $Values.ingress?.enabled?
     $then: ClusterIP
-  - $if: !not-empty $Values?.loadBalancer
+  - $if: !not-empty $Values.loadBalancer?
     $then: LoadBalancer
 # !match is not a list of $if entries
 ```
@@ -116,10 +116,10 @@ type: !match
 ```yaml
 !emit
 type: !match
-  $if: !not-empty $Values?.ingress?.enabled
+  $if: !not-empty $Values.ingress?.enabled?
   $then: ClusterIP
   $else: !match
-    $if: !not-empty $Values?.loadBalancer
+    $if: !not-empty $Values.loadBalancer?
     $then: LoadBalancer
     $else: ClusterIP
 # nest $else: !match
@@ -172,6 +172,11 @@ replicas: {{ if gt (required "replicas" .Values.replicas) 0 }}{{ .Values.replica
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.replicas?
+$fail: "replicas"
+---
 !emit
 replicas: !match
   $if: !expr "$Values.replicas > 0"
@@ -182,7 +187,7 @@ replicas: !match
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>
@@ -191,7 +196,7 @@ Same result. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
-{{- if gt .Values.replicas 1 }}
+{{- if gt (required "replicas" .Values.replicas) 1 }}
 topologySpreadConstraints:
   - maxSkew: 1
 {{- end }}
@@ -200,12 +205,23 @@ topologySpreadConstraints:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!validation
+$rules:
+  - !not-empty $Values.replicas?
+$fail: "replicas"
+---
+!emit
+topologySpreadConstraints?: !match
+  $if: !expr "$Values.replicas > 1"
+  $then:
+    - maxSkew: 1
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` omits the key. The listed knarr `$then` is a different mapping (`topologyKey` extra). Missing `replicas` is empty vs error.
+Same result. `required` and `$fail` are fail text only. Key omitted when `replicas` ≤ 1.
 
 </td></tr>
 </table>
@@ -223,10 +239,10 @@ type: {{ if .Values.ingress.enabled }}ClusterIP{{ else if .Values.loadBalancer }
 ```yaml
 !emit
 type: !match
-  $if: !not-empty $Values?.ingress?.enabled
+  $if: !not-empty $Values.ingress?.enabled?
   $then: ClusterIP
   $else: !match
-    $if: !not-empty $Values?.loadBalancer
+    $if: !not-empty $Values.loadBalancer?
     $then: LoadBalancer
     $else: ClusterIP
 ```
@@ -234,7 +250,7 @@ type: !match
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Helm `if` is truthiness; knarr writes [`!not-empty`](not-empty.md) (omit / `""` / `[]` / `{}` / `false` / `0`). Each path step needs `?.` — a missing step without `?.` is still an error.
+Same result. Helm `if` is [`!not-empty`](not-empty.md) (omit / `""` / `[]` / `{}` / `false` / `0` / `0.0`). Each field that may be missing needs `?`.
 
 </td></tr>
 </table>

@@ -6,11 +6,11 @@ These rules apply to every knarr file. This page is the checklist for authors.
 
 - The program is **YAML 1.2**, multiple documents separated by `---`. Guide examples with two document tags (`!bind` then `!emit`, …) must show that `---` too.
 - Tagged scalars (`!ref`, `!expr`, `!not`, coerce) quote as YAML 1.2: `[` `{` `]` `}` `,`, `: ` (colon+space), and ` #` need quotes **anywhere**, not only at line start. `/` and `?? false` / `||` do not. A parser that accepts `?? [80, 443]` unquoted is not the knarr rule: knarr still rejects it. A planned negative golden covers that.
-- Every document has a **local tag**: `!bind`, `!emit`, `!emit-foreach`, `!import`, `!validation`, or prelude `!policy` / `!typedef`.
-- After `!import` flattening, order is: optional `!policy` (must be first), optional `!typedef`, then `!bind` / `!validation` / `!emit` / `!emit-foreach` mixed.
+- Every document has a **local tag**: `!bind`, `!emit`, `!emit?`, `!emit-foreach`, `!import`, `!validation`, or prelude `!policy` / `!typedef`.
+- After `!import` flattening, order is: optional `!policy` (must be first), optional `!typedef`, then `!bind` / `!validation` / `!emit` / `!emit?` / `!emit-foreach` mixed.
 - **No anchors** (`&`, `*`, `<<`) in knarr documents. Data files loaded with [`!read`](../guide/read.md) may use them; knarr sees the expanded tree.
 - **No `!!` tags** in knarr documents (`!!str`, `!!int`, `!!null` included). Core YAML tags are allowed **inside** a `!read` file.
-- **No `null`**. YAML `null` / `~` in values is “key missing”, not a value.
+- **No null value.** YAML/JSON `a: null` / `a: ~` / `a:` ≡ **the key is absent** (omit). Stdout never prints `null`. Helm `a: null` in a Comparison is the same as knarr without `a`. A sequence item `null` is an error.
 
 ## Names
 
@@ -29,12 +29,12 @@ These rules apply to every knarr file. This page is the checklist for authors.
 ```yaml
 # Wrong
 port: !int !expr "$Values.port"
-$when: !not !empty $Values?.x
+$when: !not !empty $Values.x?
 
 # Right
 $Port: !int $Values.port
 port: !ref $Port
-$when: !not-empty $Values?.x
+$when: !not-empty $Values.x?
 ```
 
 [`!not`](../guide/not.md) takes a path scalar, not another tagged node.
@@ -51,11 +51,11 @@ knarr never drops a key because a value “looks empty”.
 
 | Intent | Write |
 |--------|--------|
-| Field may vanish | `affinity?: !ref $Values?.affinity` |
+| Field may vanish | `affinity?: !ref $Values.affinity?` |
 | Field always present, default | `host: !ref "$Values.tls?.host ?? 'localhost'"` |
 | N candidates | [`!pick`](../guide/pick.md) — not `\|\|` in [`!expr`](../guide/expr.md) |
 
-Both markers are required for omit: key `?:` **and** an omit-capable value (`?.` / `$Name?`). See [Omit](../guide/omit.md).
+Both markers are required for omit: key `?:` **and** an omit-capable value (`$Values.tls?` / `$Name?`). See [Omit](../guide/omit.md).
 
 Optional mappings: every child key uses `?:` if and only if the parent does. An optional mapping that evaluates to `{}` is omitted (no `spec: {}`). An empty list `[]` stays, except [`!foreach`](../guide/foreach.md) on a `?:` key with `$yield?:` and nothing to print. To drop other empty lists, [`!not-empty`](../guide/not-empty.md) with [`!match`](../guide/match.md) on a `?:` key.
 
@@ -80,11 +80,15 @@ Kubernetes quantities like `"500m"` stay **strings**.
 
 - Key order in a mapping is **source order**, not sorted (JSON checksums are the exception: sorted keys, Go `json.Marshal` canon).
 - Stdout is YAML 1.2, UTF-8, LF, 2-space block style.
-- Zero manifests (all `$else: ""`, empty loops, false `$when` on `!emit-foreach`) → empty stdout, exit 0.
+- Zero manifests (all `!emit?` with false `$when`, all `$else: ""`, empty loops, false `$when` on `!emit-foreach`) → empty stdout, exit 0.
 
 ## Helm comparison in the guide
 
 Construct pages compare Helm only when the **result matches**, or they state **impossible** with no fake knarr snippet. “Almost the same” is not a row.
+
+Helm `required` that fails **aborts**: no stdout, stderr only. In a pair that is [`!validation`](../guide/validation.md) (`$fail` + `!not-empty` on the same path). A successful `required` still prints in Helm; knarr prints with `!emit` / `!ref`, not with `!validation` alone. Every Helm `required` in a Comparison row has a knarr `!validation`.
+
+Helm **`a: null`** (including `toYaml` of nil) is **the same as no `a`**. Knarr omits the key (`?:` + path `?`). It does not print `null`.
 
 ## Habits to drop
 
@@ -92,7 +96,7 @@ Construct pages compare Helm only when the **result matches**, or they state **i
 |--------|-----|
 | `{{ }}` in YAML text | Tags on YAML nodes |
 | CLI value overlays | Files only |
-| Nested “with” scope | `field?: !ref $X?.obj` |
+| Nested “with” scope | `field?: !ref $X.obj?` |
 | Snippet macros | Not in v1; split files with [`!import`](../guide/import.md) (documents, not values) |
 | Dump a mapping as YAML text | Emit the mapping, or JSON via [`!to-json-str`](../guide/to-json-str.md) |
-| Silent `null` | Error or explicit omit |
+| `a: null` as a value | The key is absent; emit with `?:` when the path may omit |

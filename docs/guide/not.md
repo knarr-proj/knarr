@@ -16,12 +16,11 @@ One tag, one scalar path. Does **not** wrap `!empty` / `!and` / `!or` (those hav
 ### Invert a flag
 
 ```yaml
-!emit
+!emit?
 $when: !not $Values.service.enabled
 $then:
   kind: ConfigMap
   name: no-svc
-$else: ""
 ```
 
 ### Optional bool
@@ -30,13 +29,13 @@ Default the path first, then negate:
 
 ```yaml
 !bind
-$Debug: !ref $Values?.debug ?? false
+$Debug: !ref $Values.debug? ?? false
 ---
 !emit
 $when: !not $Debug
 ```
 
-Missing debug → `false` → not → **true**. `!expr "!$Values?.debug ?? false"` defaults the **not-result**: missing debug → **false**.
+Missing debug → `false` → not → **true**. `!expr "!$Values.debug? ?? false"` defaults the **not-result**: missing debug → **false**.
 
 ### Hide workers
 
@@ -51,23 +50,21 @@ $filter: !not $Worker.disabled
 <tr><td>
 
 ```yaml
-!emit
+!emit?
 $when: !not !ref $On
 $then:
   kind: Service
-$else: ""
 # two tags on one node; !not does not wrap !ref
 ```
 
 </td><td>
 
 ```yaml
-!emit
+!emit?
 $when: !not $Values.service.enabled
 $then:
   kind: Service
   name: !ref $Values.name
-$else: ""
 # !not takes a path scalar
 ```
 
@@ -75,23 +72,21 @@ $else: ""
 <tr><td>
 
 ```yaml
-!emit
-$when: !not !empty $Values?.tls
+!emit?
+$when: !not !empty $Values.tls?
 $then:
   kind: ConfigMap
-$else: ""
 # !not does not wrap !empty
 ```
 
 </td><td>
 
 ```yaml
-!emit
-$when: !not-empty $Values?.tls
+!emit?
+$when: !not-empty $Values.tls?
 $then:
   kind: ConfigMap
   name: tls
-$else: ""
 # use !not-empty or !expr
 ```
 
@@ -99,11 +94,10 @@ $else: ""
 <tr><td>
 
 ```yaml
-!emit
-$when: !not $Values?.debug ?? false
+!emit?
+$when: !not $Values.debug? ?? false
 $then:
   kind: Deployment
-$else: ""
 # no ?? on !not
 ```
 
@@ -111,14 +105,13 @@ $else: ""
 
 ```yaml
 !bind
-$Debug: !ref $Values?.debug ?? false
+$Debug: !ref $Values.debug? ?? false
 ---
-!emit
+!emit?
 $when: !not $Debug
 $then:
   kind: Deployment
   name: !ref $Values.name
-$else: ""
 # default the path, then !not
 ```
 
@@ -170,12 +163,17 @@ kind: Deployment
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !empty $Values.debug?
+$then:
+  kind: Deployment
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm prints only `kind`. Extra `$then` keys change the document. Helm `not` of a present empty string is true; knarr `?? false` then `!not` needs a bool.
+Same result. Helm `not` on empty ≡ `!empty`. `$then` is the whole document.
 
 </td></tr>
 </table>
@@ -200,7 +198,7 @@ Impossible in v1.
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `not .disabled` of missing is true. Knarr `!not` of omit is an error. Empty range: Helm `env:` null; knarr `env: []`.
+Helm `not .disabled` of missing is true. Knarr `!not` of omit is an error. Empty range: Helm `env: null` ≡ no `env`; knarr `env: []` if the key is not `?:`.
 
 </td></tr>
 </table>

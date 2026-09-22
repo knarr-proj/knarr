@@ -1,0 +1,19 @@
+---
+!bind
+$Values:
+  name: api
+  config: hello
+
+---
+!bind
+$Sum: !sha256
+  $of: !ref $Values.config
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: !ref $Values.name
+  annotations:
+    checksum/config: !ref $Sum

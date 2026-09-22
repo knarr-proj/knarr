@@ -1,0 +1,20 @@
+---
+!bind
+$Values:
+  name: api
+  env: prod
+
+---
+!bind
+$Ports: !ref "$Values.ports? ?? [80, 443]"
+$Labels: !expr "{'app': $Values.name, 'env': $Values.env}"
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: !ref $Values.name
+  labels: !ref $Labels
+data:
+  ports: !ref $Ports

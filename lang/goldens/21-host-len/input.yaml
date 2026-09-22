@@ -1,0 +1,16 @@
+---
+!bind
+$Values:
+  name: api
+  workers:
+    - a
+    - b
+
+---
+!emit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: !ref $Values.name
+spec:
+  replicas: !len $Values.workers

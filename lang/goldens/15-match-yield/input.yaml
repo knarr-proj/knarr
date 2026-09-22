@@ -1,0 +1,19 @@
+---
+!bind
+$Values:
+  workers:
+    - name: w1
+      pin: true
+    - name: w2
+
+---
+!emit-foreach
+  $over: !ref $Values.workers
+  $as: $Worker
+  $yield:
+    metadata:
+      name: !ref $Worker.name
+    nodeSelector?: !match
+      $if: !ref $Worker.pin? ?? false
+      $then:
+        disk: ssd

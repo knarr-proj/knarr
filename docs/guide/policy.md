@@ -83,7 +83,7 @@ image: !ref $Values.image
 
 ```yaml
 !emit
-image?: !ref $Values?.image
+image?: !ref $Values.image?
 # missing path needs ?.; policy applies only to !$Type
 ```
 
@@ -179,6 +179,11 @@ name: {{ required "name" .Values.name }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.name?
+$fail: "name"
+---
 !emit
 name: !ref $Values.name
 ```
@@ -186,7 +191,7 @@ name: !ref $Values.name
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>

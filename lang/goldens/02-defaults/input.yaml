@@ -1,0 +1,24 @@
+---
+!typedef
+$ValuesType:
+  name: string
+  replicas: { type: int, default: 1 }
+  image: string
+---
+!bind
+$Values: !$ValuesType
+  name: api
+  image: ghcr.io/acme/api:0.1.0
+---
+!emit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: !ref $Values.name
+spec:
+  replicas: !ref $Values.replicas
+  template:
+    spec:
+      containers:
+        - name: app
+          image: !ref $Values.image

@@ -1,0 +1,12 @@
+---
+!bind
+$Flag: true
+---
+!emit
+  $when: !ref $Flag
+  $then:
+    kind: ConfigMap
+  $else: ""
+  $items:
+    - a
+    - b

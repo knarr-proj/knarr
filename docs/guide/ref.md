@@ -1,6 +1,6 @@
 # `!ref`
 
-Read a path. Optional steps (`?.`). Binary default (`??`) keeps the key. Arithmetic and `&&` / `||` / `!` are [`!expr`](expr.md). Both tags stay: do not put operators on `!ref`.
+Read a path. Optional steps (`?` on the field, including the last). Binary default (`??`) keeps the key. Arithmetic and `&&` / `||` / `!` are [`!expr`](expr.md). Both tags stay: do not put operators on `!ref`.
 
 ## Syntax
 
@@ -11,11 +11,11 @@ Tagged scalar, `RefScalar`:
 !ref $Name.field
 !ref "$Name[0].field"
 !ref "$Name.labels['app.kubernetes.io/name']"
-!ref $Name?.optional
-!ref $Name?.['dotted.key']
-!ref $Name?.flag ?? false
-!ref "$Name?.host ?? 'localhost'"
-!ref "$Name?.ports ?? [80, 443]"
+!ref $Name.optional?
+!ref $Name['dotted.key']?
+!ref $Name.flag? ?? false
+!ref "$Name.host? ?? 'localhost'"
+!ref "$Name.ports? ?? [80, 443]"
 ```
 
 - Leading `$BindingName` (capital).
@@ -56,26 +56,26 @@ app: !ref "$Values.labels['app.kubernetes.io/name']"
 ### Optional probe
 
 ```yaml
-livenessProbe?: !ref $Values?.livenessProbe
+livenessProbe?: !ref $Values.livenessProbe?
 ```
 
 ### Nested optional path
 
 ```yaml
 # default — key stays
-host: !ref "$Values?.env?.database?.host ?? 'localhost'"
+host: !ref "$Values.env?.database?.host? ?? 'localhost'"
 # omit
-host?: !ref $Values?.env?.database?.host
+host?: !ref $Values.env?.database?.host?
 ```
 
 ```yaml
 # default — key stays
-cert: !ref "$Values?.tls?.cert ?? ''"
+cert: !ref "$Values.tls?.cert? ?? ''"
 # omit
-cert?: !ref $Values?.tls?.cert
+cert?: !ref $Values.tls?.cert?
 ```
 
-A missing step with `?.` is omit, not an error. `??` fills a default and keeps the key. Do not put `?:` on a key that uses `??`.
+A missing step with `?` on that field is omit, not an error. `??` fills a default and keeps the key. Do not put `?:` on a key that uses `??`.
 
 ## Common mistakes
 
@@ -102,7 +102,7 @@ replicas: !expr "$Values.replicas + 1"
 
 ```yaml
 !emit
-host: !expr "$Values?.tls?.host ?? 'localhost'"
+host: !expr "$Values.tls?.host? ?? 'localhost'"
 # no computation: use !ref
 ```
 
@@ -110,7 +110,7 @@ host: !expr "$Values?.tls?.host ?? 'localhost'"
 
 ```yaml
 !emit
-host: !ref "$Values?.tls?.host ?? 'localhost'"
+host: !ref "$Values.tls?.host? ?? 'localhost'"
 # path + default is !ref
 ```
 
@@ -137,7 +137,7 @@ image: !expr "$Values.images[$Worker.name]"
 ```yaml
 !emit
 name: !ref $Workers[0].name
-$Ports: !ref $Values?.ports ?? [80, 443]
+$Ports: !ref $Values.ports? ?? [80, 443]
 # [ ] , are YAML flow indicators anywhere, not only at line start
 ```
 
@@ -146,7 +146,7 @@ $Ports: !ref $Values?.ports ?? [80, 443]
 ```yaml
 !emit
 name: !ref "$Workers[0].name"
-$Ports: !ref "$Values?.ports ?? [80, 443]"
+$Ports: !ref "$Values.ports? ?? [80, 443]"
 # quote the YAML 1.2 scalar
 ```
 
@@ -190,6 +190,11 @@ name: {{ required "name" .Values.name }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.name?
+$fail: "name"
+---
 !emit
 name: !ref $Values.name
 ```
@@ -197,7 +202,7 @@ name: !ref $Values.name
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail` (no stdout). Fail text differs.
 
 </td></tr>
 </table>
@@ -256,7 +261,7 @@ cert: {{ dig "tls" "cert" "" .Values }}
 
 ```yaml
 !emit
-cert: !ref "$Values?.tls?.cert ?? ''"
+cert: !ref "$Values.tls?.cert? ?? ''"
 ```
 
 </td></tr>
@@ -279,7 +284,7 @@ host: {{ dig "env" "database" "host" "localhost" .Values }}
 
 ```yaml
 !emit
-host: !ref "$Values?.env?.database?.host ?? 'localhost'"
+host: !ref "$Values.env?.database?.host? ?? 'localhost'"
 ```
 
 </td></tr>
@@ -302,7 +307,7 @@ tag: {{ dig "image" "tag" "latest" .Values }}
 
 ```yaml
 !emit
-tag: !ref "$Values?.image?.tag ?? 'latest'"
+tag: !ref "$Values.image?.tag? ?? 'latest'"
 ```
 
 </td></tr>
@@ -367,6 +372,11 @@ app: {{ required "label" (index .Values.labels "app.kubernetes.io/name") }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty "$Values.labels['app.kubernetes.io/name']?"
+$fail: "label"
+---
 !emit
 app: !ref "$Values.labels['app.kubernetes.io/name']"
 ```
@@ -374,7 +384,7 @@ app: !ref "$Values.labels['app.kubernetes.io/name']"
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>

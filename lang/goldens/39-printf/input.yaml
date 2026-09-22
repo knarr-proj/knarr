@@ -1,0 +1,19 @@
+---
+!bind
+$Values:
+  env: prod
+  name: api
+
+---
+!bind
+$Full: !format
+  - "%s-%s"
+  - !ref $Values.env
+  - !ref $Values.name
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: !ref $Full

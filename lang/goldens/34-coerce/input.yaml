@@ -1,0 +1,27 @@
+---
+!bind
+$Values:
+  name: api
+  env: prod
+  port: "80"
+  replicas: 3
+  enabled: "true"
+
+---
+!bind
+$Port: !int $Values.port
+$Name: !format
+  - "%s-%d"
+  - !ref $Values.env
+  - !ref $Port
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: !ref $Name
+spec:
+  port: !ref $Port
+  replicas: !str $Values.replicas
+  enabled: !bool $Values.enabled

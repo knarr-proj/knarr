@@ -1,0 +1,21 @@
+---
+!bind
+$Values:
+  name: api
+  sidecars:
+    - container:
+        name: sidecar
+        image: nginx
+    - name: skip
+
+---
+!emit
+apiVersion: v1
+kind: Pod
+metadata:
+  name: !ref $Values.name
+spec:
+  containers: !foreach
+    $over: !ref $Values.sidecars
+    $as: $S
+    $yield?: !ref $S.container?

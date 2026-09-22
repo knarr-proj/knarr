@@ -1,0 +1,5 @@
+defaults: &d
+  image: nginx
+app:
+  <<: *d
+  name: api

@@ -1,6 +1,6 @@
 # `!emit`
 
-An **emit document** is exactly one YAML document on stdout (unless `$when` is false and `$else` is `""`). The document may be a Kubernetes manifest or any other YAML mapping.
+An **emit document** is exactly one YAML document on stdout. **`!emit?`** may print **none**. The document may be a Kubernetes manifest or any other YAML mapping.
 
 ## Syntax
 
@@ -12,21 +12,31 @@ kind: ConfigMap
 name: !ref $Values.name
 ```
 
-**Conditional** — only `$when`, `$then`, `$else` (no other keys):
+**If, no else** — tag **`!emit?`**: only `$when` and `$then`. False `$when` → no document. Omit `$when` is still an error. `$else` on `!emit?` is a pair error.
 
 ```yaml
-!emit
+!emit?
 $when: !ref $Values.service.enabled
 $then:
   kind: Service
   name: !ref $Values.name
-$else: ""
+```
+
+**If / else** — tag **`!emit`**: only `$when`, `$then`, `$else` (no other keys):
+
+```yaml
+!emit
+$when: !ref $Values.useJob
+$then:
+  kind: Job
+$else:
+  kind: Deployment
 ```
 
 - `$when` is a bool predicate (`!ref`, `!not`, `!expr`, `!empty`, `!not-empty`, `!and`, `!or`, or YAML `true` / `false`).
 - `$then` is a mapping (the manifest).
-- `$else: ""` skips the document. `$else:` may instead be another mapping.
-- `$Name: !emit` is an error.
+- On `!emit`, `$else: ""` skips the document; `$else:` may be another mapping.
+- `$Name: !emit` / `$Name: !emit?` is an error.
 
 Several `!emit` documents print in **source order**.
 
@@ -60,12 +70,11 @@ spec:
 ### Optional Service
 
 ```yaml
-!emit
+!emit?
 $when: !ref $Values.service.enabled
 $then:
   kind: Service
   name: !ref $Values.name
-$else: ""
 ```
 
 ### Else branch is a different kind
@@ -87,7 +96,7 @@ $else:
 !emit
 kind: Deployment
 name: !ref $Values.name
-affinity?: !ref $Values?.affinity
+affinity?: !ref $Values.affinity?
 ```
 
 ## Common mistakes
@@ -106,36 +115,33 @@ kind: Service
 </td><td>
 
 ```yaml
-!emit
+!emit?
 $when: !ref $On
 $then:
   kind: Service
   name: !ref $Values.name
-$else: ""
-# exclusive shapes: raw manifest, or $when + $then + $else
+# exclusive shapes: raw manifest, !emit? if, or !emit if/else
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
-!emit
+!emit?
 when: !ref $On
 $then:
   kind: Service
-$else: ""
 # the key is $when, not when
 ```
 
 </td><td>
 
 ```yaml
-!emit
+!emit?
 $when: !ref $On
 $then:
   kind: Service
   name: !ref $Values.name
-$else: ""
 # $when is the document gate
 ```
 
@@ -172,19 +178,18 @@ $when: !ref $On
 $then:
   kind: Service
 $else: null
-# knarr has no null
+# null ≡ no $else; $when false then errors
 ```
 
 </td><td>
 
 ```yaml
-!emit
+!emit?
 $when: !ref $On
 $then:
   kind: Service
   name: !ref $Values.name
-$else: ""
-# $else: "" skips the document
+# !emit? skips when $when is false
 ```
 
 </td></tr>
@@ -213,6 +218,11 @@ name: {{ required "name" .Values.name }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.name?
+$fail: "name"
+---
 !emit
 kind: Deployment
 name: !ref $Values.name
@@ -221,7 +231,7 @@ name: !ref $Values.name
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>
@@ -239,12 +249,18 @@ name: {{ .Values.name }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !not-empty $Values.service?.enabled?
+$then:
+  kind: Service
+  name: !ref $Values.name
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm prints only `kind: Service`. Extra keys in `$then` are a different document. Missing `enabled` without `?? false` is an error.
+Same result. Helm `if` ≡ `!not-empty`. Missing `service` / `enabled` → omit → no document.
 
 </td></tr>
 </table>
@@ -291,12 +307,15 @@ affinity:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+affinity?: !ref $Values.affinity?
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `toYaml` keeps `affinity:` (null/empty). Knarr `?:` omits the key.
+Same presence: Helm `affinity: null` ≡ no `affinity`. `nindent` is Helm text indent.
 
 </td></tr>
 </table>

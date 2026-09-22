@@ -1,0 +1,16 @@
+---
+!bind
+$Values:
+  workers:
+    - name: w1
+    - name: w2
+
+---
+!emit-foreach
+  $over: !ref $Values.workers
+  $as: $Worker
+  $yield:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: !ref $Worker.name

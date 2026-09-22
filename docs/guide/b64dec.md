@@ -30,7 +30,7 @@ $Again: !b64enc $Raw
 ### Optional
 
 ```yaml
-token?: !b64dec $Values?.tokenB64
+token?: !b64dec $Values.tokenB64?
 ```
 
 ## Common mistakes
@@ -95,6 +95,11 @@ ca.crt: {{ required "ca" .Values.caB64 | b64dec }}
 !bind
 $Ca: !b64dec $Values.caB64
 ---
+!validation
+$rules:
+  - !not-empty $Values.caB64?
+$fail: "ca"
+---
 !emit
 ca.crt: !ref $Ca
 ```
@@ -102,7 +107,7 @@ ca.crt: !ref $Ca
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>

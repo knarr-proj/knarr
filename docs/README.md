@@ -26,6 +26,7 @@ Purpose is **one sentence**. The construct page is the source of truth; this tab
 |-----------|---------|-------|
 | `!bind` | Name values; never appears in stdout | [bind](guide/bind.md) |
 | `!emit` | One output document | [emit](guide/emit.md) |
+| `!emit?` | One output document or none (`$when` + `$then`) | [emit](guide/emit.md) |
 | `!emit-foreach` | One output document per item | [emit-foreach](guide/emit-foreach.md) |
 | `!import` | Splice knarr documents from another file | [import](guide/import.md) |
 | `!policy` | Schema-only policy for `!$Type` | [policy](guide/policy.md) |
@@ -36,16 +37,16 @@ Purpose is **one sentence**. The construct page is the source of truth; this tab
 
 | Construct | Purpose | Guide |
 |-----------|---------|-------|
-| `$when` | Keep or skip one `!emit` / `!emit-foreach` | [when](guide/when.md) |
+| `$when` | Keep or skip one `!emit?` / `!emit` / `!emit-foreach` | [when](guide/when.md) |
 | `!foreach` | Build a sequence field | [foreach](guide/foreach.md) |
 | `!match` | If/else as a value | [match](guide/match.md) |
-| Omit (`?:`, `?.`, `??`) | Written absence (hub; tag pages link here) | [omit](guide/omit.md) |
+| Omit (`?:`, path `?`, `??`) | Written absence (hub; tag pages link here) | [omit](guide/omit.md) |
 
 ### Access and expressions
 
 | Construct | Purpose | Guide |
 |-----------|---------|-------|
-| `!ref` | Field access: path, `?.`, one `??` | [ref](guide/ref.md) |
+| `!ref` | Field access: path, `?` on a field, one `??` | [ref](guide/ref.md) |
 | `!expr` | Compute: operators, dyn-index, `$` in list/map | [expr](guide/expr.md) |
 | `!not` | Invert a bool path | [not](guide/not.md) |
 | `!read` | Load one local YAML document as a value | [read](guide/read.md) |

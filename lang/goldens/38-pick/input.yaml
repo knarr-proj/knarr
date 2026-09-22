@@ -1,0 +1,14 @@
+---
+!bind
+$Values:
+  alias: api
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: !pick
+    - !ref $Values.name?
+    - !ref $Values.alias?
+    - app

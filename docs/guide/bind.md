@@ -55,7 +55,7 @@ $Values: !read values.yaml
 
 ```yaml
 !bind
-$Tls?: !ref $Values?.tls
+$Tls?: !ref $Values.tls?
 ---
 !emit
 tls?: !ref $Tls?
@@ -136,7 +136,7 @@ $Rel: prod
 
 ```yaml
 !bind
-$Tls?: !ref $Values?.tls
+$Tls?: !ref $Values.tls?
 ---
 !emit
 host: !ref $Tls.host
@@ -147,11 +147,11 @@ host: !ref $Tls.host
 
 ```yaml
 !bind
-$Tls?: !ref $Values?.tls
+$Tls?: !ref $Values.tls?
 ---
 !emit
 host?: !ref $Tls?.host
-# pair $Tls? / ?. with ?: on the output key
+# pair $Tls? with ?: on the output key
 ```
 
 </td></tr>
@@ -171,21 +171,37 @@ Values are named in `!bind`. There is no sidecar `values.yaml` plus `{{ $x := }}
 <tr><th>Helm</th><td>
 
 ```gotemplate
-# values.yaml
-name: api
-# _helpers.tpl
-{{- $full := printf "%s-%s" .Values.env .Values.name -}}
+# values: env=prod name=api
+name: {{ printf "%s-%s" (required "env" .Values.env) (required "name" .Values.name) }}
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!bind
+$Values:
+  name: api
+  env: prod
+$FullName: !format
+  - "%s-%s"
+  - !ref $Values.env
+  - !ref $Values.name
+---
+!validation
+$rules:
+  - !not-empty $Values.env?
+  - !not-empty $Values.name?
+$fail: "env"
+---
+!emit
+name: !ref $FullName
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm splits `values.yaml` and `_helpers.tpl`. That is not knarr stdout.
+Same result `prod-api`. `required` abort = `$fail`. Fail text differs. Two `required` → two `$rules`.
 
 </td></tr>
 </table>
@@ -204,6 +220,11 @@ replicas: {{ required "replicas" .Values.replicas }}
 !bind
 $Values:
   replicas: 3
+---
+!validation
+$rules:
+  - !not-empty $Values.replicas?
+$fail: "replicas"
 ---
 !emit
 replicas: !ref $Values.replicas
@@ -228,12 +249,18 @@ tls: {{ toYaml $tls | nindent 4 }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!bind
+$Tls?: !ref $Values.tls?
+---
+!emit
+tls?: !ref $Tls?
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `$tls :=` assigns nil. Knarr `$Tls?:` is omit, not a nil value.
+Same presence: Helm `tls: null` ≡ no `tls`. `nindent` is Helm text indent.
 
 </td></tr>
 </table>
@@ -253,7 +280,7 @@ Impossible in v1.
 </td></tr>
 <tr><th>Difference</th><td>
 
-No `.Release` inject. `$Release` is reserved.
+No `.Release` inject. `$Release` is reserved. Do not pair this with a user `$Rel`.
 
 </td></tr>
 </table>

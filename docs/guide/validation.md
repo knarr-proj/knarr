@@ -7,7 +7,7 @@ A **check document**. It never emits a manifest. Run after all binds, before emi
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values?.name
+  - !not-empty $Values.name?
 $fail: "set Values.name"
 ```
 
@@ -29,7 +29,7 @@ Use [`!not-empty`](not-empty.md) for “required string”, not `!empty`.
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values?.name
+  - !not-empty $Values.name?
 $fail: "set Values.name"
 ```
 
@@ -39,7 +39,7 @@ Rules are **must-true**. When the flag should be absent:
 
 ```yaml
 !bind
-$Legacy: !ref $Values?.legacy ?? false
+$Legacy: !ref $Values.legacy? ?? false
 ---
 !validation
 $rules:
@@ -57,7 +57,7 @@ $Msg: !format
 ---
 !validation
 $rules:
-  - !ref $Values?.image
+  - !ref $Values.image?
 $warning: !ref $Msg
 ```
 
@@ -86,7 +86,7 @@ $fail: "set name"
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values?.name
+  - !not-empty $Values.name?
 $fail: "set name"
 # required is !not-empty on $rules
 ```
@@ -97,7 +97,7 @@ $fail: "set name"
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values?.name
+  - !not-empty $Values.name?
 $fail: "set name"
 $warning: "missing name"
 # $fail and $warning cannot both be set
@@ -108,7 +108,7 @@ $warning: "missing name"
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values?.name
+  - !not-empty $Values.name?
 $fail: "set name"
 # pick $fail or $warning
 ```
@@ -119,7 +119,7 @@ $fail: "set name"
 ```yaml
 !validation
 $rules:
-  - !empty $Values?.name
+  - !empty $Values.name?
 $fail: "set name"
 # !empty as a rule means the value must be empty
 ```
@@ -129,7 +129,7 @@ $fail: "set name"
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values?.name
+  - !not-empty $Values.name?
 $fail: "set name"
 # required values use !not-empty
 ```
@@ -144,7 +144,7 @@ $fail: "set name"
 
 ## Comparison with Helm
 
-`!validation` is `required` / `fail` as a document, not a pipeline function.
+`!validation` is Helm `required` / `fail` as a document: on `$fail`, no stdout, stderr only. A successful `required` still prints in Helm — knarr prints with `!emit` / `!ref`.
 
 <table>
 <tr><th>Helm</th><td>
@@ -156,12 +156,20 @@ name: {{ required "set name" .Values.name }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!validation
+$rules:
+  - !not-empty $Values.name?
+$fail: "set name"
+---
+!emit
+name: !ref $Values.name
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `required` prints the value or fails. Knarr `!validation` does not print `name`.
+Same result. Failed `required` = `$fail` (no stdout). Success prints `name:`. Fail text differs.
 
 </td></tr>
 </table>

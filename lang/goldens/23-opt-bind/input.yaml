@@ -1,0 +1,18 @@
+---
+!bind
+$Values:
+  name: api
+
+---
+!bind
+$Tls?: !ref $Values.tls?
+
+---
+!emit
+apiVersion: v1
+kind: Pod
+metadata:
+  name: !ref $Values.name
+spec:
+  restartPolicy: Always
+  tls?: !ref $Tls?

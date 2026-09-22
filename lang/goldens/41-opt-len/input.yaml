@@ -1,0 +1,14 @@
+---
+!bind
+$Values:
+  name: api
+$N?: !len $Values.workers?
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: !ref $Values.name
+spec?:
+  replicas?: !ref $N?

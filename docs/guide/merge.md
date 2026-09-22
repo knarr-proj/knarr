@@ -25,7 +25,7 @@ $Cfg: !merge
 
 ```yaml
 !bind
-$UserProbe: !ref "$Values?.livenessProbe ?? {}"
+$UserProbe: !ref "$Values.livenessProbe? ?? {}"
 $Probe: !merge
   - httpGet:
       path: /healthz
@@ -68,8 +68,8 @@ Use [`!concat`](concat.md) for lists.
 ```yaml
 !bind
 $Res?: !merge
-  - !ref $Values?.requests
-  - !ref $Values?.limits
+  - !ref $Values.requests?
+  - !ref $Values.limits?
 ---
 !emit
 resources?: !ref $Res?
@@ -135,7 +135,7 @@ $Args: !concat
 $Res?: !merge
   - requests:
       cpu: "100m"
-  - !ref $Values?.resources
+  - !ref $Values.resources?
 # literal child: result always exists; ?: cannot fire
 ```
 
@@ -146,15 +146,15 @@ $Res?: !merge
 $Res: !merge
   - requests:
       cpu: "100m"
-  - !ref "$Values?.resources ?? {}"
+  - !ref "$Values.resources? ?? {}"
 # defaults stay: required bind, fill omit
 ```
 
 ```yaml
 !bind
 $Res?: !merge
-  - !ref $Values?.requests
-  - !ref $Values?.limits
+  - !ref $Values.requests?
+  - !ref $Values.limits?
 # ?: only when every child can omit
 ```
 

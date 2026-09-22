@@ -1,0 +1,26 @@
+---
+!bind
+$Values:
+  name: demo
+  image: ghcr.io/acme/demo:1.0.0
+  replicas: 2
+
+---
+!emit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: !ref $Values.name
+spec:
+  replicas: !ref $Values.replicas
+  selector:
+    matchLabels:
+      app: !ref $Values.name
+  template:
+    metadata:
+      labels:
+        app: !ref $Values.name
+    spec:
+      containers:
+        - name: app
+          image: !ref $Values.image

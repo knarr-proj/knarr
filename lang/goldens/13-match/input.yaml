@@ -1,0 +1,34 @@
+---
+!bind
+$Values:
+  name: api
+  replicas: 1
+  ha: false
+
+---
+!emit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: !ref $Values.name
+spec:
+  replicas: !match
+    $if: !expr "$Values.replicas > 0"
+    $then: !ref $Values.replicas
+    $else: 1
+  selector:
+    matchLabels:
+      app: !ref $Values.name
+  template:
+    metadata:
+      labels:
+        app: !ref $Values.name
+    spec:
+      containers:
+        - name: app
+          image: example/api:1
+      topologySpreadConstraints?: !match
+        $if: !expr "$Values.replicas > 1"
+        $then:
+          - maxSkew: 1
+            topologyKey: kubernetes.io/hostname

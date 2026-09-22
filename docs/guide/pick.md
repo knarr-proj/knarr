@@ -6,8 +6,8 @@ N-way **omit** default: first child that is present wins. An empty string does *
 
 ```yaml
 name: !pick
-  - !ref $Values?.name
-  - !ref $Values?.fullnameOverride
+  - !ref $Values.name?
+  - !ref $Values.fullnameOverride?
   - app
 ```
 
@@ -24,8 +24,8 @@ name: !pick
 
 ```yaml
 name: !pick
-  - !ref $Values?.fullnameOverride
-  - !ref $Values?.name
+  - !ref $Values.fullnameOverride?
+  - !ref $Values.name?
   - knarr-app
 ```
 
@@ -33,8 +33,8 @@ name: !pick
 
 ```yaml
 image: !pick
-  - !ref $Values?.image.full
-  - !ref $Values?.image.repository
+  - !ref $Values.image?.full
+  - !ref $Values.image?.repository
   - ghcr.io/acme/app:latest
 ```
 
@@ -45,10 +45,10 @@ The last element must be a concrete fallback, not omit.
 ```yaml
 # default — key stays
 containerPort: !pick
-  - !ref $Values?.port
+  - !ref $Values.port?
   - 8080
 # omit
-containerPort?: !ref $Values?.port
+containerPort?: !ref $Values.port?
 ```
 
 If `port` is `0`, you get `0` — not 8080. Zero is a value.
@@ -72,7 +72,7 @@ name: !pick
 ```yaml
 !emit
 name: !pick
-  - !ref $Values?.fullnameOverride
+  - !ref $Values.fullnameOverride?
   - app
 # only omit falls through; "", 0, and false win. Skip "" with !match if needed
 ```
@@ -83,7 +83,7 @@ name: !pick
 ```yaml
 !bind
 $Res?: !pick
-  - !ref $Values?.name
+  - !ref $Values.name?
   - app
 # !pick always has a value; ?: cannot fire
 ```
@@ -93,7 +93,7 @@ $Res?: !pick
 ```yaml
 !bind
 $Res: !pick
-  - !ref $Values?.name
+  - !ref $Values.name?
   - app
 # last child is concrete; the bind is required
 ```
@@ -103,7 +103,7 @@ $Res: !pick
 
 ```yaml
 !emit
-name: !expr "$Values?.fullnameOverride || $Values?.name ?? 'app'"
+name: !expr "$Values.fullnameOverride? || $Values.name? ?? 'app'"
 # || is bool, not coalesce; use !pick
 ```
 
@@ -112,8 +112,8 @@ name: !expr "$Values?.fullnameOverride || $Values?.name ?? 'app'"
 ```yaml
 !emit
 name: !pick
-  - !ref $Values?.fullnameOverride
-  - !ref $Values?.name
+  - !ref $Values.fullnameOverride?
+  - !ref $Values.name?
   - app
 # n-way omit default is !pick
 ```
@@ -123,7 +123,7 @@ name: !pick
 
 ```yaml
 !emit
-name: !ref "$Values?.fullname ?? $Values?.name ?? 'app'"
+name: !ref "$Values.fullname? ?? $Values.name? ?? 'app'"
 # ?? is one default on the whole scalar
 ```
 
@@ -132,8 +132,8 @@ name: !ref "$Values?.fullname ?? $Values?.name ?? 'app'"
 ```yaml
 !emit
 name: !pick
-  - !ref $Values?.fullname
-  - !ref $Values?.name
+  - !ref $Values.fullname?
+  - !ref $Values.name?
   - app
 # n-way omit default is !pick
 ```
@@ -144,8 +144,8 @@ name: !pick
 ```yaml
 !emit
 name: !pick
-  - !ref $Values?.fullname
-  - !ref $Values?.name
+  - !ref $Values.fullname?
+  - !ref $Values.name?
 # the last child must exist (not omit)
 ```
 
@@ -154,8 +154,8 @@ name: !pick
 ```yaml
 !emit
 name: !pick
-  - !ref $Values?.fullname
-  - !ref $Values?.name
+  - !ref $Values.fullname?
+  - !ref $Values.name?
   - app
 # last is a concrete fallback
 ```

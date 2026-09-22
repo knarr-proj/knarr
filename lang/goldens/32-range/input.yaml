@@ -1,0 +1,27 @@
+---
+!bind
+$Values:
+  count: 3
+
+---
+!bind
+$Idx: !range
+  $until: !ref $Values.count
+$Seq: !range
+  $from: 1
+  $to: !ref $Values.count
+$Ports: !range
+  $from: 3
+  $until: 10
+  $step: 2
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api
+data:
+  idx: !ref $Idx
+  seq: !ref $Seq
+  ports: !ref $Ports

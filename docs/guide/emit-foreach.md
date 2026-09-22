@@ -20,7 +20,7 @@ $yield:
 
 | Key | Meaning |
 |-----|---------|
-| `$over` | Sequence or mapping. **`$over?:` is an error.** Omit value (`$over: !ref $Values?.workers`) → **zero documents**. Empty `[]` / `{}` → zero documents. `?? []` / `?? {}` also fine (missing becomes empty). |
+| `$over` | Sequence or mapping. **`$over?:` is an error.** Omit value (`$over: !ref $Values.workers?`) → **zero documents**. Empty `[]` / `{}` → zero documents. `?? []` / `?? {}` also fine (missing becomes empty). |
 | `$as` | Binding for the element (value if `$over` is a map). |
 | `$yield` | Mapping = one manifest. Or `$yield?:` to skip that iteration on omit. |
 | `$filter` | Bool; false → no document for that item. Tags or YAML `true` / `false`. |
@@ -138,7 +138,7 @@ $yield:
 
 ```yaml
 !emit-foreach
-$over?: !ref $Values?.workers
+$over?: !ref $Values.workers?
 $as: $W
 $yield:
   kind: Pod
@@ -150,7 +150,7 @@ $yield:
 
 ```yaml
 !emit-foreach
-$over: !ref $Values?.workers
+$over: !ref $Values.workers?
 $as: $W
 $yield:
   kind: Pod
@@ -213,7 +213,7 @@ name: {{ .name }}
 
 ```yaml
 !emit-foreach
-$over: !ref $Values?.workers
+$over: !ref $Values.workers?
 $as: $Worker
 $yield:
   kind: Pod
@@ -246,7 +246,7 @@ name: {{ .name }}
 
 ```yaml
 !emit-foreach
-$over: !ref $Values?.workers
+$over: !ref $Values.workers?
 $as: $Worker
 $filter: !ref $Worker.enabled ?? false
 $yield:
@@ -278,7 +278,7 @@ name: {{ $comp }}
 
 ```yaml
 !emit-foreach
-$over: !ref $Values?.images
+$over: !ref $Values.images?
 $as: $Image
 $key: $Comp
 $yield:
@@ -300,6 +300,7 @@ Same YAML documents. Omit `$over` → zero documents.
 ```gotemplate
 {{- if .Values.deployWorkers }}
 {{- range .Values.workers }}
+---
 kind: Pod
 name: {{ .name }}
 {{- end }}
@@ -309,12 +310,20 @@ name: {{ .name }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit-foreach
+$when: !not-empty $Values.deployWorkers?
+$over: !ref $Values.workers?
+$as: $Worker
+$yield:
+  kind: Pod
+  name: !ref $Worker.name
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` is truthiness. Helm `range` here is not `---` documents. Knarr `$when` needs a bool.
+Same YAML documents. Helm `if` is [`!not-empty`](not-empty.md) (omit / `""` / `[]` / `{}` / `false` / `0` / `0.0`).
 
 </td></tr>
 </table>

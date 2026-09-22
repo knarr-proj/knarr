@@ -1,0 +1,12 @@
+---
+!bind
+$Values: !read values.yaml
+
+---
+!emit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: !ref $Values.name
+spec:
+  replicas: !ref $Values.replicas

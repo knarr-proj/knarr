@@ -1,0 +1,25 @@
+---
+!bind
+$Values:
+  name: api
+  sidecars:
+    - proxy
+
+---
+!validation
+$rules:
+  - !not-empty $Values.name?
+  - !or
+    - !not-empty $Values.sidecars?
+    - !not-empty $Values.init?
+$fail: "need name and sidecars or init"
+
+---
+!emit
+$when: !not-empty $Values.sidecars?
+$then:
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: !ref $Values.name
+$else: ""

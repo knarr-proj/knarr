@@ -104,6 +104,11 @@ checksum/config: {{ toJson (required "config" .Values.config) | sha256sum }}
 !bind
 $Sum: !sha256-json $Values.config
 ---
+!validation
+$rules:
+  - !not-empty $Values.config?
+$fail: "config"
+---
 !emit
 checksum/config: !ref $Sum
 ```
@@ -111,7 +116,7 @@ checksum/config: !ref $Sum
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same digest. Fail text differs.
+Same digest. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>
@@ -158,6 +163,11 @@ checksum/secret: {{ toJson (required "secret" .Values.secretData) | sha256sum }}
 !bind
 $Sum: !sha256-json $Values.secretData
 ---
+!validation
+$rules:
+  - !not-empty $Values.secretData?
+$fail: "secret"
+---
 !emit
 checksum/secret: !ref $Sum
 ```
@@ -165,7 +175,7 @@ checksum/secret: !ref $Sum
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same digest. Fail text differs.
+Same digest. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>

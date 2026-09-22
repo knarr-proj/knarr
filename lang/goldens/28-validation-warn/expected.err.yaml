@@ -1,0 +1,3 @@
+exit_code: 0
+message_contains:
+  - legacy is set

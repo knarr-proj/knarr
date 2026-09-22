@@ -1,0 +1,21 @@
+---
+!bind
+$Values:
+  workers:
+    - name: w1
+      enabled: true
+    - name: w2
+      enabled: false
+    - name: w3
+      enabled: true
+
+---
+!emit-foreach
+  $over: !ref $Values.workers
+  $as: $Worker
+  $filter: !ref $Worker.enabled
+  $yield:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: !ref $Worker.name

@@ -65,7 +65,7 @@ $Csv: !join
 !bind
 $HostList?: !join
   $sep: ","
-  $over: !ref $Values?.hosts
+  $over: !ref $Values.hosts?
 ---
 !emit
 metadata:
@@ -79,7 +79,7 @@ Missing `hosts` → no `$HostList` → no annotation key. `hosts: []` in values 
 !bind
 $HostList: !join
   $sep: ","
-  $over: !ref "$Values?.hosts ?? []"
+  $over: !ref "$Values.hosts? ?? []"
 ---
 !emit
 hosts: !ref $HostList
@@ -148,7 +148,7 @@ $HostList: !join
 !bind
 $HostList: !join
   $sep: ","
-  $over: !ref $Values?.hosts
+  $over: !ref $Values.hosts?
 # required bind + omit-capable $over is a pair error
 ```
 
@@ -158,7 +158,7 @@ $HostList: !join
 !bind
 $HostList?: !join
   $sep: ","
-  $over: !ref $Values?.hosts
+  $over: !ref $Values.hosts?
 # $Name?: omits when hosts is missing
 ```
 
@@ -166,7 +166,7 @@ $HostList?: !join
 !bind
 $HostList: !join
   $sep: ","
-  $over: !ref "$Values?.hosts ?? []"
+  $over: !ref "$Values.hosts? ?? []"
 # required bind: fill omit so $over is a list
 ```
 
@@ -177,7 +177,7 @@ $HostList: !join
 !bind
 $HostList?: !join
   $sep: ","
-  $over: !ref "$Values?.hosts ?? []"
+  $over: !ref "$Values.hosts? ?? []"
 # ?: + ?? [] : the bind cannot vanish
 ```
 
@@ -187,7 +187,7 @@ $HostList?: !join
 !bind
 $HostList?: !join
   $sep: ","
-  $over: !ref $Values?.hosts
+  $over: !ref $Values.hosts?
 # omit $over omits the bind
 ```
 
@@ -206,7 +206,7 @@ $HostList: !join
 !bind
 $HostList: !join
   $sep: ","
-  $over: !ref "$Values?.hosts ?? {}"
+  $over: !ref "$Values.hosts? ?? {}"
 # ?? {} is a mapping; join $over is a list
 ```
 
@@ -229,7 +229,7 @@ $HostList: !join
 !bind
 $HostList: !join
   $sep: ","
-  $over: !ref "$Values?.hosts ?? []"
+  $over: !ref "$Values.hosts? ?? []"
 # list default is ?? []
 ```
 
@@ -312,6 +312,11 @@ $HostList: !join
   $sep: ","
   $over: !ref $Values.hosts
 ---
+!validation
+$rules:
+  - !not-empty $Values.hosts?
+$fail: "hosts"
+---
 !emit
 hosts: !ref $HostList
 ```
@@ -319,7 +324,7 @@ hosts: !ref $HostList
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>
@@ -344,6 +349,11 @@ $Name: !join
     - cluster
     - local
 ---
+!validation
+$rules:
+  - !not-empty $Values.name?
+$fail: "name"
+---
 !emit
 name: !ref $Name
 ```
@@ -351,7 +361,7 @@ name: !ref $Name
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result when `name` is present (`required` on the Helm side if missing must fail).
+Same result. `required` abort = `$fail`.
 
 </td></tr>
 </table>
@@ -371,6 +381,11 @@ pull: {{ join "," (required "pullSecrets" .Values.pullSecrets) }}
 $Pull: !join
   $sep: ","
   $over: !ref $Values.pullSecrets
+---
+!validation
+$rules:
+  - !not-empty $Values.pullSecrets?
+$fail: "pullSecrets"
 ---
 !emit
 pull: !ref $Pull

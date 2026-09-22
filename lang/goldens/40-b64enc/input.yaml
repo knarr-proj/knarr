@@ -1,0 +1,14 @@
+---
+!bind
+$Values:
+  password: secret
+
+---
+!emit
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db
+type: Opaque
+data:
+  password: !b64enc $Values.password

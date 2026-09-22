@@ -5,7 +5,7 @@ Coerce to **bool**.
 ## Syntax
 
 ```yaml
-enabled?: !bool $Values?.enabled
+enabled?: !bool $Values.enabled?
 ```
 
 - Already bool: unchanged.
@@ -20,18 +20,17 @@ enabled?: !bool $Values?.enabled
 !bind
 $HA: !bool $Values.ha
 ---
-!emit
+!emit?
 $when: !ref $HA
 $then:
   kind: PodDisruptionBudget
   name: !ref $Values.name
-$else: ""
 ```
 
 ### Optional
 
 ```yaml
-$On?: !bool $Values?.featureGate
+$On?: !bool $Values.featureGate?
 ```
 
 ### Keep YAML bools as bools
@@ -158,6 +157,11 @@ enabled: {{ required "enabled" .Values.service.enabled }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.service.enabled?
+$fail: "enabled"
+---
 !emit
 enabled: !ref $Values.service.enabled
 ```
@@ -165,7 +169,7 @@ enabled: !ref $Values.service.enabled
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>

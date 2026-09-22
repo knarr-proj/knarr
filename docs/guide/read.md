@@ -12,7 +12,7 @@ $config: !read config/app.yaml
 - Tagged scalar path, relative to the file that contains the tag. `..` and absolute paths allowed. No URI.
 - Exactly **one** YAML document. Extra `---` is an error.
 - JSON that is valid YAML 1.2 is OK.
-- JSON/YAML `null` is an error (no null in knarr).
+- JSON/YAML `a: null` ≡ no `a`. Root `null` ≡ omit of the `!read` value. A sequence item `null` is an error.
 - Core YAML tags (`!!str`) allowed **in the file**. Knarr tags (`!ref`) in that file are errors.
 - Anchors in the file are expanded to a tree.
 - Not multi-doc (`!read-docs` is v2). Not raw file bytes.

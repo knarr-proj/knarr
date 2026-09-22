@@ -7,7 +7,7 @@ Length as **int**: sequence length, mapping key count, or string **UTF-8 byte** 
 ```yaml
 $N: !len $Values.workers
 replicas: !len $Values.workers
-$N?: !len $Values?.workers
+$N?: !len $Values.workers?
 ```
 
 Not a bool: `$when: !len` is an error. Use [`!not-empty`](not-empty.md).
@@ -33,7 +33,7 @@ Empty list → index error (no `[-1]`).
 ### Optional length
 
 ```yaml
-$N?: !len $Values?.workers
+$N?: !len $Values.workers?
 !emit
 replicas?: !ref $N?
 ```
@@ -71,23 +71,21 @@ $n: !len $Values.workers
 <tr><td>
 
 ```yaml
-!emit
+!emit?
 $when: !len $Values.workers
 $then:
   kind: ConfigMap
-$else: ""
 # !len is an int, not a bool
 ```
 
 </td><td>
 
 ```yaml
-!emit
-$when: !not-empty $Values?.workers
+!emit?
+$when: !not-empty $Values.workers?
 $then:
   kind: ConfigMap
   name: workers
-$else: ""
 # $when needs a bool: !not-empty, or !len then !expr "$N > 0"
 ```
 
@@ -113,7 +111,7 @@ $N: !len $Values.label
 
 ```yaml
 !bind
-$N: !len $Values?.workers
+$N: !len $Values.workers?
 # omit !len without ?: on the key is an error
 ```
 
@@ -121,7 +119,7 @@ $N: !len $Values?.workers
 
 ```yaml
 !bind
-$N?: !len $Values?.workers
+$N?: !len $Values.workers?
 # pair omit: $N?: with ?.
 ```
 
@@ -148,6 +146,11 @@ replicas: {{ len (required "workers" .Values.workers) }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.workers?
+$fail: "workers"
+---
 !emit
 replicas: !len $Values.workers
 ```
@@ -155,7 +158,7 @@ replicas: !len $Values.workers
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>
@@ -192,12 +195,17 @@ kind: ConfigMap
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !not-empty $Values.workers?
+$then:
+  kind: ConfigMap
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm prints only `kind`. Extra `$then` keys change the document. `len()` is not valid in `!expr`.
+Same result for a list. Helm `gt (len .) 0` ≡ `!not-empty`. `$then` is the whole document.
 
 </td></tr>
 </table>

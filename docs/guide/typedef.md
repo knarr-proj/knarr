@@ -197,7 +197,7 @@ Impossible in v1.
 </td></tr>
 <tr><th>Difference</th><td>
 
-Empty `sidecars`: Helm `containers:` null; knarr bind `!foreach` + `$over: []` is `[]`. Bind-only is not Helm stdout.
+Empty `sidecars`: Helm `containers: null` ≡ no `containers`; knarr bind `!foreach` + `$over: []` is `[]`. Bind-only is not Helm stdout.
 
 </td></tr>
 </table>

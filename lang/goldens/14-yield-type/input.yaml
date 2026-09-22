@@ -1,0 +1,18 @@
+---
+!typedef
+$ItemType:
+  metadata:
+    name: string
+---
+!bind
+$Values:
+  workers:
+    - name: w1
+    - name: w2
+---
+!emit-foreach
+  $over: !ref $Values.workers
+  $as: $Worker
+  $yield: !$ItemType
+    metadata:
+      name: !ref $Worker.name

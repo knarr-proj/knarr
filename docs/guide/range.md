@@ -71,7 +71,7 @@ $yield:
 !bind
 $Idx?: !range
   $from: 0
-  $until: !ref $Values?.replicas
+  $until: !ref $Values.replicas?
 ---
 !emit-foreach
 $over: !ref $Idx?
@@ -87,7 +87,7 @@ Missing `replicas` → no `$Idx` → zero documents. `replicas: 0` → `$Idx: []
 !bind
 $Idx: !range
   $from: 0
-  $until: !ref "$Values?.replicas ?? 0"
+  $until: !ref "$Values.replicas? ?? 0"
 ```
 
 ### Downwards
@@ -193,7 +193,7 @@ $Idx?: !range
 !bind
 $Idx?: !range
   $from: 0
-  $until: !ref $Values?.replicas
+  $until: !ref $Values.replicas?
 # at least one of $from / $to / $until omits
 ```
 
@@ -204,7 +204,7 @@ $Idx?: !range
 !bind
 $Idx: !range
   $from: 0
-  $step: !ref $Values?.step
+  $step: !ref $Values.step?
   $until: 5
 # a written $step that omits is an error, not 1
 ```
@@ -223,7 +223,7 @@ $Idx: !range
 !bind
 $Idx: !range
   $from: 0
-  $step: !ref "$Values?.step ?? 1"
+  $step: !ref "$Values.step? ?? 1"
   $until: 5
 # written $step must be a value
 ```

@@ -1,0 +1,21 @@
+---
+!bind
+$Values:
+  cpu: 0.5
+  replicas: 2
+
+---
+!bind
+$Scaled: !expr "$Values.replicas + 0.5"
+$CpuLabel: !format
+  - "%.1f"
+  - !ref $Values.cpu
+
+---
+!emit
+apiVersion: v1
+kind: Pod
+spec:
+  cpu: !ref $Values.cpu
+  scaled: !ref $Scaled
+  cpuLabel: !ref $CpuLabel

@@ -5,7 +5,7 @@ Boolean: not [`!empty`](empty.md) of the same path. Use this for “required” 
 ## Syntax
 
 ```yaml
-$when: !not-empty $Values?.sidecars
+$when: !not-empty $Values.sidecars?
 ```
 
 ## Examples
@@ -13,12 +13,11 @@ $when: !not-empty $Values?.sidecars
 ### Emit when sidecars exist
 
 ```yaml
-!emit
-$when: !not-empty $Values?.sidecars
+!emit?
+$when: !not-empty $Values.sidecars?
 $then:
   kind: ConfigMap
   name: sidecars
-$else: ""
 ```
 
 ### Required values.name
@@ -26,14 +25,14 @@ $else: ""
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values?.name
+  - !not-empty $Values.name?
 $fail: "set name"
 ```
 
 ### Filter workers with a port list
 
 ```yaml
-$filter: !not-empty $W?.ports
+$filter: !not-empty $W.ports?
 ```
 
 ### Drop a field when the list is empty
@@ -42,7 +41,7 @@ $filter: !not-empty $W?.ports
 
 ```yaml
 initContainers?: !match
-  $if: !not-empty $Values?.init
+  $if: !not-empty $Values.init?
   $then: !ref $Values.init
 ```
 
@@ -51,13 +50,13 @@ Missing or `[]` → no key. Non-empty → the list. For a loop, [`!foreach`](for
 ### replicas from a non-empty map
 
 ```yaml
-$when: !not-empty $Values?.nodeSelector
+!emit?
+$when: !not-empty $Values.nodeSelector?
 $then:
   nodeSelector: !ref $Values.nodeSelector
-$else: ""
 ```
 
-For a **field** omit, `nodeSelector?: !ref $Values?.nodeSelector` is simpler.
+For a **field** omit, `nodeSelector?: !ref $Values.nodeSelector?` is simpler.
 
 ## Common mistakes
 
@@ -66,23 +65,21 @@ For a **field** omit, `nodeSelector?: !ref $Values?.nodeSelector` is simpler.
 <tr><td>
 
 ```yaml
-!emit
+!emit?
 $when: !len $Values.workers
 $then:
   kind: ConfigMap
-$else: ""
 # !len is an int, not a bool
 ```
 
 </td><td>
 
 ```yaml
-!emit
-$when: !not-empty $Values?.workers
+!emit?
+$when: !not-empty $Values.workers?
 $then:
   kind: ConfigMap
   name: workers
-$else: ""
 # $when needs a bool — !not-empty
 ```
 
@@ -92,7 +89,7 @@ $else: ""
 ```yaml
 !validation
 $rules:
-  - !empty $Values?.name
+  - !empty $Values.name?
 $fail: "set name"
 # !empty as a rule means the value must be empty
 ```
@@ -102,7 +99,7 @@ $fail: "set name"
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values?.name
+  - !not-empty $Values.name?
 $fail: "set name"
 # required values use !not-empty
 ```
@@ -131,12 +128,17 @@ kind: ConfigMap
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !not-empty $Values.sidecars?
+$then:
+  kind: ConfigMap
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm prints only `kind`. Extra `$then` keys change the document.
+Same result. `$then` is the whole document. Helm `if` ≡ `!not-empty`.
 
 </td></tr>
 </table>
@@ -151,12 +153,20 @@ name: {{ required "set name" .Values.name }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!validation
+$rules:
+  - !not-empty $Values.name?
+$fail: "set name"
+---
+!emit
+name: !ref $Values.name
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `required` prints the value or fails. Knarr `!validation` does not print `name`.
+Same result. Failed `required` = `$fail` (no stdout). Success prints `name:`.
 
 </td></tr>
 </table>
@@ -176,12 +186,20 @@ ports:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+ports?: !foreach
+  $over: !ref $Values.workers?
+  $as: $W
+  $filter: !not-empty $W.ports?
+  $yield?:
+    name: !ref $W.name
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Empty range: Helm `ports:` null; knarr `ports: []`.
+Empty range: Helm `ports: null` ≡ no `ports`. Helm `if` ≡ `!not-empty`.
 
 </td></tr>
 </table>
@@ -199,12 +217,15 @@ nodeSelector:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+nodeSelector?: !ref $Values.nodeSelector?
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `with` skips a present empty `{}`. Knarr `?:` does not.
+Nil / `nodeSelector: null` ≡ no key. Empty `{}` omits on both (`with` and optional `{}` collapse). `nindent` is Helm text indent. Helm `with` also skips `false` / `""` / `0` / `[]`.
 
 </td></tr>
 </table>

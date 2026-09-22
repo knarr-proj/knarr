@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api
+spec:
+  a:
+    x: 1
+    y: 2
+    z: 3
+  ports:
+    - 443
+  keep: base

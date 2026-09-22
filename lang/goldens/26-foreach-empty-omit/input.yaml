@@ -1,0 +1,17 @@
+---
+!bind
+$Values:
+  name: api
+
+---
+!emit
+apiVersion: v1
+kind: Pod
+metadata:
+  name: !ref $Values.name
+spec:
+  restartPolicy: Always
+  containers?: !foreach
+    $over: !ref $Values.sidecars?
+    $as: $S
+    $yield?: !ref $S.container?

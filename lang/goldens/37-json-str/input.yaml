@@ -1,0 +1,28 @@
+---
+!bind
+$Values:
+  name: api
+  extraJson: '{"x":1}'
+  config:
+    port: 80
+    note: a&b
+    name: api
+
+---
+!bind
+$ViaBind: !sha256
+  $of: !to-json-str $Values.config
+$Extra: !from-json-str $Values.extraJson
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: !ref $Values.name
+  annotations:
+    checksum/config: !sha256-json $Values.config
+    checksum/via: !ref $ViaBind
+data:
+  config.json: !to-json-str $Values.config
+  x: !str $Extra.x

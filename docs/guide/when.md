@@ -1,21 +1,20 @@
 # `$when`
 
-Document-level condition. On **`!emit`**, `$when` requires `$then` and `$else`. On **`!emit-foreach`**, `$when` is an optional pack gate with **no** `$then` / `$else`.
+Document-level condition. **`!emit?`**: `$when` + `$then`, no `$else` (false → no document). **`!emit`**: `$when` + `$then` + `$else` (`$else: ""` skips; or another mapping). Omit `$when` is an error on both. On **`!emit-foreach`**, `$when` is an optional pack gate with **no** `$then` / `$else`.
 
-## Syntax (`!emit`)
+## Syntax (`!emit?`)
 
 ```yaml
-!emit
+!emit?
 $when: <bool>
 $then:
   kind: Service
   name: !ref $Values.name
-$else: ""
 ```
 
 Predicate: `!ref`, `!not`, `!expr`, `!empty`, `!not-empty`, `!and`, `!or`, or YAML `true` / `false`. Not `!len` (that is int). Not `!expr "true"` — that is no computation.
 
-`$else: ""` → emit nothing. `$else:` may be another mapping.
+`$else` on `!emit?` is a pair error. On `!emit`, `$else: ""` → emit nothing; `$else:` may be another mapping.
 
 No other keys next to `$when`. `when:` without `$` is an error.
 
@@ -44,11 +43,11 @@ $when: !ref $Values.service.enabled
 ### Sidecars present
 
 ```yaml
-$when: !not-empty $Values?.sidecars
+!emit?
+$when: !not-empty $Values.sidecars?
 $then:
   kind: ConfigMap
   name: sidecars
-$else: ""
 ```
 
 ### Compound
@@ -89,23 +88,21 @@ replicas: !match
 <tr><td>
 
 ```yaml
-!emit
+!emit?
 $when: !len $Values.workers
 $then:
   kind: ConfigMap
-$else: ""
 # !len is an int, not a bool
 ```
 
 </td><td>
 
 ```yaml
-!emit
-$when: !not-empty $Values?.workers
+!emit?
+$when: !not-empty $Values.workers?
 $then:
   kind: ConfigMap
   name: workers
-$else: ""
 # $when needs a bool: !not-empty, or !expr after !len
 ```
 
@@ -113,23 +110,21 @@ $else: ""
 <tr><td>
 
 ```yaml
-!emit
-$when: !ref $Values?.enabled
+!emit?
+$when: !ref $Values.enabled?
 $then:
   kind: Service
-$else: ""
 # omit is not a bool
 ```
 
 </td><td>
 
 ```yaml
-!emit
-$when: !ref $Values?.enabled ?? false
+!emit?
+$when: !ref $Values.enabled? ?? false
 $then:
   kind: Service
   name: !ref $Values.name
-$else: ""
 # missing enabled becomes false
 ```
 
@@ -137,23 +132,21 @@ $else: ""
 <tr><td>
 
 ```yaml
-!emit
+!emit?
 $when: !expr "true"
 $then:
   kind: Service
-$else: ""
 # no computation: use YAML
 ```
 
 </td><td>
 
 ```yaml
-!emit
+!emit?
 $when: true
 $then:
   kind: Service
   name: !ref $Values.name
-$else: ""
 # a constant bool is YAML
 ```
 
@@ -168,7 +161,7 @@ $else: ""
 
 ## Comparison with Helm
 
-`$when` gates a whole `!emit` (needs `$then` / `$else`). Field-level if is `!match`.
+`$when` gates `!emit?` (no `$else`) or `!emit` (needs `$else`). Field-level if is `!match`.
 
 <table>
 <tr><th>Helm</th><td>
@@ -182,12 +175,17 @@ kind: Service
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !not-empty $Values.service?.enabled?
+$then:
+  kind: Service
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` of missing is skip. Knarr `$when` without `?? false` is an error. The Helm snippet prints only `kind`; a knarr `$then` with extra keys is a different document.
+Same result. Helm `if` ≡ `!not-empty`. Missing → omit → no document.
 
 </td></tr>
 </table>
@@ -204,12 +202,17 @@ kind: ConfigMap
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit?
+$when: !not-empty $Values.sidecars?
+$then:
+  kind: ConfigMap
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` is truthiness. Knarr `$when` needs a bool. Extra keys in `$then` change the document.
+Same result. Helm `if` ≡ `!not-empty`.
 
 </td></tr>
 </table>
@@ -276,7 +279,7 @@ Impossible in v1.
 </td></tr>
 <tr><th>Difference</th><td>
 
-`$Release` / `$Chart` / `$Capabilities` are reserved and not injected.
+`$Release` / `$Chart` / `$Capabilities` are reserved and not injected. Do not pair this with a user `$Rel`.
 
 </td></tr>
 </table>

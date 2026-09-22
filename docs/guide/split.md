@@ -61,7 +61,7 @@ $Lines: !split
 !bind
 $Hosts?: !split
   $sep: ","
-  $of: !ref $Values?.hostCsv
+  $of: !ref $Values.hostCsv?
 ---
 !emit
 hostAliases?: !foreach
@@ -78,7 +78,7 @@ Missing `hostCsv` → no `$Hosts` → no key. `hostCsv: ""` → `$Hosts: []`. Al
 !bind
 $Hosts: !split
   $sep: ","
-  $of: !ref "$Values?.hostCsv ?? ''"
+  $of: !ref "$Values.hostCsv? ?? ''"
 ```
 
 ## Common mistakes
@@ -133,7 +133,7 @@ $Hosts: !split
 !bind
 $Hosts: !split
   $sep: ","
-  $of: !ref $Values?.hostCsv
+  $of: !ref $Values.hostCsv?
 # required bind + omit-capable $of is a pair error
 ```
 
@@ -143,7 +143,7 @@ $Hosts: !split
 !bind
 $Hosts?: !split
   $sep: ","
-  $of: !ref $Values?.hostCsv
+  $of: !ref $Values.hostCsv?
 # $Name?: omits when hostCsv is missing
 ```
 
@@ -151,7 +151,7 @@ $Hosts?: !split
 !bind
 $Hosts: !split
   $sep: ","
-  $of: !ref "$Values?.hostCsv ?? ''"
+  $of: !ref "$Values.hostCsv? ?? ''"
 # required bind: fill omit so $of is a string
 ```
 
@@ -162,7 +162,7 @@ $Hosts: !split
 !bind
 $Hosts?: !split
   $sep: ","
-  $of: !ref "$Values?.hostCsv ?? ''"
+  $of: !ref "$Values.hostCsv? ?? ''"
 # ?: + ?? '' : the bind cannot vanish
 ```
 
@@ -172,7 +172,7 @@ $Hosts?: !split
 !bind
 $Hosts?: !split
   $sep: ","
-  $of: !ref $Values?.hostCsv
+  $of: !ref $Values.hostCsv?
 # omit $of omits the bind
 ```
 

@@ -22,7 +22,7 @@ Details: [`!format`](guide/format.md).
 ## Optional nested mapping
 
 ```yaml
-affinity?: !ref $Values?.affinity
+affinity?: !ref $Values.affinity?
 ```
 
 Not a `!with` tag. Details: [Omit](guide/omit.md).
@@ -43,13 +43,12 @@ host?: !ref $Values.tls?.host
 Document-level `if`:
 
 ```yaml
-!emit
+!emit?
 $when: !ref $Values.service.enabled
 $then:
   apiVersion: v1
   kind: Service
   name: !ref $Values.name
-$else: ""
 ```
 
 Field-level `if` / `else if`: [`!match`](guide/match.md). Details: [`$when`](guide/when.md).
@@ -136,7 +135,7 @@ Details: [`!len`](guide/len.md), [`!expr`](guide/expr.md).
 ## Skip a loop iteration
 
 ```yaml
-$yield?: !ref $Worker?.sidecar
+$yield?: !ref $Worker.sidecar?
 ```
 
 Omit yield → no element (foreach) / no document (emit-foreach). Details: [`!foreach`](guide/foreach.md).
@@ -146,7 +145,7 @@ Omit yield → no element (foreach) / no document (emit-foreach). Details: [`!fo
 ```yaml
 !validation
 $rules:
-  - !not-empty $Values?.name
+  - !not-empty $Values.name?
 $fail: "set Values.name"
 ```
 

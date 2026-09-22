@@ -40,7 +40,7 @@ $Name: !format
 ### Optional
 
 ```yaml
-$Port?: !int $Values?.port
+$Port?: !int $Values.port?
 ```
 
 ## Common mistakes
@@ -147,6 +147,11 @@ containerPort: {{ int (required "port" .Values.port) }}
 !bind
 $Port: !int $Values.port
 ---
+!validation
+$rules:
+  - !not-empty $Values.port?
+$fail: "port"
+---
 !emit
 containerPort: !ref $Port
 ```
@@ -154,7 +159,7 @@ containerPort: !ref $Port
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>

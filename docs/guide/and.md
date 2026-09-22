@@ -28,7 +28,7 @@ $when: !and
 
 ```yaml
 $filter: !and
-  - !not-empty $W?.ports
+  - !not-empty $W.ports?
   - !ref $W.enabled
 ```
 
@@ -37,8 +37,8 @@ $filter: !and
 ```yaml
 $rules:
   - !and
-    - !not-empty $Values?.name
-    - !not-empty $Values?.image
+    - !not-empty $Values.name?
+    - !not-empty $Values.image?
 ```
 
 (Or two `$rules` items — first failure wins anyway.)
@@ -48,8 +48,8 @@ $rules:
 ```yaml
 $when: !and
   - !or
-    - !empty $Values?.tls
-    - !not-empty $Values?.cert
+    - !empty $Values.tls?
+    - !not-empty $Values.cert?
   - !ref $Values.service.enabled
 ```
 
@@ -60,25 +60,23 @@ $when: !and
 <tr><td>
 
 ```yaml
-!emit
+!emit?
 $when: !and []
 $then:
   kind: Service
-$else: ""
 # empty !and is an error
 ```
 
 </td><td>
 
 ```yaml
-!emit
+!emit?
 $when: !and
   - !ref $Values.service.enabled
   - !expr "$Values.replicas > 1"
 $then:
   kind: Service
   name: !ref $Values.name
-$else: ""
 # !and needs at least one bool child
 ```
 
@@ -86,24 +84,22 @@ $else: ""
 <tr><td>
 
 ```yaml
-!emit
+!emit?
 $when: !and
-  - !ref $Values?.enabled
+  - !ref $Values.enabled?
 $then:
   kind: Service
-$else: ""
 # omit child is not a bool
 ```
 
 </td><td>
 
 ```yaml
-!emit
-$when: !ref $Values?.enabled ?? false
+!emit?
+$when: !ref $Values.enabled? ?? false
 $then:
   kind: Service
   name: !ref $Values.name
-$else: ""
 # use ?? false, or a required path
 ```
 
@@ -111,23 +107,21 @@ $else: ""
 <tr><td>
 
 ```yaml
-!emit
+!emit?
 $when: !expr "and($Values.service.enabled, $Values.tls)"
 $then:
   kind: Service
-$else: ""
 # no and() in !expr
 ```
 
 </td><td>
 
 ```yaml
-!emit
+!emit?
 $when: !expr "$Values.service.enabled && $Values.tls"
 $then:
   kind: Service
   name: !ref $Values.name
-$else: ""
 # short-circuit bools use &&
 ```
 
@@ -185,7 +179,7 @@ Impossible in v1.
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `and` is truthiness. Knarr `!and` is boolean only. Empty range: Helm `env:` null; knarr `env: []`.
+Helm `and` is truthiness. Knarr `!and` is boolean only. Empty range: Helm `env: null` ≡ no `env`; knarr `env: []` if the key is not `?:`.
 
 </td></tr>
 </table>

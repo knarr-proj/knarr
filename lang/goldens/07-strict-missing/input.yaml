@@ -1,0 +1,5 @@
+---
+!bind
+$Values:
+  name: demo
+$Img: !ref $Values.image

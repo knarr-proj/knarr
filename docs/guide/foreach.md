@@ -72,7 +72,7 @@ env: !foreach
 
 ```yaml
 env?: !foreach
-  $over: !ref $Values?.env
+  $over: !ref $Values.env?
   $as: $E
   $yield:
     name: !ref $E.name
@@ -86,24 +86,24 @@ env?: !foreach
   $over: !ref $Values.env
   $as: $E
   $yield?:
-    name: !ref $E?.name
+    name: !ref $E.name?
 ```
 
 Missing filled to empty, then the same omit:
 
 ```yaml
 env?: !foreach
-  $over: !ref "$Values?.env ?? []"
+  $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield?:
-    name: !ref $E?.name
+    name: !ref $E.name?
 ```
 
 Always print a list (possibly empty):
 
 ```yaml
 env: !foreach
-  $over: !ref "$Values?.env ?? []"
+  $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield:
     name: !ref $E.name
@@ -115,7 +115,7 @@ env: !foreach
 ```yaml
 !bind
 $Items?: !foreach
-  $over: !ref $Values?.env
+  $over: !ref $Values.env?
   $as: $E
   $yield:
     name: !ref $E.name
@@ -130,7 +130,7 @@ Missing `env` → no `$Items` → no key. `env: []` + `$yield:` → `$Items: []`
 ```yaml
 !bind
 $Items: !foreach
-  $over: !ref "$Values?.env ?? []"
+  $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield:
     name: !ref $E.name
@@ -139,7 +139,7 @@ $Items: !foreach
 ### Skip disabled sidecars
 
 ```yaml
-$yield?: !ref $S?.container
+$yield?: !ref $S.container?
 ```
 
 ## Common mistakes
@@ -176,7 +176,7 @@ $yield:
 ```yaml
 !emit
 containers: !foreach
-  $over: !ref $Values?.workers
+  $over: !ref $Values.workers?
   $as: $W
   $yield:
     name: !ref $W.name
@@ -188,7 +188,7 @@ containers: !foreach
 ```yaml
 !emit
 containers: !foreach
-  $over: !ref "$Values?.workers ?? []"
+  $over: !ref "$Values.workers? ?? []"
   $as: $W
   $yield:
     name: !ref $W.name
@@ -201,7 +201,7 @@ containers: !foreach
 ```yaml
 !emit
 env?: !foreach
-  $over: !ref "$Values?.env ?? []"
+  $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield:
     name: !ref $E.name
@@ -223,7 +223,7 @@ env?: !foreach
 ```yaml
 !emit
 env?: !foreach
-  $over: !ref $Values?.env
+  $over: !ref $Values.env?
   $as: $E
   $yield:
     name: !ref $E.name
@@ -236,17 +236,17 @@ env?: !foreach
   $over: !ref $Values.env
   $as: $E
   $yield?:
-    name: !ref $E?.name
+    name: !ref $E.name?
 # required $over + $yield?: : nothing to print omits the key
 ```
 
 ```yaml
 !emit
 env?: !foreach
-  $over: !ref "$Values?.env ?? []"
+  $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield?:
-    name: !ref $E?.name
+    name: !ref $E.name?
 # ?? [] + $yield?: : missing becomes [] then the key omits
 ```
 
@@ -256,7 +256,7 @@ env?: !foreach
 ```yaml
 !bind
 $Items: !foreach
-  $over: !ref $Values?.env
+  $over: !ref $Values.env?
   $as: $E
   $yield: !ref $E
 # required bind + omit-capable $over is a pair error
@@ -267,7 +267,7 @@ $Items: !foreach
 ```yaml
 !bind
 $Items?: !foreach
-  $over: !ref $Values?.env
+  $over: !ref $Values.env?
   $as: $E
   $yield: !ref $E
 # $Name?: omits when env is missing
@@ -276,7 +276,7 @@ $Items?: !foreach
 ```yaml
 !bind
 $Items: !foreach
-  $over: !ref "$Values?.env ?? []"
+  $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield: !ref $E
 # required bind: fill omit so $over is a list
@@ -339,12 +339,20 @@ env:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+env?: !foreach
+  $over: !ref $Values.env?
+  $as: $E
+  $yield?:
+    name: !ref $E.name
+    value: !ref $E.value
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Empty `env`: Helm leaves `env:` (null); knarr `env: !foreach` + `$over: []` is `env: []`. `| quote` is text quotes.
+Empty range: Helm `env: null` ≡ no `env`. `| quote` is text quotes.
 
 </td></tr>
 </table>
@@ -362,12 +370,19 @@ ports:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+ports?: !foreach
+  $over: !ref $Values.ports?
+  $as: $P
+  $yield?:
+    containerPort: !ref $P
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Empty `ports`: Helm leaves `ports:` (null); knarr `ports: !foreach` + `$over: []` is `ports: []`. Skip the key: last table.
+Empty range: Helm `ports: null` ≡ no `ports`.
 
 </td></tr>
 </table>
@@ -386,12 +401,21 @@ env:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+env?: !foreach
+  $over: !ref $Values.labels?
+  $as: $V
+  $key: $K
+  $yield?:
+    name: !ref $K
+    value: !ref $V
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Empty map: Helm `env:` null; knarr `env: []`. `| quote` is text quotes.
+Empty map: Helm `env: null` ≡ no `env`. `| quote` is text quotes.
 
 </td></tr>
 </table>
@@ -412,12 +436,21 @@ env:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+env?: !foreach
+  $over: !ref $Values.env?
+  $as: $E
+  $filter: !not-empty $E.enabled?
+  $yield?:
+    name: !ref $E.name
+    value: !ref $E.value
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-All filtered out: Helm `env:` null; knarr `env: []` unless `env?:` + `$yield?:`. Helm `if` is truthiness.
+All filtered out: Helm `env: null` ≡ no `env`. Helm `if` ≡ `!not-empty`. `| quote` is text quotes.
 
 </td></tr>
 </table>
@@ -441,7 +474,7 @@ env:
 ```yaml
 !emit
 env?: !foreach
-  $over: !ref $Values?.env
+  $over: !ref $Values.env?
   $as: $E
   $yield?:
     name: !ref $E.name

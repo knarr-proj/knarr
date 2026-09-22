@@ -149,6 +149,11 @@ cpu: {{ required "cpu" .Values.cpu }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.cpu?
+$fail: "cpu"
+---
 !emit
 cpu: !ref $Values.cpu
 ```
@@ -156,7 +161,7 @@ cpu: !ref $Values.cpu
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>

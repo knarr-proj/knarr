@@ -38,14 +38,14 @@ replicas: !expr "$Values.replicas + 1"
 
 `??` applies to the **entire** formula. `+` needs both sides. `||` / `&&` only demand what they need: `true || omit` is `true`, and the default is not used. That demand is fixed. `||` is **bool**, not a string coalesce — names are [`!pick`](pick.md) or [`!ref`](ref.md) `??`. Different defaults per operand: two [`!ref`](ref.md) binds, then add.
 
-`replicas: !expr "$Values?.n + 1"` is the same pair error as `replicas: !ref $Values?.n`. Use `replicas?:` or `?? 1`. Do not forbid `?.` just because there is no `??`.
+`replicas: !expr "$Values.n? + 1"` is the same pair error as `replicas: !ref $Values.n?`. Use `replicas?:` or `?? 1`. Do not forbid `?.` just because there is no `??`.
 
 ```yaml
-$sum: !expr "$Values?.a + $Values?.b ?? 0"
-$when: !expr "$Values?.ingress.enabled || $Values?.mesh.enabled ?? false"
-$when: !expr "$Values?.a || $Values?.b || $Values?.c ?? false"
-$A: !ref $Values?.a ?? 0
-$B: !ref $Values?.b ?? 1
+$sum: !expr "$Values.a? + $Values.b? ?? 0"
+$when: !expr "$Values.ingress?.enabled || $Values.mesh?.enabled ?? false"
+$when: !expr "$Values.a? || $Values.b? || $Values.c? ?? false"
+$A: !ref $Values.a? ?? 0
+$B: !ref $Values.b? ?? 1
 $sum: !expr "$A + $B"
 ```
 
@@ -101,7 +101,7 @@ $n: !len $Values.workers
 
 ```yaml
 !emit
-name: !expr "$Values?.fullnameOverride || $Values?.name ?? 'app'"
+name: !expr "$Values.fullnameOverride? || $Values.name? ?? 'app'"
 # || is bool, not a name coalesce; string → type error
 ```
 
@@ -110,8 +110,8 @@ name: !expr "$Values?.fullnameOverride || $Values?.name ?? 'app'"
 ```yaml
 !emit
 name: !pick
-  - !ref $Values?.fullnameOverride
-  - !ref $Values?.name
+  - !ref $Values.fullnameOverride?
+  - !ref $Values.name?
   - app
 # two candidates: !ref … ?? ; three+: !pick
 ```
@@ -121,7 +121,7 @@ name: !pick
 
 ```yaml
 !emit
-replicas: !expr "$Values?.n + 1"
+replicas: !expr "$Values.n? + 1"
 # omit on a required key is a pair error (same as !ref)
 ```
 
@@ -129,8 +129,8 @@ replicas: !expr "$Values?.n + 1"
 
 ```yaml
 !emit
-replicas?: !expr "$Values?.n + 1"
-replicas: !expr "$Values?.n + 1 ?? 1"
+replicas?: !expr "$Values.n? + 1"
+replicas: !expr "$Values.n? + 1 ?? 1"
 # ?: omits; ?? keeps a number
 ```
 
@@ -139,7 +139,7 @@ replicas: !expr "$Values?.n + 1 ?? 1"
 
 ```yaml
 !bind
-$Ports: !expr "$Values?.ports ?? [80, 443]"
+$Ports: !expr "$Values.ports? ?? [80, 443]"
 # no computation: use !ref
 ```
 
@@ -147,7 +147,7 @@ $Ports: !expr "$Values?.ports ?? [80, 443]"
 
 ```yaml
 !bind
-$Ports: !ref "$Values?.ports ?? [80, 443]"
+$Ports: !ref "$Values.ports? ?? [80, 443]"
 # path + default is !ref
 ```
 
@@ -156,7 +156,7 @@ $Ports: !ref "$Values?.ports ?? [80, 443]"
 
 ```yaml
 !bind
-$sum: !expr "($Values?.a ?? 0) + ($Values?.b ?? 1)"
+$sum: !expr "($Values.a? ?? 0) + ($Values.b? ?? 1)"
 # ?? is not inside the formula
 ```
 
@@ -164,8 +164,8 @@ $sum: !expr "($Values?.a ?? 0) + ($Values?.b ?? 1)"
 
 ```yaml
 !bind
-$A: !ref $Values?.a ?? 0
-$B: !ref $Values?.b ?? 1
+$A: !ref $Values.a? ?? 0
+$B: !ref $Values.b? ?? 1
 $sum: !expr "$A + $B"
 # one ?? per !ref; then add
 ```
@@ -345,6 +345,11 @@ replicas: {{ add (required "replicas" .Values.replicas) 1 }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.replicas?
+$fail: "replicas"
+---
 !emit
 replicas: !expr "$Values.replicas + 1"
 ```
@@ -352,7 +357,7 @@ replicas: !expr "$Values.replicas + 1"
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>
@@ -390,6 +395,11 @@ image: {{ required "image" (index .Values.images .name) }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.images?
+$fail: "image"
+---
 !emit
 image: !expr "$Values.images[$Worker.name]"
 ```
@@ -397,7 +407,7 @@ image: !expr "$Values.images[$Worker.name]"
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result when the map exists. `required` abort = `$fail`. A missing key in a live map is still a path error in both.
 
 </td></tr>
 </table>
@@ -413,6 +423,11 @@ name: {{ required "name" .Values.name }}-svc
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.name?
+$fail: "name"
+---
 !bind
 $Name: !format
   - "%s-svc"

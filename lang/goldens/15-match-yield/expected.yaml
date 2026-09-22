@@ -1,0 +1,7 @@
+metadata:
+  name: w1
+  nodeSelector:
+    disk: ssd
+---
+metadata:
+  name: w2

@@ -1,0 +1,19 @@
+---
+!bind
+$Values:
+  name: api
+  legacy: true
+$Legacy: !ref $Values.legacy? ?? false
+
+---
+!validation
+$rules:
+  - !not $Legacy
+$warning: "legacy is set"
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: !ref $Values.name

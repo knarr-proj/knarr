@@ -1,0 +1,12 @@
+---
+!bind
+$Values: !read values.yaml
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: !ref $Values.app.name
+data:
+  image: !ref $Values.app.image

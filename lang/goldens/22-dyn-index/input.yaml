@@ -1,0 +1,22 @@
+---
+!bind
+$Values:
+  images:
+    api: ghcr.io/acme/api:1
+  workers:
+    - name: w1
+      kind: api
+
+---
+!emit-foreach
+  $over: !ref $Values.workers
+  $as: $Worker
+  $yield:
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: !ref $Worker.name
+    spec:
+      containers:
+        - name: app
+          image: !expr "$Values.images[$Worker.kind]"

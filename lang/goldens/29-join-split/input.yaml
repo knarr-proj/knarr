@@ -1,0 +1,28 @@
+---
+!bind
+$Values:
+  name: api
+  hosts:
+    - a.example
+    - b.example
+  csv: x,y,z
+
+---
+!bind
+$Csv: !join
+  $sep: ","
+  $over: !ref $Values.hosts
+$Parts: !split
+  $sep: ","
+  $of: !ref $Values.csv
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: !ref $Values.name
+  annotations:
+    hosts: !ref $Csv
+data:
+  first: !ref $Parts[0]

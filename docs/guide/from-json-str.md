@@ -11,7 +11,7 @@ $Extra: !from-json-str $Values.extraJson
 - Object → mapping, array → seq, bool/string as usual.
 - JSON integer without `.` or exponent → **int**.
 - Number with `.` / `e`/`E` → **float** (`1e2` is float `100.0`).
-- `null`, duplicate keys, invalid JSON, Inf → error.
+- Object field `null` ≡ that key is absent. JSON `[null]` / duplicate keys / invalid JSON / Inf → error. Root `null` ≡ omit of the value.
 
 ## Examples
 
@@ -81,15 +81,21 @@ $N: !from-json-str '{"n":1}'
 ```yaml
 !bind
 $X: !from-json-str '{"n":null}'
-# knarr has no null; JSON null is an error
+---
+!emit
+n: !ref $X.n
+# n is absent; required path errors
 ```
 
 </td><td>
 
 ```yaml
 !bind
-$X: !from-json-str '{"n":0}'
-# use a real value; omit the key if it should be absent
+$X: !from-json-str '{"n":null}'
+---
+!emit
+n?: !ref $X.n?
+# JSON null on a key ≡ key absent
 ```
 
 </td></tr>
@@ -102,7 +108,7 @@ $X: !from-json-str '{"n":0}'
 
 ## Comparison with Helm
 
-`!from-json-str` parses a JSON **string**. `null` is an error.
+`!from-json-str` parses a JSON **string**. An object field `null` is “key missing”.
 
 <table>
 <tr><th>Helm</th><td>

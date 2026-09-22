@@ -1,0 +1,17 @@
+---
+!bind
+$Values:
+  replicas: 1
+
+---
+!validation
+$rules:
+  - !ref $Values.name?
+$fail: "name is required"
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unused

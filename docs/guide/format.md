@@ -191,6 +191,12 @@ $FullName: !format
   - !ref $Values.env
   - !ref $Values.name
 ---
+!validation
+$rules:
+  - !not-empty $Values.env?
+  - !not-empty $Values.name?
+$fail: "env"
+---
 !emit
 name: !ref $FullName
 ```
@@ -198,7 +204,7 @@ name: !ref $FullName
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>
@@ -239,6 +245,11 @@ $Ann: !format
   - "app=%q"
   - !ref $Values.name
 ---
+!validation
+$rules:
+  - !not-empty $Values.name?
+$fail: "name"
+---
 !emit
 ann: !ref $Ann
 ```
@@ -246,7 +257,7 @@ ann: !ref $Ann
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>

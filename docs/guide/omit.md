@@ -1,6 +1,6 @@
-# Omit (`?:`, `?.`, `??`, `$Name?`)
+# Omit (`?:`, path `?`, `??`, `$Name?`)
 
-knarr never drops a key because a value is empty-looking. Absence is always **written**.
+knarr never drops a key because a value is empty-looking. Absence is always **written**. YAML/JSON **`a: null`** / `a: ~` / `a:` ≡ **no `a`** (not a value). Helm `a: null` is the same as knarr without `a`. Stdout never prints `null`. A sequence item `null` is an error.
 
 This page is the **hub** for omit markers. Tag guides (`!ref`, `!expr`, `!foreach`, …) keep one or two local examples and link here. Do not copy this page into every construct.
 
@@ -9,7 +9,8 @@ This page is the **hub** for omit markers. Tag guides (`!ref`, `!expr`, `!foreac
 | Marker | Where | Meaning |
 |--------|--------|---------|
 | `key?:` | stdout / `$yield` mapping key | This **key** may be absent in output |
-| `?.` / `?[` | path in `!ref` / `!expr` / `!not` / coerce tags | Missing step → **omit value**, not error |
+| `!emit?` | document tag | The **document** may be absent (`$when` false; omit `$when` still errors) |
+| `?` on a path field | `!ref` / `!expr` / `!not` / coerce (`$Values.tls?`, `$Values.ingress?.enabled?`) | That **field** may be absent → **omit value**, not error. No `?.` operator. |
 | `$Name?:` | bind key | Optional bind; elsewhere write **`$Name?`** |
 | `??` | one on the whole `!ref` or `!expr` (not `!not`) | Default of that value; key stays |
 
@@ -22,7 +23,7 @@ Optional mapping: every child is `?:` iff the parent is. Empty optional `{}` →
 ### Optional affinity
 
 ```yaml
-affinity?: !ref $Values?.affinity
+affinity?: !ref $Values.affinity?
 ```
 
 ### Default host vs omit
@@ -39,8 +40,8 @@ Do **not** put `?:` on a key that uses `??`.
 ### Formula default
 
 ```yaml
-$when: !expr "$Values?.a || $Values?.b ?? false"
-$sum: !expr "$Values?.a + $Values?.b ?? 0"
+$when: !expr "$Values.a? || $Values.b? ?? false"
+$sum: !expr "$Values.a? + $Values.b? ?? 0"
 ```
 
 `true || omit` is true. A path with no operator is [`!ref`](ref.md) (not `!expr`). A constant is YAML.
@@ -49,7 +50,7 @@ $sum: !expr "$Values?.a + $Values?.b ?? 0"
 
 ```yaml
 !bind
-$Tls?: !ref $Values?.tls
+$Tls?: !ref $Values.tls?
 ---
 !emit
 tls?: !ref $Tls?
@@ -64,22 +65,22 @@ cert?: !ref $Tls?.cert
 
 ```yaml
 name: !pick
-  - !ref $Values?.name
-  - !ref $Values?.fullname
+  - !ref $Values.name?
+  - !ref $Values.fullname?
   - app
 ```
 
 ### Skip foreach item
 
 ```yaml
-$yield?: !ref $Worker?.sidecar
+$yield?: !ref $Worker.sidecar?
 ```
 
 ### Empty foreach omits the key
 
 ```yaml
 env?: !foreach
-  $over: !ref $Values?.env
+  $over: !ref $Values.env?
   $as: $E
   $yield:
     name: !ref $E.name
@@ -93,14 +94,14 @@ env?: !foreach
   $over: !ref $Values.env
   $as: $E
   $yield?:
-    name: !ref $E?.name
+    name: !ref $E.name?
 ```
 
 `env?:` + `$yield?:` + `$over: … ?? []` is allowed (missing → `[]` → no key). `env?:` + `$yield:` + `?? []` is a pair error. Always keep the key:
 
 ```yaml
 env: !foreach
-  $over: !ref "$Values?.env ?? []"
+  $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield:
     name: !ref $E.name
@@ -111,11 +112,11 @@ env: !foreach
 
 ```yaml
 initContainers?: !match
-  $if: !not-empty $Values?.init
+  $if: !not-empty $Values.init?
   $then: !ref $Values.init
 ```
 
-No `$else` + `?:` → no key when `init` is missing or `[]`. Do not write `initContainers?: !empty $Values?.init` — that is a bool.
+No `$else` + `?:` → no key when `init` is missing or `[]`. Do not write `initContainers?: !empty $Values.init?` — that is a bool.
 
 ### Optional join bind
 
@@ -123,7 +124,7 @@ No `$else` + `?:` → no key when `init` is missing or `[]`. Do not write `initC
 !bind
 $HostList?: !join
   $sep: ","
-  $over: !ref $Values?.hosts
+  $over: !ref $Values.hosts?
 ---
 !emit
 hosts?: !ref $HostList?
@@ -135,7 +136,7 @@ Missing `hosts` → no `$HostList`. `hosts: []` → `$HostList` is `""`. Same pa
 !bind
 $HostList: !join
   $sep: ","
-  $over: !ref "$Values?.hosts ?? []"
+  $over: !ref "$Values.hosts? ?? []"
 ```
 
 ### Optional foreach bind
@@ -143,7 +144,7 @@ $HostList: !join
 ```yaml
 !bind
 $Items?: !foreach
-  $over: !ref $Values?.env
+  $over: !ref $Values.env?
   $as: $E
   $yield:
     name: !ref $E.name
@@ -160,7 +161,7 @@ Missing `env` → no `$Items`. `env: []` + `$yield:` → `$Items: []`. `$Items?:
 !bind
 $Hosts?: !split
   $sep: ","
-  $of: !ref $Values?.hostCsv
+  $of: !ref $Values.hostCsv?
 ---
 !emit
 hostAliases?: !ref $Hosts?
@@ -173,7 +174,7 @@ Missing `hostCsv` → no `$Hosts`. `hostCsv: ""` → `$Hosts: []`. Same pair on 
 ```yaml
 !bind
 $PwHash?: !sha256
-  $of: !ref $Values?.password
+  $of: !ref $Values.password?
 ---
 !emit
 checksum/secret?: !ref $PwHash?
@@ -187,7 +188,7 @@ Missing `password` → no `$PwHash`. `password: ""` → hash of `""` (a real hex
 !bind
 $Args?: !concat
   - ["--verbose"]
-  - !ref $Values?.extraArgs
+  - !ref $Values.extraArgs?
 ---
 !emit
 args?: !ref $Args?
@@ -199,7 +200,7 @@ Missing `extraArgs` → no `$Args` (the base list is dropped too). Same pair as 
 !bind
 $Args: !concat
   - ["--verbose"]
-  - !ref "$Values?.extraArgs ?? []"
+  - !ref "$Values.extraArgs? ?? []"
 ```
 
 ### Optional merge bind
@@ -207,8 +208,8 @@ $Args: !concat
 ```yaml
 !bind
 $Res?: !merge
-  - !ref $Values?.requests
-  - !ref $Values?.limits
+  - !ref $Values.requests?
+  - !ref $Values.limits?
 ---
 !emit
 resources?: !ref $Res?
@@ -224,7 +225,7 @@ Every child must be omit-capable. A literal defaults map on `$Res?:` is a pair e
 !bind
 $Idx?: !range
   $from: 0
-  $until: !ref $Values?.replicas
+  $until: !ref $Values.replicas?
 ```
 
 `$from: 0` may sit on `$Name?:` (same as a literal sibling of [`!concat`](concat.md)). Missing `replicas` → no `$Idx`. No `$from` key is an error, not `0`. A missing `$step` key is `1`; a written `$step` that omits is an error.
@@ -245,7 +246,7 @@ affinity?: !ref $Values.affinity
 
 ```yaml
 !emit
-affinity?: !ref $Values?.affinity
+affinity?: !ref $Values.affinity?
 # both ?: on the key and ?. on the path omit the key
 ```
 
@@ -254,7 +255,7 @@ affinity?: !ref $Values?.affinity
 
 ```yaml
 !emit
-affinity: !ref $Values?.affinity
+affinity: !ref $Values.affinity?
 # omit on a required key is an error
 ```
 
@@ -262,7 +263,7 @@ affinity: !ref $Values?.affinity
 
 ```yaml
 !emit
-affinity?: !ref $Values?.affinity
+affinity?: !ref $Values.affinity?
 # required key must get a value; optional key uses ?:
 ```
 
@@ -272,7 +273,7 @@ affinity?: !ref $Values?.affinity
 ```yaml
 !emit
 env: !foreach
-  $over?: !ref $Values?.env
+  $over?: !ref $Values.env?
   $as: $E
   $yield:
     name: !ref $E.name
@@ -284,7 +285,7 @@ env: !foreach
 ```yaml
 !emit
 env: !foreach
-  $over: !ref "$Values?.env ?? []"
+  $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield:
     name: !ref $E.name
@@ -297,7 +298,7 @@ env: !foreach
 ```yaml
 !emit
 env?: !foreach
-  $over: !ref "$Values?.env ?? []"
+  $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield:
     name: !ref $E.name
@@ -309,7 +310,7 @@ env?: !foreach
 ```yaml
 !emit
 env?: !foreach
-  $over: !ref $Values?.env
+  $over: !ref $Values.env?
   $as: $E
   $yield:
     name: !ref $E.name
@@ -319,10 +320,10 @@ env?: !foreach
 ```yaml
 !emit
 env?: !foreach
-  $over: !ref "$Values?.env ?? []"
+  $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield?:
-    name: !ref $E?.name
+    name: !ref $E.name?
 # ?? [] + $yield?: : missing becomes [] then the key omits
 ```
 
@@ -331,7 +332,7 @@ env?: !foreach
 
 ```yaml
 !emit
-name: !ref "$Values?.fullname ?? $Values?.name ?? 'app'"
+name: !ref "$Values.fullname? ?? $Values.name? ?? 'app'"
 # ?? is one default on the whole scalar
 ```
 
@@ -340,8 +341,8 @@ name: !ref "$Values?.fullname ?? $Values?.name ?? 'app'"
 ```yaml
 !emit
 name: !pick
-  - !ref $Values?.fullname
-  - !ref $Values?.name
+  - !ref $Values.fullname?
+  - !ref $Values.name?
   - app
 # n-way omit default is !pick
 ```
@@ -359,7 +360,7 @@ replicas: !ref $Values.replicas
 
 ```yaml
 !emit
-replicas?: !ref $Values?.replicas
+replicas?: !ref $Values.replicas?
 # every child of an optional mapping is ?:
 ```
 
@@ -382,7 +383,7 @@ replicas?: !ref $Values?.replicas
 
 ## Comparison with Helm
 
-Absence is written: key `?:` **and** path `?.`. One `??` on [`!ref`](ref.md) (a field) or [`!expr`](expr.md) (a formula) keeps a value. Write `!ref` when there is no operator. Write YAML for a constant (`true`, `[80, 443]`).
+Absence is written: key `?:` **and** `?` on the path field. One `??` on [`!ref`](ref.md) (a field) or [`!expr`](expr.md) (a formula) keeps a value. Write `!ref` when there is no operator. Write YAML for a constant (`true`, `[80, 443]`).
 
 <table>
 <tr><th>Helm</th><td>
@@ -397,12 +398,15 @@ affinity:
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+affinity?: !ref $Values.affinity?
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `with` skips nil **and** a present empty `{}`. Knarr `?:` omits missing/omit only.
+Nil / `affinity: null` ≡ no key. Empty `{}` omits on both (`with` and optional `{}` collapse). `nindent` is Helm text indent. Helm `with` also skips `false` / `""` / `0` / `[]`.
 
 </td></tr>
 </table>
@@ -439,7 +443,7 @@ cert: {{ dig "tls" "cert" "" .Values }}
 
 ```yaml
 !emit
-cert: !ref "$Values?.tls?.cert ?? ''"
+cert: !ref "$Values.tls?.cert? ?? ''"
 ```
 
 </td></tr>
@@ -487,7 +491,7 @@ Impossible in v1.
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `if` is truthiness (present `{}` is false). Knarr `?:` omits missing/omit only.
+Helm `if` is truthiness: `false` / `""` / `0` / `[]` skip. Missing / `tls: null` / `{}` omit on both (`?:` and optional `{}` collapse). Still Impossible when `tls` is a non-empty-looking scalar that Helm treats as empty.
 
 </td></tr>
 </table>

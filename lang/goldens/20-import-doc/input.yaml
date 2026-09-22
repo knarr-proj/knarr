@@ -1,0 +1,9 @@
+---
+!import helpers.yaml
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: !ref $Values.name

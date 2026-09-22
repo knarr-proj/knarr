@@ -6,7 +6,7 @@ Base64-encode a **string** (UTF-8 bytes, RFC 4648, no newlines). Result is a str
 
 ```yaml
 password: !b64enc $Values.password
-$B64?: !b64enc $Values?.token
+$B64?: !b64enc $Values.token?
 ```
 
 Tagged scalar, same `RefScalar` as `!ref`. Not a mapping `$of`.
@@ -25,7 +25,7 @@ username: !b64enc $Values.user
 
 ```yaml
 !bind
-$Tok?: !b64enc $Values?.token
+$Tok?: !b64enc $Values.token?
 ---
 !emit
 token?: !ref $Tok?
@@ -82,7 +82,7 @@ config: !b64enc $Json
 
 ```yaml
 !bind
-$Tok: !b64enc $Values?.token
+$Tok: !b64enc $Values.token?
 # omit $of without ?: on the key is an error
 ```
 
@@ -90,7 +90,7 @@ $Tok: !b64enc $Values?.token
 
 ```yaml
 !bind
-$Tok?: !b64enc $Values?.token
+$Tok?: !b64enc $Values.token?
 ---
 !emit
 token?: !ref $Tok?
@@ -119,6 +119,11 @@ password: {{ required "password" .Values.password | b64enc }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.password?
+$fail: "password"
+---
 !emit
 password: !b64enc $Values.password
 ```
@@ -126,7 +131,7 @@ password: !b64enc $Values.password
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>
@@ -162,6 +167,11 @@ tls.crt: {{ required "cert" .Values.certPem | b64enc }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.certPem?
+$fail: "cert"
+---
 !emit
 tls.crt: !b64enc $Values.certPem
 ```
@@ -169,7 +179,7 @@ tls.crt: !b64enc $Values.certPem
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>

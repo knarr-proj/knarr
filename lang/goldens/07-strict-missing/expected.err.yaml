@@ -1,0 +1,3 @@
+exit_code: 1
+message_contains:
+  - image

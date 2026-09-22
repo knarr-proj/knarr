@@ -1,0 +1,28 @@
+---
+!bind
+$Values:
+  name: api
+  extraArgs:
+    - --foo
+    - --bar
+
+---
+!bind
+$Base:
+  - --verbose
+$Args: !concat
+  - !ref $Base
+  - !ref $Values.extraArgs
+
+---
+!emit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: !ref $Values.name
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          args: !ref $Args

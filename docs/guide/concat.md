@@ -37,7 +37,7 @@ args: !ref $Args
 ```yaml
 $Args: !concat
   - !ref $Base
-  - !ref "$Values?.extraArgs ?? []"
+  - !ref "$Values.extraArgs? ?? []"
 ```
 
 ### Merge two port lists
@@ -54,7 +54,7 @@ $Ports: !concat
 !bind
 $Args?: !concat
   - ["--verbose"]
-  - !ref $Values?.extraArgs
+  - !ref $Values.extraArgs?
 ---
 !emit
 args?: !ref $Args?
@@ -120,7 +120,7 @@ args: !ref $Args
 !bind
 $Args: !concat
   - ["--verbose"]
-  - !ref $Values?.extraArgs
+  - !ref $Values.extraArgs?
 # required bind + omit child is a pair error
 ```
 
@@ -130,7 +130,7 @@ $Args: !concat
 !bind
 $Args?: !concat
   - ["--verbose"]
-  - !ref $Values?.extraArgs
+  - !ref $Values.extraArgs?
 # $Name?: omits the whole concat if extraArgs is missing
 ```
 
@@ -138,7 +138,7 @@ $Args?: !concat
 !bind
 $Args: !concat
   - ["--verbose"]
-  - !ref "$Values?.extraArgs ?? []"
+  - !ref "$Values.extraArgs? ?? []"
 # required bind: fill omit so every child is a list
 ```
 
@@ -149,7 +149,7 @@ $Args: !concat
 !bind
 $Args?: !concat
   - ["--verbose"]
-  - !ref "$Values?.extraArgs ?? []"
+  - !ref "$Values.extraArgs? ?? []"
 # ?: + ?? [] : the bind cannot vanish
 ```
 
@@ -159,7 +159,7 @@ $Args?: !concat
 !bind
 $Args?: !concat
   - ["--verbose"]
-  - !ref $Values?.extraArgs
+  - !ref $Values.extraArgs?
 # omit child omits the bind
 ```
 
@@ -212,6 +212,11 @@ $Args: !concat
   - ["--verbose"]
   - !ref $Values.extraArgs
 ---
+!validation
+$rules:
+  - !not-empty $Values.extraArgs?
+$fail: "extraArgs"
+---
 !emit
 args: !ref $Args
 ```
@@ -219,7 +224,7 @@ args: !ref $Args
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>
@@ -239,6 +244,12 @@ ports: {{ concat (required "fixed" .Values.fixedPorts) (required "dyn" .Values.d
 $Ports: !concat
   - !ref $Values.fixedPorts
   - !ref $Values.dynamicPorts
+---
+!validation
+$rules:
+  - !not-empty $Values.fixedPorts?
+  - !not-empty $Values.dynamicPorts?
+$fail: "fixed"
 ---
 !emit
 ports: !ref $Ports
@@ -270,7 +281,7 @@ args:
 !bind
 $Args: !concat
   - ["--verbose"]
-  - !ref "$Values?.extraArgs ?? []"
+  - !ref "$Values.extraArgs? ?? []"
 ---
 !emit
 args: !ref $Args

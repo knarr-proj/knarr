@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api
+  annotations:
+    hosts: a.example,b.example
+data:
+  first: x

@@ -1,0 +1,15 @@
+---
+!bind
+$Values:
+  name: demo
+  labels:
+    app.kubernetes.io/name: demo
+
+---
+!emit
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: !ref $Values.name
+  labels:
+    app: !ref "$Values.labels['app.kubernetes.io/name']"

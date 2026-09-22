@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api
+  labels:
+    app: api
+    env: prod
+data:
+  ports:
+    - 80
+    - 443

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api
+  annotations:
+    checksum/config: bdd2a8c550291de89d3ef57c56e523f86013eeaf3603a30c754153e1f11f2be5
+    checksum/via: bdd2a8c550291de89d3ef57c56e523f86013eeaf3603a30c754153e1f11f2be5
+data:
+  config.json: '{"name":"api","note":"a\u0026b","port":80}'
+  x: "1"

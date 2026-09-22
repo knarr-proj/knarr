@@ -111,6 +111,11 @@ config.json: {{ toJson (required "config" .Values.config) }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.config?
+$fail: "config"
+---
 !emit
 config.json: !to-json-str $Values.config
 ```
@@ -118,7 +123,7 @@ config.json: !to-json-str $Values.config
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same JSON. Fail text differs.
+Same JSON. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>

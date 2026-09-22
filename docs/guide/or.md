@@ -6,8 +6,8 @@ Boolean OR of a sequence of predicates. All children are evaluated (no short-cir
 
 ```yaml
 $when: !or
-  - !empty $Values?.tls
-  - !empty $Values?.cert
+  - !empty $Values.tls?
+  - !empty $Values.cert?
 ```
 
 Same child rules as [`!and`](and.md).
@@ -26,8 +26,8 @@ $when: !or
 
 ```yaml
 $when: !and
-  - !empty $Values?.tls
-  - !empty $Values?.cert
+  - !empty $Values.tls?
+  - !empty $Values.cert?
 ```
 
 (`!or` of empties is “at least one missing”.)
@@ -35,7 +35,7 @@ $when: !and
 ### Default-on in expr instead
 
 ```yaml
-$when: !expr "$Values?.ingress.enabled || $Values?.mesh.enabled ?? false"
+$when: !expr "$Values.ingress?.enabled || $Values.mesh?.enabled ?? false"
 ```
 
 `true || omit` is true. The default is used only if the whole `||` has no result.
@@ -47,23 +47,21 @@ $when: !expr "$Values?.ingress.enabled || $Values?.mesh.enabled ?? false"
 <tr><td>
 
 ```yaml
-!emit
+!emit?
 $when: !expr "or($Values.ingress.enabled, $Values.mesh.enabled)"
 $then:
   kind: Ingress
-$else: ""
 # no or() in !expr
 ```
 
 </td><td>
 
 ```yaml
-!emit
+!emit?
 $when: !expr "$Values.ingress.enabled || $Values.mesh.enabled"
 $then:
   kind: Ingress
   name: !ref $Values.name
-$else: ""
 # short-circuit bools use ||
 ```
 
@@ -71,25 +69,23 @@ $else: ""
 <tr><td>
 
 ```yaml
-!emit
+!emit?
 $when: !not !or
   - !ref $Values.ingress.enabled
   - !ref $Values.mesh.enabled
 $then:
   kind: Ingress
-$else: ""
 # !not does not wrap !or
 ```
 
 </td><td>
 
 ```yaml
-!emit
+!emit?
 $when: !expr "!($Values.ingress.enabled || $Values.mesh.enabled)"
 $then:
   kind: Ingress
   name: !ref $Values.name
-$else: ""
 # rewrite with !expr, or !and + !not
 ```
 

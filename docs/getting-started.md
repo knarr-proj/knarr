@@ -10,6 +10,7 @@ A knarr file is **YAML 1.2** with several documents (`---`). Each document has a
 |-----|------|
 | `!bind` | Name values (`$Values`, `$AppName`, …). Not printed. |
 | `!emit` | One YAML document on stdout (any schema). |
+| `!emit?` | Same, or nothing if `$when` is false. |
 
 Look up a value with **`!ref $Name`**. There is no `{{ }}`.
 
@@ -94,13 +95,13 @@ A missing path is an error unless you mark **both** the key and the path:
 
 ```yaml
 # omit
-affinity?: !ref $Values?.affinity
+affinity?: !ref $Values.affinity?
 # default — key stays
-host: !ref "$Values.tls?.host ?? 'localhost'"
+host: !ref "$Values.tls?.host? ?? 'localhost'"
 ```
 
 - `affinity?:` — the **stdout key** may be absent.
-- `$Values?.affinity` — missing `affinity` is omit, not an error.
+- `$Values.affinity?` — missing `affinity` is omit, not an error.
 - `host: !ref … ?? 'localhost'` — the key stays; missing host becomes `"localhost"`.
 
 A required key with a missing path is always an error. See [Omit](guide/omit.md).
@@ -119,23 +120,22 @@ Service on/off is a document [`$when`](guide/when.md), not an `if` inside YAML t
 
 ```yaml
 ---
-!emit
+!emit?
 $when: !ref $ShowSvc
 $then:
   apiVersion: v1
   kind: Service
   metadata:
     name: !ref $Values.name
-$else: ""
 ```
 
-`$else: ""` means **emit nothing**.
+**`!emit?`** means **emit nothing** when `$when` is false. On `!emit`, `$else: ""` does the same.
 
 ## 6. Names you will reuse
 
 | Need | Construct |
 |------|-----------|
-| Path, `?.`, field `??` | [`!ref`](guide/ref.md) |
+| Path, `?` on a field, `??` | [`!ref`](guide/ref.md) |
 | `&&` `>` `+` `||`; formula `??` | [`!expr`](guide/expr.md) |
 | `printf` / `%s-%s` | [`!format`](guide/format.md) in `!bind`, then `!ref` |
 | Loop **fields** (env, ports) | [`!foreach`](guide/foreach.md) |
@@ -185,10 +185,9 @@ when: !ref $ShowSvc
 **Right**
 
 ```yaml
-!emit
+!emit?
 $when: !ref $ShowSvc
 $then: { ... }
-$else: ""
 ```
 
 Next: [Tips and Tricks](tips-and-tricks.md) and [General Conventions](best-practices/general-conventions.md).

@@ -1,0 +1,21 @@
+---
+!bind
+$Values:
+  databases:
+    primary:
+      host: db-a
+    replica:
+      host: db-b
+
+---
+!emit-foreach
+  $over: !ref $Values.databases
+  $key: $DbName
+  $as: $Db
+  $yield:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: !ref $DbName
+    data:
+      host: !ref $Db.host

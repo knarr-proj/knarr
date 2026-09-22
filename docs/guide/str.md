@@ -129,6 +129,11 @@ replicas: {{ required "replicas" .Values.replicas | toString | quote }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.replicas?
+$fail: "replicas"
+---
 !emit
 replicas: !str $Values.replicas
 ```
@@ -136,7 +141,7 @@ replicas: !str $Values.replicas
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same string value. Helm `quote` is text quotes.
+Same string value. `required` abort = `$fail`. Helm `quote` is text quotes.
 
 </td></tr>
 </table>
@@ -152,6 +157,11 @@ ha: {{ required "ha" .Values.ha | toString }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.ha?
+$fail: "ha"
+---
 !emit
 ha: !str $Values.ha
 ```
@@ -159,7 +169,7 @@ ha: !str $Values.ha
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Fail text differs.
+Same result. `required` abort = `$fail`. Fail text differs.
 
 </td></tr>
 </table>
@@ -197,6 +207,11 @@ prometheus.io/port: {{ required "port" .Values.port | quote }}
 <tr><th>Knarr</th><td>
 
 ```yaml
+!validation
+$rules:
+  - !not-empty $Values.port?
+$fail: "port"
+---
 !emit
 prometheus.io/port: !str $Values.port
 ```
@@ -204,7 +219,7 @@ prometheus.io/port: !str $Values.port
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same string value. Helm `quote` is text quotes.
+Same string value. `required` abort = `$fail`. Helm `quote` is text quotes.
 
 </td></tr>
 </table>
