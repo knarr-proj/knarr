@@ -5,9 +5,11 @@ A **bind document** names values. It never appears in stdout. All `$Name` keys f
 ## Syntax
 
 ```yaml
+# $Values = {a: 1}
 !bind
 $Name: <value>
 $Other?: <omit-capable value>
+# no stdout
 ```
 
 - Document tag must be `!bind`. A mapping of one or more keys.
@@ -24,7 +26,7 @@ Optional bind (`$Name?:`) requires an omit-capable value (`?.` / `$Other?`, `$ov
 ### Chart values
 
 ```yaml
-# $Values is this mapping
+# $Values = {name: api, image: ghcr.io/acme/api:1.4.0, replicas: 3}
 !bind
 $Values:
   name: api
@@ -51,8 +53,10 @@ name: !ref $FullName
 ### Load `values.yaml`
 
 ```yaml
+# $Values = {a: 1}
 !bind
 $Values: !read values.yaml
+# no stdout
 ```
 
 ### Optional TLS block
@@ -70,11 +74,13 @@ tls?: !ref $Tls?
 ### Several binds
 
 ```yaml
+# $Values = {port: "8080"}
 !bind
 $Values: !read values.yaml
 ---
 !bind
 $Port: !int $Values.port
+# no stdout
 ```
 
 Split computation across documents. Order of `!bind` documents does not restrict visibility.
@@ -119,55 +125,61 @@ cert?: !ref $Tls?.cert
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 name: api
 replicas: 2
-# untagged document is not a bind; names never enter the graph
+# error: untagged document is not a bind
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api, replicas: 2}
 !bind
 $Values:
   name: api
   replicas: 2
-# !bind is the document tag; keys are $Name
+# no stdout
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 $Values: !bind
   name: api
-# !bind is a document tag, not a field
+# error: !bind is a document tag, not a field
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Values:
   name: api
-# tag the document; put keys in the mapping
+# no stdout
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 !bind
 $Release:
   name: prod
-# $Release is reserved and unused in v1
+# error: $Release is reserved
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {a: 1}
 !bind
 $Rel: prod
-# use $Rel / $Instance; $Release / $Chart / $Capabilities are reserved
+# no stdout
 ```
 
 </td></tr>

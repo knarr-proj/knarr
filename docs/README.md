@@ -40,8 +40,9 @@ Purpose is **one sentence**. The construct page is the source of truth; this tab
 
 | Construct | Purpose | Guide |
 |-----------|---------|-------|
-| `$when` | Keep or skip `!emit?` / `!emit` / `!emit-foreach` / `!emit-range` / `!range` | [when](guide/when.md) |
+| `$when` | Keep or skip `!emit?` / `!emit` / pack gate on every loop | [when](guide/when.md) |
 | `!foreach` | Build a sequence field | [foreach](guide/foreach.md) |
+| `!range` | Int loop in bind or a field; output is `$yield` | [range](guide/range.md) |
 | `!match` | If/else as a value | [match](guide/match.md) |
 
 ### Access and expressions
@@ -56,7 +57,7 @@ Purpose is **one sentence**. The construct page is the source of truth; this tab
 
 ### Bind-only transforms
 
-These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where noted) inside `!bind`. Use `!ref` in the manifest. `!join` may take `$prefix` / `$suffix` (non-empty strings, like `$sep`). `!join` / `!foreach` may be `$Name?:` when `$over` is omit-capable; `!foreach` also when `$yield?:` is used (empty result omits the bind; `?? []` on that `$over` is then allowed); `!split` / `!sha256` when `$of` is omit-capable; `!concat` / `!format` when a child is omit-capable; `!merge` when **every** child is omit-capable; `!range` when `$from` / `$to` / `$until` can omit **or** `$yield?:` is used (`$as` and `$yield` are required). `!pick` is always a value (`$Name?: !pick` is an error). Each construct page has an **Omit** section.
+These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where noted) inside `!bind`. Use `!ref` in the manifest. `!join` may take `$prefix` / `$suffix` (non-empty strings, like `$sep`). `!join` may be `$Name?:` when `$over` is omit-capable; `!foreach` / `!range` also as a field (`имя?:` when `$over` / a bound omits or `$yield?:` is used). `!split` / `!sha256` when `$of` is omit-capable; `!concat` / `!format` when a child is omit-capable; `!merge` when **every** child is omit-capable. `!pick` is always a value (`$Name?: !pick` is an error). Each construct page has an **Omit** section.
 
 | Construct | Purpose | Guide |
 |-----------|---------|-------|
@@ -64,7 +65,6 @@ These tags are **only** allowed as the value of `$Name:` (or `$Name?:` where not
 | `!join` | Join strings with `$sep` | [join](guide/join.md) |
 | `!split` | Split a string into a sequence | [split](guide/split.md) |
 | `!format` | Go `fmt` string from operands | [format](guide/format.md) |
-| `!range` | Int loop in bind; output is `$yield` | [range](guide/range.md) |
 | `!merge` | Deep-merge mappings, later wins | [merge](guide/merge.md) |
 | `!sha256` | Hex SHA-256 of a string | [sha256](guide/sha256.md) |
 

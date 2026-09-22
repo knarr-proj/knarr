@@ -1,6 +1,6 @@
 # `!range`
 
-Loop over an **int** sequence in **bind**. Each iteration appends `$yield` to a list. Documents: [`!emit-range`](emit-range.md). Collection loops: [`!foreach`](foreach.md).
+Loop over an **int** sequence. Same slots as [`!foreach`](foreach.md): bind **or** a field. Each iteration appends `$yield`. Documents: [`!emit-range`](emit-range.md).
 
 ## Syntax
 
@@ -31,8 +31,8 @@ $Idx: !range
 - XOR `$to` (inclusive) or `$until` (exclusive). Bounds and `$step` are **int**.
 - `$as` / `$when` / `$filter` / `$yield` — same roles as [`!emit-foreach`](emit-foreach.md). `$yield` may be scalar / seq / map (like [`!foreach`](foreach.md)).
 - `$when` false → bounds are not evaluated; result like an empty `!foreach`. `$as` is not in `$when`.
-- No `$over` / `$key`. Not a document. Not a field of `!emit`.
-- `$Name?: !range` ↔ omit-capable `$from` / `$to` / `$until` (no `??`) **or** `$yield?:`. Omit a bound → omit the bind.
+- No `$over` / `$key`. Not a document. A field of `!emit` is allowed (like `!foreach`).
+- `$Name?:` / `имя?:` ↔ omit-capable `$from` / `$to` / `$until` (no `??`) **or** `$yield?:`. Omit a bound → omit the bind / key.
 - `$from?:` / `$to?:` / `$until?:` / `$step?:` are errors.
 
 ## Examples
@@ -66,15 +66,12 @@ $Idx: !range
 
 ```yaml
 # $Values = {completions: 2}
-!bind
-$Names: !range
+!emit
+names: !range
   $from: 0
   $until: !ref $Values.completions
   $as: $I
   $yield: !str $I
----
-!emit
-names: !ref $Names
 # names: ["0", "1"]
 ```
 
@@ -84,13 +81,13 @@ names: !ref $Names
 
 ```yaml
 # $Values = {}
-!bind
-$Idx?: !range
+!emit
+idx?: !range
   $from: 0
   $until: !ref $Values.replicas?
   $as: $I
   $yield: !ref $I
-# no $Idx
+# no idx
 ```
 
 `replicas: 0` → `$Idx: []`. Always keep a list:
@@ -218,19 +215,14 @@ env: !foreach
 </td><td>
 
 ```yaml
-!bind
-$Idx: !range
+# $Values = {}
+!emit
+env: !range
   $from: 0
   $until: 3
   $as: $I
-  $yield: !ref $I
----
-!emit
-env: !foreach
-  $over: !ref $Idx
-  $as: $N
   $yield:
-    name: !str $N
+    name: !str $I
 # env: [{name: "0"}, {name: "1"}, {name: "2"}]
 ```
 
@@ -284,15 +276,14 @@ idx:
 <tr><th>Knarr</th><td>
 
 ```yaml
-!bind
-$Idx: !range
+# $Values = {}
+!emit
+idx: !range
   $from: 0
   $until: 3
   $as: $I
   $yield: !ref $I
----
-!emit
-idx: !ref $Idx
+# idx: [0, 1, 2]
 ```
 
 </td></tr>
@@ -317,16 +308,15 @@ idx:
 <tr><th>Knarr</th><td>
 
 ```yaml
-!bind
-$Idx: !range
+# $Values = {}
+!emit
+idx: !range
   $from: 0
   $to: 2
   $step: 1
   $as: $I
   $yield: !ref $I
----
-!emit
-idx: !ref $Idx
+# idx: [0, 1, 2]
 ```
 
 </td></tr>

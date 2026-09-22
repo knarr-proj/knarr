@@ -1,6 +1,6 @@
 # `$when`
 
-Document-level condition. **`!emit?`**: `$when` + `$then`, no `$else` (false → no document). **`!emit`**: `$when` + `$then` + `$else` (`$else: ""` skips; or another mapping). Omit `$when` is an error on both. On **`!emit-foreach`** / **`!emit-range`**, `$when` is an optional pack gate with **no** `$then` / `$else`. On bind **`!range`**, `$when` false is an empty loop.
+Document-level condition. **`!emit?`**: `$when` + `$then`, no `$else` (false → no document). **`!emit`**: `$when` + `$then` + `$else` (`$else: ""` skips; or another mapping). Omit `$when` is an error on both. On **`!foreach`** / **`!emit-foreach`** / **`!emit-range`** / **`!range`**, `$when` is an optional pack gate with **no** `$then` / `$else`. False → empty loop (`[]` / omit key / zero documents); `$over` / bounds are not evaluated.
 
 ## Syntax (`!emit?`)
 
@@ -31,6 +31,21 @@ $yield:
 ```
 
 False → **zero** documents; `$over` is not evaluated. `$as` is not visible in `$when`.
+
+## Syntax (`!foreach`)
+
+```yaml
+# $Values = {deployEnv: false, env: [{name: N}]}
+env: !foreach
+  $when: !is-not-empty $Values.deployEnv?
+  $over: !ref $Values.env
+  $as: $E
+  $yield:
+    name: !ref $E.name
+# env: []
+```
+
+False → empty list (`$yield:`) or no key (`env?:` + `$yield?:`). `$over` is not evaluated.
 
 ## Examples
 
@@ -155,7 +170,7 @@ $then:
 
 ## Omit
 
-Omit `$when` is an **error** (not `false`). Use `?? false` or [`!is-empty`](is-empty.md) / [`!is-not-empty`](is-not-empty.md). `$when?:` is an error. On `!range` / `!emit-range`, `$when` false is an empty loop (bounds not evaluated).
+Omit `$when` is an **error** (not `false`). Use `?? false` or [`!is-empty`](is-empty.md) / [`!is-not-empty`](is-not-empty.md). `$when?:` is an error. On `!foreach` / `!range` / `!emit-foreach` / `!emit-range`, `$when` false is an empty loop (`$over` / bounds not evaluated).
 
 ```yaml
 # $Values = {}

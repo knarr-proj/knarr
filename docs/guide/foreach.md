@@ -10,6 +10,7 @@ Many resources: [`!emit-foreach`](emit-foreach.md).
 field: !foreach
   $over: !ref $Values.env
   $as: $E
+  $when: !is-not-empty $Values.deployEnv?  # optional pack gate
   $filter: !ref $E.enabled   # optional
   $key: $K                      # optional; maps only
   $yield:
@@ -17,13 +18,15 @@ field: !foreach
     value: !ref $E.value
 ```
 
-`$filter` is an optional bool (same family as `$when`: tags or YAML `true` / `false`).
+`$when` is an optional bool for the **whole** loop (same slot as [`!emit-foreach`](emit-foreach.md)). False → empty result; `$over` is not evaluated. `$as` / `$key` are not in `$when`. Omit `$when` is an error. `$when?:` is an error.
+
+`$filter` is an optional bool per item (same family: tags or YAML `true` / `false`).
 
 `$yield` may be scalar, sequence, or mapping — **one sort** for the whole loop.
 
 One `$over` for a sequence **or** a mapping (`?? []` or `?? {}` — you pick the literal). Wrong sort is a `$over` error. There is no `$map` / `$seq`.
 
-`env?: !foreach` / `$Items?: !foreach` ↔ omit-capable `$over` (`?.`) **or** `$yield?:`. Missing collection → no key / omit bind. `env?:` + `$yield:` + a live `$over` → `[]`. `env?:` + `$yield?:` + nothing to print (`[]` / `{}` / all `$filter` false / all yields omit) → no key / omit bind. `env?:` + `$yield?:` + `$over: … ?? []` is allowed (missing becomes `[]`, then nothing to print). `env: !foreach` / `$Items: !foreach` ↔ `$over` always a value (`?? []` or a required path): empty → `[]`. Pair error: `?:` + `?? []` + `$yield:`; `?:` + required `$over` + `$yield:`.
+`env?: !foreach` / `$Items?: !foreach` ↔ omit-capable `$over` (`?.`) **or** `$yield?:`. Missing collection → no key / omit bind. `env?:` + `$yield:` + a live `$over` → `[]`. `env?:` + `$yield?:` + nothing to print (`[]` / `{}` / `$when` false / all `$filter` false / all yields omit) → no key / omit bind. `env?:` + `$yield?:` + `$over: … ?? []` is allowed (missing becomes `[]`, then nothing to print). `env: !foreach` / `$Items: !foreach` ↔ `$over` always a value (`?? []` or a required path): empty → `[]`. Pair error: `?:` + `?? []` + `$yield:`; `?:` + required `$over` + `$yield:`.
 
 `$yield?:` — if the value omits, **skip the iteration** (list shrinks). On `env?:` / `$Items?:`, a fully empty result also **omits the key / bind**. `$yield:` + omit is an error. `$yield?` without `:` is an error.
 
@@ -46,6 +49,30 @@ env: !foreach
     name: !ref $E.name
     value: !ref $E.value
 # env: [{name: N, value: x}]
+```
+
+### Gate the whole list
+
+```yaml
+# $Values = {deployEnv: false, env: [{name: N}]}
+env: !foreach
+  $when: !is-not-empty $Values.deployEnv?
+  $over: !ref $Values.env
+  $as: $E
+  $yield:
+    name: !ref $E.name
+# env: []
+```
+
+```yaml
+# $Values = {deployEnv: false, env: [{name: N}]}
+env?: !foreach
+  $when: !is-not-empty $Values.deployEnv?
+  $over: !ref $Values.env
+  $as: $E
+  $yield?:
+    name: !ref $E.name
+# no env
 ```
 
 ### Ports from ints
@@ -319,7 +346,7 @@ env: !foreach
 
 ## Omit
 
-`env?: !foreach` ↔ omit-capable `$over` **or** `$yield?:`. Missing collection → no key. `env: []` + `$yield:` → `env: []`. Nothing to print on `env?:` + `$yield?:` → no key. `$over?:` is an error.
+`env?: !foreach` ↔ omit-capable `$over` **or** `$yield?:`. Missing collection → no key. `env: []` + `$yield:` → `env: []`. `$when` false is an empty loop (`$over` not read): `$yield:` → `[]`; `env?:` + `$yield?:` → no key. `$over?:` is an error. `$when?:` is an error.
 
 ```yaml
 # $Values = {}

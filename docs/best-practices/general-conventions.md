@@ -27,13 +27,14 @@ These rules apply to every knarr file. This page is the checklist for authors.
 ## One tag per node
 
 ```yaml
+# $Values = {port: 8080}
 # Wrong
 port: !int !expr "$Values.port"
 $when: !not !is-empty $Values.x?
-
+# error: one tag per node
 # Right
 $Port: !int $Values.port
-port: !ref $Port
+port: !ref $Port  # port: 8080
 $when: !is-not-empty $Values.x?
 ```
 
@@ -41,8 +42,8 @@ $when: !is-not-empty $Values.x?
 
 ## Bind vs emit
 
-- **Compute in `!bind`.** Tags such as `!format`, `!concat`, `!join`, `!merge`, `!range`, `!sha256` are bind-only.
-- **Print with `!ref`.** Manifest fields hold paths, `!match`, `!foreach`, literals, or omit — not those bind-only tags.
+- **Compute in `!bind`.** Tags such as `!format`, `!concat`, `!join`, `!merge`, `!sha256` are bind-only.
+- **Print with `!ref`.** Manifest fields hold paths, `!match`, `!foreach`, `!range`, literals, or omit — not bind-only tags.
 - Forward references between `$Name`s are allowed. Cycles are errors. A bind is **atomic**: `$A.y` cannot see `$A.x`.
 
 ## Explicit omit

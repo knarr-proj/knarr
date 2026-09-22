@@ -25,6 +25,7 @@ No `-f` / `--set`. Put values in the file or load them with [`!read`](guide/read
 ## 1. Bind values
 
 ```yaml
+# $Values = {name: demo, image: ghcr.io/acme/demo:1.2.3, replicas: 2, port: 8080}
 ---
 !bind
 $Values:
@@ -32,6 +33,7 @@ $Values:
   image: ghcr.io/acme/demo:1.2.3
   replicas: 2
   port: 8080
+# no stdout
 ```
 
 - Keys that you invent start with **`$` and a capital letter**: `$Values`, `$AppName`.
@@ -41,6 +43,7 @@ $Values:
 ## 2. Emit a Deployment
 
 ```yaml
+# $Values = {name: demo, image: ghcr.io/acme/demo:1.2.3, replicas: 2, port: 8080}
 ---
 !emit
 apiVersion: apps/v1
@@ -62,12 +65,14 @@ spec:
           image: !ref $Values.image
           ports:
             - containerPort: !ref $Values.port
+# kind: Deployment / name: demo / replicas: 2
 ```
 
 `!ref` is a tagged **scalar**. Quotes follow YAML 1.2: `[` `{` `,` and `: ` need quotes **anywhere** in the scalar, not only at line start. `/` does not.
 
 ```yaml
-name: !ref "$Workers[0].name"
+# $Workers = [{name: w1}]
+name: !ref "$Workers[0].name"  # name: w1
 ```
 
 ## 3. Emit a Service
@@ -75,6 +80,7 @@ name: !ref "$Workers[0].name"
 A second `!emit` is a second document on stdout (order = source order).
 
 ```yaml
+# $Values = {name: demo, port: 8080}
 ---
 !emit
 apiVersion: v1
@@ -87,6 +93,7 @@ spec:
   ports:
     - port: !ref $Values.port
       targetPort: !ref $Values.port
+# kind: Service / name: demo / port: 8080
 ```
 
 ## 4. Optional field (no silent empty maps)
@@ -94,10 +101,11 @@ spec:
 A missing path is an error unless you mark **both** the key and the path:
 
 ```yaml
+# $Values = {}
 # omit
-affinity?: !ref $Values.affinity?
+affinity?: !ref $Values.affinity?  # no affinity
 # default — key stays
-host: !ref "$Values.tls?.host? ?? 'localhost'"
+host: !ref "$Values.tls?.host? ?? 'localhost'"  # host: localhost
 ```
 
 - `affinity?:` — the **stdout key** may be absent.
@@ -111,14 +119,17 @@ A required key with a missing path is always an error. See [`!ref`](guide/ref.md
 Use [`!expr`](guide/expr.md) for operators. There are **no functions** in the string (`len()`, `printf()`, `size()` are errors). A field default is [`!ref`](guide/ref.md) `??`. A formula default is `??` on that `!expr`. A path with no operator in `!expr` is an error. A constant (`true`, `[80, 443]`) is YAML, not `!expr`.
 
 ```yaml
+# $Values = {service: {enabled: true}, replicas: 2}
 ---
 !bind
 $ShowSvc: !expr "$Values.service.enabled && $Values.replicas > 1"
+# $ShowSvc: true
 ```
 
 Service on/off is a document [`$when`](guide/when.md), not an `if` inside YAML text:
 
 ```yaml
+# $Values = {name: demo}
 ---
 !emit?
 $when: !ref $ShowSvc
@@ -127,6 +138,7 @@ $then:
   kind: Service
   metadata:
     name: !ref $Values.name
+# kind: Service / name: demo
 ```
 
 **`!emit?`** means **emit nothing** when `$when` is false. On `!emit`, `$else: ""` does the same.
@@ -149,46 +161,57 @@ $then:
 **Wrong — Go templates in YAML**
 
 ```yaml
+# $Values = {name: demo}
 name: {{ .Values.name }}
+# error: no {{ }}
 ```
 
 **Right**
 
 ```yaml
-name: !ref $Values.name
+# $Values = {name: demo}
+name: !ref $Values.name  # name: demo
 ```
 
 **Wrong — untagged document**
 
 ```yaml
+# $Values = {a: 1}
 apiVersion: v1
 kind: ConfigMap
+# error: untagged document
 ```
 
 **Right — every document has a knarr tag**
 
 ```yaml
+# $Values = {name: demo}
 ---
 !emit
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: !ref $Values.name
+# kind: ConfigMap / name: demo
 ```
 
 **Wrong — `when:` without `$`**
 
 ```yaml
+# $ShowSvc = true
 !emit
 when: !ref $ShowSvc
+# error: key is $when, not when
 ```
 
 **Right**
 
 ```yaml
+# $ShowSvc = true
 !emit?
 $when: !ref $ShowSvc
 $then: { ... }
+# $then mapping
 ```
 
 Next: [Tips and Tricks](tips-and-tricks.md) and [General Conventions](best-practices/general-conventions.md).
