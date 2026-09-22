@@ -28,7 +28,7 @@ name: !format
 - Type mismatch is a **render error**, not a `%!s(int=…)` insertion.
 - seq/map arguments are errors (JSON-string first).
 - `%n` `%p` `%T` `%w` and Rust `{:.2}` are errors.
-- Tag name is `!format`, not `!printf`. Not a document. Nested `!format` is an error.
+- Not a document. Nested `!format` is an error.
 
 ## Examples
 

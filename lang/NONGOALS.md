@@ -14,7 +14,7 @@
 - Голое выражение без тега (`$when: $Values.replicas > 1`); `!expr` как mapping/sequence
 - Исключение knarr из YAML 1.2 для tagged scalar: разрешить `[` `{` `]` `}` `,` / `: ` / ` #` в plain `!ref`/`!expr` «потому что не в начале строки» (решение **89**). `/` уже без кавычек. Синтаксис носителя в v2 не менять.
 - Служебный ключ mapping **без `$`**: `when:`, `over:`, `sep:`, `of:`, `if:` (решение **77**; канон `$when` / `$over` / …). Не путать с K8s-ключами `apiVersion:` в `!emit`
-- Теги на **ключах** (`!case`, `spec !else:`); тег **`!when`**; **`!match` как sequence веток** (`- $if` / несколько `$if`) — нужен mapping `$if`/`$yield`/`$else-yield` (решение 37)
+- Теги на **ключах** (`!case`); **`!match` как sequence веток** (`- $if` / несколько `$if`) — нужен mapping `$if`/`$yield`/`$else-yield` (решение 37)
 - `имя: !match` без `$else-yield` (omit только **`имя?:`**); `$else-yield: {}` вместо sequence, если `$yield` — list
 - Ident без `$` в теле `!expr` (`Values.name` — ошибка; нужен `$Values.name`); regex по всей строке `!expr` (только лексер токенов)
 - Авторские **`has()` / `get()` / `opt()`** и любые **вызовы** `ident(` (`size`, `string`, `int`, `exists`, …) в `!expr` v1
@@ -34,15 +34,14 @@
 - **`$Name?: !$T`**; **`$yield?: !$T`**; `tls: !ref $Tls?` / `tls?: !ref $Tls` / `$Tls.cert` при optional bind (нужен `$Tls?` везде в `!ref`/`!expr`)
 - **`$yield: !ref $S.x?`** / **`$yield?: !ref $S.x`** (пара 25/51/52: omit-способное значение ↔ `$yield?:`)
 - **`spec:`** со всеми детьми `?:`; **`spec?:`** с обязательным ребёнком (решение 32: все дети `?:` ↔ родитель `?:`)
-- Тег **`!applyDefaults`** и ключ **`$type`** (канон — `!typedef` + **`!$Type`**)
 - **`!policy` как режим missing `!ref`**: soft не прячет дыры в путях; документ `!policy` без ни одного **`!$Type`** — ошибка (решение 27B)
 - Тег типа **без `$`**: `!ValuesType` — ошибка; нужен **`!$ValuesType`**. `!$T` не синоним `!ref $T`
 - Вложенный **`!$U`** на поле bind / в `!emit` / на `$yield` (v1: корень `$Name` или **`$yield: !$T`**, решения **34–35**)
 - Тег **`!walk`** (решение **49**: нет навсегда; пути — `!ref` / `!expr` / `!foreach`)
 - `$Name: !emit` / **`$Name: !bind`** / **`$Name: !emit-foreach`** / **`$Name: !emit-foreach?`** / **`$Name: !emit-range`** / **`$Name: !emit-range?`** / **`$Name: !validation`** (все — только документ)
 - Host **`fail` / `required`** в `!expr`; **`$fail` и `$warning` вместе** на `!validation`; правило-sequence `!match`
-- Ключ **`$items`** на `!emit`; splat **`!emit-foreach`** / **`!emit-range`** без `$as`/`$yield`; документ с тегом **`!foreach`** / **`!range`** (N манифестов — `!emit-foreach` / `!emit-range`)
-- **`$filter?:` / `$when?:` / `$if?:`**; `$when` / `$filter` / `$if` с omit из `?.` без `??` (решение **112**: нужен `?? false` или `!is-empty` / `!is-not-empty`; omit ≠ false)
+- Splat **`!emit-foreach`** / **`!emit-range`** без `$as`/`$yield`; документ с тегом **`!foreach`** / **`!range`** (N манифестов — `!emit-foreach` / `!emit-range`)
+- `$when` / `$filter` / `$if` с omit из `?.` без `??` (решение **112**: нужен `?? false` или `!is-empty` / `!is-not-empty`; omit ≠ false)
 - Схлопывать пустой sequence **`[]`** как omit / как пустой `{}` (решение **94**: `[]` — значение; empty-bool — **`!is-empty` / `!is-not-empty`**; omit поля — **`!skip-empty`** на ключе `?:`, решение **140**). Исключение — **`имя?: !foreach` + `$yield?:`** (решение **108**)
 - Служебный ключ **`$yield?`** без `:` (решение **108**: только **`$yield?:`**)
 - **`имя?: !foreach`** / **`$Name?: !foreach` + `?? []`/`{}` + `$yield:`**; **`$Name?: !join`** + **`?? []`** на `$over`; **`$Name?: !split`** / **`$Name?: !sha256`** + **`?? ''`** на `$of`; **`$Name?: !concat`** / **`$Name?: !format`** + все дети с `??` / без omit-пути; **`$Name?: !merge`** + литерал / не все дети omit; omit ключа / bind из пустого результата при **`$yield:`** и живом `$over`; пропуск omit-сиблинга у `!concat`; сужать **`!concat` / `!format`** до «все дети omit» как у merge (решения **97**, **99**, **100**, **102**, **103**, **104**, **105**, **106**, **76**, **108**, **109**: `?:` + `?? []` + `$yield?:` — ок; без `$yield?:` — ошибка)
@@ -63,12 +62,12 @@
 - Якоря **`&` / `*` / `<<` в документе knarr** (решение **70**; в `!read` можно)
 - Host **`concat` / `append` / `prepend`**; **`+` на sequence**; **`+` на string** (решение **75**); **`args: !expr "concat(…)"`**
 - Host **`join` / `split`**. **`!join` / `!split` / `!concat` / `!merge` / `!sha256` в поле — 150 / 151.**
-- Host **`printf`**; **`!printf`** (не синоним, **78**); голые `$X` в sequence `!format`; **`+` строк в `!expr`**; **`%n` `%p` `%T` `%w`**; синтаксис Rust `{}` / `{:.2}`; Go-вставка `%!s(int=…)` вместо ошибки (решение **80**: диалект Go `fmt` на скалярах; mismatch — ошибка). **`!format` в поле — 149.**
+- Host **`printf`**; голые `$X` в sequence `!format`; **`+` строк в `!expr`**; **`%n` `%p` `%T` `%w`**; синтаксис Rust `{}` / `{:.2}`; Go-вставка `%!s(int=…)` вместо ошибки (решение **80**: диалект Go `fmt` на скалярах; mismatch — ошибка). **`!format` в поле — 149.**
 - Host **`b64enc` / `b64dec` / `len`**; mapping `$of` у этих тегов; **`$when: !len`** (решение **76**: tagged scalar как `!int`; `$N?: !len $X.y?`)
 - Host **`sha256sum`**; тихий хэш mapping без JSON (решение **63**; дерево — **`!sha256-json`**, **71**). **`!sha256` в поле — 151.**
 - Host **`merge`**; **`!merge-overwrite`** / тихий overwrite вложенного map (решение **64**). **`!merge` в поле — 150.**
 - Host **`until` / `untilStep` / `seq`**; **`!range` в `$over`**; документ **`!range`** (поле — **146**); **`$Idx: !range` без `$as`/`$yield`** (ints только через `$yield`, **144**); один `$to` с двумя смыслами; нет ключа **`$from`** → `0`; omit написанного **`$step`** → `1`; **`$Name?:` / `имя?: !range`** без omit границ и без **`$yield?:`** (решения **65**, **107**, **144**, **146**)
-- Host **`empty`**; тег **`!nempty`**; теги **`!empty` / `!not-empty`** (имена — **`!is-empty` / `!is-not-empty`**, решение **140**); **`!omit-empty` / `!skip-not-empty`**; **`!not` вокруг `!is-empty`/`!and`/`!or`** (решение **66**); **`!skip-empty`** на `имя:` / `$when` / `$yield` **документа** `!emit` / `$over` / seq / ребёнок **`!pick`** (решения **140**, **141**: `$yield`/`$else-yield` только у `!match` в omit-слоте)
+- Host **`empty`**; **`!not` вокруг `!is-empty`/`!and`/`!or`** (решение **66**); **`!skip-empty`** на `имя:` / `$when` / `$yield` **документа** `!emit` / `$over` / seq / ребёнок **`!pick`** (решения **140**, **141**: `$yield`/`$else-yield` только у `!match` в omit-слоте)
 - Host **`int` / `str` / `bool` / `float64`**; `string()`/`int()` в `!expr`; **`!!int`/`!!bool` как coerce**; `1`/`yes` → bool; **`!int` от float** (усечение); **`.nan`/`.inf`**; тип Quantity/`500m` как число (решение **67**, **81**: `!float`; Inf ошибка)
 - Host **`list` / `dict`**; YAML-вид `{a: 1}` внутри `!expr`; `[a, b]` как concat (решение **68**)
 - Host **`keys` / `values`**; теги **`!keys` / `!values`** (решение **72**: `!foreach` + `$key`)

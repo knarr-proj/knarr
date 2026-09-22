@@ -145,33 +145,6 @@ $yield:
 ```yaml
 # $Values = {workers: [{name: w1}]}
 !emit-foreach
-$items: !ref $Values.workers
-$as: $W
-$yield:
-  kind: Pod
-  name: !ref $W.name
-# error: $items was removed
-```
-
-</td><td>
-
-```yaml
-# $Values = {workers: [{name: w1}]}
-!emit-foreach
-$over: !ref $Values.workers
-$as: $W
-$yield:
-  kind: Pod
-  name: !ref $W.name
-# kind: Pod / name: w1
-```
-
-</td></tr>
-<tr><td>
-
-```yaml
-# $Values = {workers: [{name: w1}]}
-!emit-foreach
 $over?: !ref $Values.workers?
 $as: $W
 $yield:

@@ -11,8 +11,6 @@ Not a bool. Not a predicate. [`!is-empty`](is-empty.md) asks; `!skip-empty` omit
 
 Error anywhere else: `имя:`, `$when`, `$yield` of `!emit`, `$over`, a sequence item, a [`!pick`](pick.md) child. `$yield?:` of [`!emit?`](emit.md) is an omit slot.
 
-No `!skip-not-empty`. `!omit-empty` is not a tag.
-
 ## Syntax
 
 ```yaml

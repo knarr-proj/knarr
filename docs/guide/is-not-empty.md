@@ -2,8 +2,6 @@
 
 Boolean: not [`!is-empty`](is-empty.md) of the same path. Use this for “required” and `$when` “has sidecars”.
 
-`!not-empty` is not a tag (error, not a synonym).
-
 ## Syntax
 
 ```yaml
@@ -120,30 +118,6 @@ $rules:
   - !is-not-empty $Values.name?
 $fail: "set name"
 # stdout empty
-```
-
-</td></tr>
-<tr><td>
-
-```yaml
-# $Values = {sidecars: [x]}
-!emit?
-$when: !not-empty $Values.sidecars?
-$yield?:
-  kind: ConfigMap
-# error: !not-empty is not a tag
-```
-
-</td><td>
-
-```yaml
-# $Values = {sidecars: [x]}
-!emit?
-$when: !is-not-empty $Values.sidecars?
-$yield?:
-  kind: ConfigMap
-  name: sidecars
-# kind: ConfigMap
 ```
 
 </td></tr>

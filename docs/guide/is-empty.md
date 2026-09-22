@@ -9,8 +9,6 @@ Missing **without** `?` on that field is a path error, not empty.
 
 Inverse: [`!is-not-empty`](is-not-empty.md). To drop an empty **field** (not a bool), use [`!skip-empty`](skip-empty.md) on a `?:` key.
 
-`!empty` is not a tag (error, not a synonym).
-
 ## Syntax
 
 ```yaml
@@ -97,30 +95,6 @@ $yield?:
 <tr><td>
 
 ```yaml
-# $Values = {sidecars: [x]}
-!emit?
-$when: !nempty $Values.sidecars?
-$yield?:
-  kind: ConfigMap
-# error: !nempty is not a tag
-```
-
-</td><td>
-
-```yaml
-# $Values = {sidecars: [x]}
-!emit?
-$when: !is-not-empty $Values.sidecars?
-$yield?:
-  kind: ConfigMap
-  name: sidecars
-# kind: ConfigMap
-```
-
-</td></tr>
-<tr><td>
-
-```yaml
 # $Values = {init: []}
 !emit
 initContainers?: !is-empty $Values.init?
@@ -176,30 +150,6 @@ $yield?:
 
 ```yaml
 # $Values = {}
-!emit?
-$when: !is-empty $Values.tls?
-$yield?:
-  kind: ConfigMap
-  name: no-tls
-# kind: ConfigMap
-```
-
-</td></tr>
-<tr><td>
-
-```yaml
-# $Values = {tls: false}
-!emit?
-$when: !empty $Values.tls?
-$yield?:
-  kind: ConfigMap
-# error: !empty is not a tag
-```
-
-</td><td>
-
-```yaml
-# $Values = {tls: false}
 !emit?
 $when: !is-empty $Values.tls?
 $yield?:

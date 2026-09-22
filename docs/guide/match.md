@@ -15,12 +15,12 @@ replicas: !match
 
 - Mapping with `$if` + exactly one of `$yield` / `$yield?:`. `$yield:` may have `$else-yield`. `$yield?:` + `$else-yield` is a pair error.
 - Not a sequence of branches. Else-if = `$else-yield: !match`.
-- `$if` is a bool predicate (same family as `$when`): tags or YAML `true` / `false`. Omit from `?.` without `??` is an error (not `false`); use `?? false` or [`!is-empty`](is-empty.md) / [`!is-not-empty`](is-not-empty.md).
+- `$if` is **required** (not like optional `$when` on `!emit?`). Bool predicate (same family as `$when`): tags or YAML `true` / `false`. Omit from `?.` without `??` is an error (not `false`); use `?? false` or [`!is-empty`](is-empty.md) / [`!is-not-empty`](is-not-empty.md).
 - Short-circuit: false `$if` does not evaluate `$yield` / `$yield?:`.
 - One sort: `$yield` / `$yield?:` and `$else-yield` (when present) must match.
 - **Omit the key:** `affinity?: !match` **without** `$else-yield` — false `$if` omits; or `$yield?:` omits when `$if` is true.
 - `affinity: !match` without `$else-yield` is an error if `$if` is false (no value). `имя: !match` + `$yield?:` is a pair error.
-- `$if?:` / `$else-yield?:` are errors. There is no `!match?`. `$then` / `$else` are errors, not synonyms.
+- Keys on `!match` are `$if` and `$yield` / `$yield?:`, plus `$else-yield` only with `$yield:`.
 
 ## Examples
 

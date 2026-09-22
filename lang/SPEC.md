@@ -1,7 +1,7 @@
 # Knarr — норматив языка (v1)
 
 Авторское описание: корневой [README.md](../README.md) и [docs/](../docs/README.md).  
-Q&A 1–155: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOALS.md). Язык: [SPEC_TODO.md](SPEC_TODO.md) / [SPEC_TODO_v2.md](SPEC_TODO_v2.md). CLI: [CLI_TODO.md](CLI_TODO.md) / [CLI_TODO_v2.md](CLI_TODO_v2.md).
+Q&A 1–159: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOALS.md). Язык: [SPEC_TODO.md](SPEC_TODO.md) / [SPEC_TODO_v2.md](SPEC_TODO_v2.md). CLI: [CLI_TODO.md](CLI_TODO.md) / [CLI_TODO_v2.md](CLI_TODO_v2.md).
 
 Инвентарь языка v1 **закрыт**. Носитель YAML 1.2; нет Go `{{ }}`; нет CLI `-f` / `--set`. Knarr делает только то, что явно записано: нет скрытого omit, нет неявного default, нет **значения** `null` (`a: null` ≡ нет ключа, решение **130**).
 
@@ -25,7 +25,7 @@ Q&A 1–155: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOAL
 
 - YAML 1.2, **несколько документов** в одном потоке/файле. **Кавычки tagged scalar (89):** `!ref` / `!expr` / `!not` / coerce — plain или quoted **как YAML 1.2**. Нет исключения knarr «не в начале строки». `/` без кавычек ок.
 - Порядок документов **после** раскрытия **`!import`**: опционально **`!policy`** (только первым), затем опционально **`!typedef`**, затем **`!bind`**, **`!validation`**, **`!emit`**, **`!emit?`**, **`!emit-foreach`**, **`!emit-foreach?`**, **`!emit-range`**, **`!emit-range?`** (вперемешку)
-- Локальные теги языка (`!policy`, `!typedef`, `!bind`, `!ref`, `!foreach`, `!emit`, **`!emit?`**, `!emit-foreach`, **`!emit-foreach?`**, **`!emit-range`**, **`!emit-range?`**, `!import`, `!read`, `!not`, `!expr`, `!match`, **`!concat`**, **`!join`**, **`!split`**, **`!format`**, **`!b64enc`**, **`!b64dec`**, **`!len`**, **`!sha256`**, **`!merge`**, **`!range`**, **`!is-empty`**, **`!is-not-empty`**, **`!skip-empty`**, **`!and`**, **`!or`**, **`!int`**, **`!str`**, **`!bool`**, **`!float`**, **`!to-json-str`**, **`!from-json-str`**, **`!sha256-json`**, **`!pick`**, **`!validation`**); типы — **`!$Type`** (решение 28D). **Только handle `!` (54, 55):** в документе knarr **любой `!!` — ошибка** (`!!ref` / `!!str` / `!!null` в т.ч.). **`!empty` / `!not-empty` / `!omit-empty` — ошибка (140)**, не синоним.
+- Локальные теги языка (`!policy`, `!typedef`, `!bind`, `!ref`, `!foreach`, `!emit`, **`!emit?`**, `!emit-foreach`, **`!emit-foreach?`**, **`!emit-range`**, **`!emit-range?`**, `!import`, `!read`, `!not`, `!expr`, `!match`, **`!concat`**, **`!join`**, **`!split`**, **`!format`**, **`!b64enc`**, **`!b64dec`**, **`!len`**, **`!sha256`**, **`!merge`**, **`!range`**, **`!is-empty`**, **`!is-not-empty`**, **`!skip-empty`**, **`!and`**, **`!or`**, **`!int`**, **`!str`**, **`!bool`**, **`!float`**, **`!to-json-str`**, **`!from-json-str`**, **`!sha256-json`**, **`!pick`**, **`!validation`**); типы — **`!$Type`** (решение 28D). **Только handle `!` (54, 55):** в документе knarr **любой `!!` — ошибка** (`!!ref` / `!!str` / `!!null` в т.ч.).
 - Непомеченный документ — **ошибка** (нужен `!bind` / `!emit` / **`!emit?`** / `!emit-foreach` / **`!emit-foreach?`** / **`!emit-range`** / **`!emit-range?`** / **`!import`** / **`!validation`**, либо prelude `!policy`/`!typedef`)
 - Документы и поля с ролью «мета» / именованные значения — через **`$…`**
 - **Служебные ключи mapping (решение 77):** на knarr-meta (`!foreach`, `!join`, `!match`, `$when` у `!emit`, …) каждый служебный ключ **обязан** начинаться с `$`. Голый ident (`when:`, `over:`, `sep:`, `of:`, `if:`) — **ошибка**, не синоним `$when` / `$over` / …. Не относится к ключам K8s в теле `!emit` / `$yield` (`apiVersion:`). Sequence-теги (`!concat` / `!format` / `!pick` / …) и scalar (`!ref` / `!len`) именованных служебных полей не имеют. Новый служебный ключ — тоже только `$…`.
@@ -37,7 +37,7 @@ Q&A 1–155: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOAL
 
 - Пользовательские bindings: **`$Name`** (Capital после `$`)
 - В **`!expr`** те же `$Name` (решение 21 / P2); после лексера ident без `$`
-- Служебные ключи: `$when`, `$if`, `$yield`, **`$yield?:`**, `$else-yield`, `$over`, `$as`, `$key`, `$filter`, **`$rules`**, **`$fail`**, **`$warning`**, **`$sep`**, **`$prefix`**, **`$suffix`**, **`$of`**, **`$from`**, **`$to`**, **`$until`**, **`$step`**. **`$then` / `$else` — ошибка**, не синоним (**152**). (ключа **`$type` нет**; ключа **`$items` нет** — решение 38). **Только с `$` (77).**
+- Служебные ключи: `$when`, `$if`, `$yield`, **`$yield?:`**, `$else-yield`, `$over`, `$as`, `$key`, `$filter`, **`$rules`**, **`$fail`**, **`$warning`**, **`$sep`**, **`$prefix`**, **`$suffix`**, **`$of`**, **`$from`**, **`$to`**, **`$until`**, **`$step`**. **Только с `$` (77).**
 - **Зарезервированные BindingName (решение 31):** `$Release`, `$Chart`, `$Capabilities`. Объявление в `!bind`/`!typedef`, `$as`, путь в `!ref`/`!expr`/`!not`, тег `!$Release` — **ошибка**. Инжекта нет. Helm `.Release`/`.Chart`/`.Capabilities` в v1 **не реализуются**. `$Rel` / `$Values` — обычные bind.
 
 ### 3.2.1 Bind — документ `!bind`
@@ -427,7 +427,7 @@ metadata:
 
 ### 3.2.12 Формат строки — `!format`
 
-**Решения 75 / 78 / 80 / 76 / **149**:** tagged **sequence**. Имя тега **`!format`**. **`!printf` — ошибка**, не синоним. Значение как **`!str`**: bind **`$Name` / `$Name?:`**, поле `!emit` / `$yield` / `$else-yield` `!match` / `$yield` / `$yield?:`. Результат — string. Диалект fmt — **Go `fmt.Sprintf`**, не Rust `std::fmt` / `format!`. Host `printf` в `!expr` **нет**. **`+` строк нет.**
+**Решения 75 / 78 / 80 / 76 / **149**:** tagged **sequence**. Имя тега **`!format`**. Значение как **`!str`**: bind **`$Name` / `$Name?:`**, поле `!emit` / `$yield` / `$else-yield` `!match` / `$yield` / `$yield?:`. Результат — string. Диалект fmt — **Go `fmt.Sprintf`**, не Rust `std::fmt` / `format!`. Host `printf` в `!expr` **нет**. **`+` строк нет.**
 
 ```yaml
 ---
@@ -473,8 +473,6 @@ metadata:
 - Документ `!format` / вложенный **`!format`** / элемент чужого sequence (не своё тело тега) — ошибка. Целое `$yield` у `!emit` — mapping, не `!format`. Простой `"%s-%s"` с одним разделителем — также **`!join`**.
 - **`!$T`** на том же узле — ошибка.
 - Host **`printf`** в `!expr` — ошибка. **`$A + $B`**: int+int — сумма int; любой float — сумма float (**81**); string / seq — ошибка.
-- **`!printf`** — ошибка, не синоним **`!format`** (78).
-
 ### 3.2.13 Base64 и длина — `!b64enc` / `!b64dec` / `!len`
 
 **Решение 76:** tagged **scalar**, тот же `RefScalar`, что у `!ref` / `!int`. На любом value-узле. Документ / второй тег / mapping `$of` — ошибка. Host `b64enc` / `b64dec` / `len` в `!expr` **нет**.
@@ -525,7 +523,7 @@ $Values: !$ValuesType
 - **strict** (схема): нет ключа и нет `default` в типе — ошибка; extra-ключ instance — ошибка.
 - **soft** (схема): нет ключа и нет `default` — ключ **опускается** (не `null`); extra-ключи **разрешены**.
 
-**`!typedef` + `!$Type` (v1, закрыто; решение 28D):** каталог типов — отдельный документ (tagged mapping). Дефолты живут в типе. Тега **`!applyDefaults` нет**. Ключа **`$type` нет**.
+**`!typedef` + `!$Type` (v1, закрыто; решение 28D):** каталог типов — отдельный документ (tagged mapping). Дефолты живут в типе.
 
 ```yaml
 ---
@@ -573,9 +571,8 @@ Field    := TypeName | { type: TypeName, default?: <литерал> }
 - Вложенный `nested: !$U` в instance bind / в теле `!emit` / на `$yield` — **ошибка** (решение **35**, не в v1). Не на документе `!emit`. Не на ключе `$over` / `$as`.
 - `$X` должен быть объявлен **в `!typedef`**. `!$Foo`, если `$Foo` нет в typedef (или это data-bind) — ошибка.
 - Один тег на узел YAML: `$Values: !$T` и `$Values: !read` одновременно нельзя. `$Items: !foreach` и `$Items: !$T` одновременно нельзя (тип элемента — на `$yield`). Typed instance из файла — документ **`!bind`** со сплайсом **`!import`**, не тег на `!read`.
-- Ключ **`$type`** (в т.ч. `$type: !ref $T`) — ошибка (снятая форма).
-- `!T` / `!applyDefaults` / **`!!ref`** / **`!!str`** / **`!!null`** / **`!!bind`** / **`!!$T`** / любой `!!` в документе knarr — ошибка (54, **55**).
-- После применения тег **не** часть значения (как снятый `$type`).
+- `!T` / **`!!ref`** / **`!!str`** / **`!!null`** / **`!!bind`** / **`!!$T`** / любой `!!` в документе knarr — ошибка (54, **55**).
+- После применения тег **не** часть значения.
 
 Применение (когда на узле есть `!$Type`):
 
@@ -895,7 +892,7 @@ spec?:
   replicas: !ref $Values.replicas
 ```
 
-Не `!when`. Предикат (`replicas > 1`) / else — **`!match`** (§3.5.1), не collapse `?:`.
+Предикат (`replicas > 1`) / иначе — **`!match`** (§3.5.1), не collapse `?:`.
 
 **Лист (решение 25):**
 
@@ -918,7 +915,7 @@ host?: !ref "$Values.tls?.host ?? 'localhost'"
 ```
 
 `'affinity?':` в кавычках — литеральный K8s-ключ `affinity?`, не мета.  
-Запрещено: `$when?:`; `x??:`; optional суффикс не на Ident. Ключ **`$items`** / **`$items?:`** — ошибка (38). **`$Name?:` на bind — решение 51** (пара с `$Name?`).
+Запрещено: `x??:`; optional суффикс не на Ident. **`$Name?:` на bind — решение 51** (пара с `$Name?`).
 
 **`??` (весь скаляр `!ref` / `!expr` / тот же `RefScalar` у coerce / `!len` / JSON / b64; **не `!not` (86)**; решения **82**, **83**, **84**, **85**):** ровно один (решение **73**: N-way — **`!pick`**). Слева путь (`!ref`) или **формула** (`!expr`, не чистый `RefPath` и не константа). Справа значение; результат всегда значение → ключ YAML есть. Поле: **`!ref $X.y? ?? '…'`**. Формула: **`!expr "$X.a? || $X.b? ?? false"`**. `$when` / `$filter`: `?? false` или YAML **`true`/`false`**. `$over` у **`имя: !foreach`** / **`$Name: !foreach`** / **`$Name: !join`**: **`?? []`** / **`?? {}`**. `$of` у **`$Name: !split`** / **`$Name: !sha256`**: **`?? ''`**. `$over` у **`имя?: !foreach`** / **`$Name?: !foreach`**: **без `??`**, кроме **`$yield?:` + `?? []`/`{}` (109)**. `$over` у **`$Name?: !join`**: **без `??` (99)**. `$of` у **`$Name?: !split`** / **`$Name?: !sha256`**: **без `??` (102, 103)**. **`!not … ??` — ошибка.**  
 Не канон: `?:`, ` : `, `!?:` как Elvis.
@@ -952,7 +949,6 @@ $when: true
 - `$yield` — mapping манифеста (один документ, если ветка истинна; **любое число ключей — 132**). Не **`!foreach`** / **`!emit-foreach`** / **`!emit-foreach?`** / **`!emit-range`** / **`!emit-range?`** как всё тело `$yield`.
 - `$else-yield: ""` (пустая строка) — **не эмитить** ничего. Это не документ и не `null`.
 - `$else-yield:` может быть другим mapping манифеста (ветка else).
-- Ключ **`$items`** — ошибка (снят, решение 38).
 - `$else-yield: null` / `~` ≡ ключа `$else-yield` нет (**130**): на `!emit` — ошибка пары; на `!emit?` — как будто `$else-yield` не писали.
 
 **`!not` (v1, закрыто; **86**):** только tagged scalar, **`RefPath`** (включая `$X[0].name`, `?.` и кавычки при `[`). **Без `??`.** Один узел — один тег. `!not $Values.debug? ?? false` — ошибка.
@@ -983,7 +979,7 @@ $when: !not
 
 **Решение 66:** пустота и булева сборка — теги, не host `empty`. Результат — **bool**. Документ с этими тегами — ошибка.
 
-**`!is-empty` / `!is-not-empty`:** tagged **scalar**, тот же `RefScalar`, что у `!ref`. Один узел — один тег. Не `!nempty`. Не `!is-empty { $of: … }`. **`!empty` / `!not-empty` — ошибка (140)**, не синоним.
+**`!is-empty` / `!is-not-empty`:** tagged **scalar**, тот же `RefScalar`, что у `!ref`. Один узел — один тег. Не `!is-empty { $of: … }`.
 
 Helm `empty` (заморожено, **128**): **true** для omit (`?` на поле / `$Name?` без значения), `""`, `[]`, `{}`, `false`, int **`0`**, float **`0.0` / `-0.0`**. Иначе **false** (непустая строка / seq / map, `true`, ненулевой int / float). Missing **без** `?` на шаге — ошибка пути (8). **`!is-not-empty`** ≡ отрицание `!is-empty` того же пути. Helm **`| default`** в guide (**134**) = **`!match`** + **`!is-empty`**, не `??`.
 
@@ -1005,7 +1001,7 @@ $else-yield: ""
 - **`$yield?:`**;
 - **`$yield` / `$else-yield` у `!match` (141)**, если этот `!match` сам в одном из слотов выше (вложение `$yield: !match` … `$yield: !skip-empty` ок).
 
-Иначе **ошибка**: `имя:` без `?:`; `$when` / `$filter` / `$if`; **`$yield` / `$else-yield` документа `!emit`** (у **`!emit?`** слот — **`$yield?:`**, **153**); `$over` / `$of`; элемент sequence; ребёнок **`!pick`** / `!and` / `!or` / `!concat`. На `имя: !match` omit `$yield` ловит пара `!match` без `?:`. Нет `!skip-not-empty`. Нет `!omit-empty`. `??` на том же скаляре с `имя?:` — ошибка пары листа (**111**).
+Иначе **ошибка**: `имя:` без `?:`; `$when` / `$filter` / `$if`; **`$yield` / `$else-yield` документа `!emit`** (у **`!emit?`** слот — **`$yield?:`**, **153**); `$over` / `$of`; элемент sequence; ребёнок **`!pick`** / `!and` / `!or` / `!concat`. На `имя: !match` omit `$yield` ловит пара `!match` без `?:`. `??` на том же скаляре с `имя?:` — ошибка пары листа (**111**).
 
 **Comparison `if .Values.tls` + поле (140, снимает 135):** `tls?: !skip-empty $Values.tls?`. Не `tls?: !ref` (печатает `false` / `""` / `[]`).
 
@@ -1065,7 +1061,7 @@ spec:
 ```
 
 - Ровно **`$if`** + один из **`$yield` / `$yield?:`**. При **`$yield:`** можно **`$else-yield`**. **`$yield?:` + `$else-yield` / оба тела / ни одного — ошибка пары (154).** Других ключей нет. `$when` внутри `!match` — ошибка.
-- `$if` — предикат bool (66): `!ref` / `!not` / **`!expr`** / **`!is-empty` / `!is-not-empty` / `!and` / `!or`** / YAML **`true`/`false`**. Голое `$if: $Values.ha` — ошибка. Omit без `??` — **ошибка (112)**.
+- **`$if` обязателен (158):** нет ключа — ошибка (не как опц. `$when` на `!emit?`). Предикат bool (66): `!ref` / `!not` / **`!expr`** / **`!is-empty` / `!is-not-empty` / `!and` / `!or`** / YAML **`true`/`false`**. Голое `$if: $Values.ha` — ошибка. Omit без `??` — **ошибка (112)**.
 - **`!match` как sequence** (список веток `- $if` / `- $else-yield`) — **ошибка** (37). Else-if — только вложенный `$else-yield: !match` (тот же mapping).
 - `$if` истинно → `$yield` / `$yield?:`; иначе `$else-yield`; нет `$else-yield` → **omit**. `$if` истинно + omit **`$yield?:`** → omit результата. Невзятую сторону **не считают** (36).
 - Omit ключа stdout: **`имя?: !match`** (ложный `$if` без else **или** omit `$yield?:`). **`имя: !match` / `$Name: !match` + `$yield?:` — ошибка пары (154).** **`имя: !match`** + `$yield:` без `$else-yield` — ошибка, если `$if` ложен. Omit как элемент sequence — ошибка. Omit корня **`$yield:`** цикла — ошибка (дырка). Omit корня **`$yield?:`** цикла — пропуск итерации (**52**).
@@ -1073,7 +1069,7 @@ spec:
 - **Где можно (36):** как `!expr` — поле `!emit`, поле `$yield` / `$yield?:`, `$Name` / `$Name?:` в bind, `$yield`/`$else-yield`. **Нельзя:** `$as`; корень `!policy` / `!typedef` / `!bind` / `!emit`; второй тег на том же узле.
 - **Сорт `$yield`/`$yield?:`/`$else-yield` (36):** литерал scalar / sequence / mapping; вложенный **`!match` прозрачен**; `!ref` / `!expr` / `!foreach` непрозрачны. Разные конкретные сорта — ошибка parse. `$else-yield: {}` при `$yield`-sequence — ошибка.
 - Presence без формулы — `?:` / **32**, не `!match`.
-- Не заменяет документный `$when`. Запрещено: `$if?:` / `$else-yield?:`; **`$then` / `$else` — ошибка (152)**, не синоним; тег **`!match?` нет**; `!when`.
+- Не заменяет документный `$when`.
 
 ### 3.6 Цикл — `!foreach`
 
@@ -1215,8 +1211,6 @@ spec:
 **2. If без else — `!emit?` (133, **153**, **155**)** — только **`$yield?:`**; `$when` опц. Ложь `$when` или omit `$yield?:` → нет документа. **`$yield:`** — ошибка пары. Ключ `$when` с omit — ошибка (112). Нет ключа `$when` — считают `$yield?:`.
 
 **3. If / else — `!emit`** — только `$when` / `$yield` / `$else-yield` (см. §3.5). `$else-yield: ""` = пропуск. В полях `$yield` можно вложенный `!foreach`.
-
-Ключ **`$items`** — ошибка.
 
 **`!emit-foreach` / `!emit-foreach?` (решения 38–41, 52, **148**):** тег на **документе**. Ключи `!foreach` (`$over` / `$as` / опц. **`$filter`** / **`$key`**) плюс опциональный **`$when`**. **Пара (148):** **`!emit-foreach`** ↔ **`$yield:`**; **`!emit-foreach?`** ↔ **`$yield?:`**. Каждый выданный mapping → **один** YAML-документ. `$Name: !emit-foreach` / `$Name: !emit-foreach?` — ошибка. Нет `$else-yield` (не if/else документа). Нет splat «только `$over`».
 
