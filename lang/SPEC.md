@@ -1,7 +1,7 @@
 # Knarr — норматив языка (v1)
 
 Авторское описание: корневой [README.md](../README.md) и [docs/](../docs/README.md).  
-Q&A 1–138: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOALS.md). Язык: [SPEC_TODO.md](SPEC_TODO.md) / [SPEC_TODO_v2.md](SPEC_TODO_v2.md). CLI: [CLI_TODO.md](CLI_TODO.md) / [CLI_TODO_v2.md](CLI_TODO_v2.md).
+Q&A 1–139: [DECISIONS.md](DECISIONS.md). Запреты: [NONGOALS.md](NONGOALS.md). Язык: [SPEC_TODO.md](SPEC_TODO.md) / [SPEC_TODO_v2.md](SPEC_TODO_v2.md). CLI: [CLI_TODO.md](CLI_TODO.md) / [CLI_TODO_v2.md](CLI_TODO_v2.md).
 
 Инвентарь языка v1 **закрыт**. Носитель YAML 1.2; нет Go `{{ }}`; нет CLI `-f` / `--set`. Knarr делает только то, что явно записано: нет скрытого omit, нет неявного default, нет **значения** `null` (`a: null` ≡ нет ключа, решение **130**).
 
@@ -977,6 +977,8 @@ $else: ""
 **Comparison Helm `and` + `gt` (136):** `if and .Values.service.enabled (gt .Values.replicas 1)` — пара `!emit?` + `$when: !and` (`!not-empty` на `service?.enabled?`; `!expr "$Values.replicas? > 1 ?? false"`). Не Impossible.
 
 **Comparison Helm `range` + `if and .ports .enabled` (138):** `env:` + фильтр элемента = `env?: !foreach` + `$filter: !and` двух `!not-empty` + `$yield?:` mapping `name`. Не Impossible. Не `!and` сырого seq/bool.
+
+**Comparison Helm `and` строк в поле (139):** `name: {{ and .Values.name .Values.image }}` — пара `name?: !match` + `!not-empty` (Go `and x y` = если x truthy то y иначе x). Не Impossible. Не `!and` строк.
 
 ```yaml
 $when: !or

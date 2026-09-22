@@ -196,7 +196,7 @@ env?: !foreach
 </td></tr>
 <tr><th>Difference</th><td>
 
-Same result. Helm `if` ≡ `!not-empty`. Item is a mapping (`- name:`), not a string. Empty / all filtered: Helm `env: null` ≡ no `env`. `!and` stays boolean (children are `!not-empty`, not the raw list).
+Same result. Helm `if` ≡ `!not-empty`. Item is a mapping (`- name:`), not a string. `!and` stays boolean (children are `!not-empty`, not the raw list).
 
 </td></tr>
 </table>
@@ -211,12 +211,22 @@ name: {{ and .Values.name .Values.image }}
 </td></tr>
 <tr><th>Knarr</th><td>
 
-Impossible in v1.
+```yaml
+!emit
+name?: !match
+  $if: !not-empty $Values.name?
+  $then: !match
+    $if: !not-empty $Values.image?
+    $then: !ref $Values.image
+  $else: !match
+    $if: !not-empty $Values.name?
+    $then: !ref $Values.name
+```
 
 </td></tr>
 <tr><th>Difference</th><td>
 
-Helm `and` of strings returns the last truthy value. Knarr `!and` is boolean only.
+Same result. Go `and x y` is if x then y else x. Helm `if` ≡ `!not-empty`. Not tag `!and` (boolean only). See [`!match`](match.md).
 
 </td></tr>
 </table>
