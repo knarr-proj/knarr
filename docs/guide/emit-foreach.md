@@ -7,6 +7,7 @@ For lists **inside** one mapping (env, ports, extra hosts), use [`!foreach`](for
 ## Syntax
 
 ```yaml
+# $Values = {workers: [{name: w1, enabled: true}], deployWorkers: true}
 !emit-foreach
 $over: !ref $Values.workers
 $as: $Worker
@@ -16,6 +17,7 @@ $when: !ref $Values.deployWorkers ?? false  # optional gate
 $yield:
   kind: Deployment
   name: !ref $Worker.name
+# kind: Deployment / name: w1
 ```
 
 | Key | Meaning |
@@ -52,6 +54,7 @@ $yield:
 ### Filter disabled workers
 
 ```yaml
+# $Values = {workers: [{name: w1, enabled: true}, {name: w2, enabled: false}]}
 !emit-foreach
 $over: !ref $Values.workers
 $as: $Worker
@@ -59,11 +62,13 @@ $filter: !ref $Worker.enabled
 $yield:
   kind: Pod
   name: !ref $Worker.name
+# kind: Pod / name: w1
 ```
 
 ### Range a map of component images
 
 ```yaml
+# $Values = {images: {api: ghcr.io/acme/api:1}}
 !emit-foreach
 $over: !ref $Values.images
 $as: $Image
@@ -71,6 +76,7 @@ $key: $Comp
 $yield:
   kind: Deployment
   name: !ref $Comp
+# kind: Deployment / name: api
 ```
 
 Key order follows the source mapping.
@@ -78,6 +84,7 @@ Key order follows the source mapping.
 ### Gate the whole pack
 
 ```yaml
+# $Values = {deployWorkers: true, workers: [{name: w1}]}
 !emit-foreach
 $when: !ref $Values.deployWorkers ?? false
 $over: !ref $Values.workers
@@ -85,6 +92,7 @@ $as: $Worker
 $yield:
   kind: Pod
   name: !ref $Worker.name
+# kind: Pod / name: w1
 ```
 
 ## Common mistakes
@@ -94,81 +102,88 @@ $yield:
 <tr><td>
 
 ```yaml
+# $Values = {workers: [{name: w1}]}
 !foreach
 $over: !ref $Values.workers
 $as: $W
 $yield:
   kind: Deployment
   name: !ref $W.name
-# !foreach fills a sequence field; it is not a root document
+# error: !foreach is not a root document
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {workers: [{name: w1}]}
 !emit-foreach
 $over: !ref $Values.workers
 $as: $W
 $yield:
   kind: Deployment
   name: !ref $W.name
-# one document per item is !emit-foreach
+# kind: Deployment / name: w1
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {workers: [{name: w1}]}
 !emit-foreach
 $items: !ref $Values.workers
 $as: $W
 $yield:
   kind: Pod
   name: !ref $W.name
-# $items was removed
+# error: $items was removed
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {workers: [{name: w1}]}
 !emit-foreach
 $over: !ref $Values.workers
 $as: $W
 $yield:
   kind: Pod
   name: !ref $W.name
-# use $over / $as / $yield
+# kind: Pod / name: w1
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {workers: [{name: w1}]}
 !emit-foreach
 $over?: !ref $Values.workers?
 $as: $W
 $yield:
   kind: Pod
   name: !ref $W.name
-# $over?: is not allowed
+# error: $over?: is not allowed
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {workers: [{name: w1}]}
 !emit-foreach
 $over: !ref $Values.workers?
 $as: $W
 $yield:
   kind: Pod
   name: !ref $W.name
-# omit $over → zero documents
+# kind: Pod / name: w1
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {workers: [{name: w1, enabled: true}]}
 !emit-foreach
 $over: !ref $Values.workers
 $as: $W
@@ -176,12 +191,13 @@ $when: !ref $W.enabled
 $yield:
   kind: Pod
   name: !ref $W.name
-# document $when cannot see $as
+# error: $when cannot see $as
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {workers: [{name: w1, enabled: true}]}
 !emit-foreach
 $over: !ref $Values.workers
 $as: $W
@@ -189,7 +205,7 @@ $filter: !ref $W.enabled
 $yield:
   kind: Pod
   name: !ref $W.name
-# per-item gate is $filter; $when only gates the whole pack
+# kind: Pod / name: w1
 ```
 
 </td></tr>
@@ -224,23 +240,27 @@ $yield:
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {workers: [{name: w1}, {name: w2}]}
 {{- range .Values.workers }}
 ---
 kind: Pod
 name: {{ .name }}
 {{- end }}
+# kind: Pod / name: w1 / name: w2
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {workers: [{name: w1}, {name: w2}]}
 !emit-foreach
 $over: !ref $Values.workers?
 $as: $Worker
 $yield:
   kind: Pod
   name: !ref $Worker.name
+# kind: Pod / name: w1 / name: w2
 ```
 
 </td></tr>
@@ -255,6 +275,7 @@ Same YAML documents. Omit `$over` → zero documents.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {workers: [{name: w1, enabled: true}, {name: w2, enabled: false}]}
 {{- range .Values.workers }}
 {{- if .enabled }}
 ---
@@ -262,12 +283,14 @@ kind: Pod
 name: {{ .name }}
 {{- end }}
 {{- end }}
+# kind: Pod / name: w1
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {workers: [{name: w1, enabled: true}, {name: w2, enabled: false}]}
 !emit-foreach
 $over: !ref $Values.workers?
 $as: $Worker
@@ -275,6 +298,7 @@ $filter: !ref $Worker.enabled ?? false
 $yield:
   kind: Pod
   name: !ref $Worker.name
+# kind: Pod / name: w1
 ```
 
 </td></tr>
@@ -289,17 +313,20 @@ Same YAML documents when `enabled` is bool or missing.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {images: {api: ghcr.io/acme/api:1}}
 {{- range $comp, $image := .Values.images }}
 ---
 kind: Deployment
 name: {{ $comp }}
 {{- end }}
+# kind: Deployment / name: api
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {images: {api: ghcr.io/acme/api:1}}
 !emit-foreach
 $over: !ref $Values.images?
 $as: $Image
@@ -307,6 +334,7 @@ $key: $Comp
 $yield:
   kind: Deployment
   name: !ref $Comp
+# kind: Deployment / name: api
 ```
 
 </td></tr>
@@ -321,6 +349,7 @@ Same YAML documents. Omit `$over` → zero documents.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {deployWorkers: true, workers: [{name: w1}]}
 {{- if .Values.deployWorkers }}
 {{- range .Values.workers }}
 ---
@@ -328,12 +357,14 @@ kind: Pod
 name: {{ .name }}
 {{- end }}
 {{- end }}
+# kind: Pod / name: w1
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {deployWorkers: true, workers: [{name: w1}]}
 !emit-foreach
 $when: !is-not-empty $Values.deployWorkers?
 $over: !ref $Values.workers?
@@ -341,6 +372,7 @@ $as: $Worker
 $yield:
   kind: Pod
   name: !ref $Worker.name
+# kind: Pod / name: w1
 ```
 
 </td></tr>

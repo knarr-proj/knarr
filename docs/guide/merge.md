@@ -5,9 +5,11 @@ Deep-merge mappings. Later wins. Sequences are **replaced**, not concatenated. B
 ## Syntax
 
 ```yaml
+# $Defaults = {a: 1}; $Values = {config: {b: 2}}
 $Cfg: !merge
   - !ref $Defaults
   - !ref $Values.config
+# $Cfg = {a: 1, b: 2}
 ```
 
 - Tagged sequence of mappings.
@@ -24,6 +26,7 @@ $Cfg: !merge
 ### Default probe + user overlay
 
 ```yaml
+# $Values = {livenessProbe: {timeoutSeconds: 5}}
 !bind
 $UserProbe: !ref "$Values.livenessProbe? ?? {}"
 $Probe: !merge
@@ -32,11 +35,13 @@ $Probe: !merge
       port: 8080
     timeoutSeconds: 1
   - !ref $UserProbe
+# $Probe = {httpGet: {path: /healthz, port: 8080}, timeoutSeconds: 5}
 ```
 
 ### kube container resources
 
 ```yaml
+# $Values = {resources: {limits: {cpu: "1"}}}
 $Res: !merge
   - requests:
       cpu: "100m"
@@ -44,6 +49,7 @@ $Res: !merge
   - !ref $Values.resources
 !emit
 resources: !ref $Res
+# resources: {requests: {cpu: "100m", memory: "128Mi"}, limits: {cpu: "1"}}
 ```
 
 User `limits:` is added; user `requests.cpu` replaces the default cpu only at that leaf; nested maps merge.
@@ -51,6 +57,7 @@ User `limits:` is added; user `requests.cpu` replaces the default cpu only at th
 ### Replace a list
 
 ```yaml
+# $A = {args: [--a]}; $B = {args: [--b]}
 $A:
   args: ["--a"]
 $B:
@@ -58,7 +65,7 @@ $B:
 $M: !merge
   - !ref $A
   - !ref $B
-# args is ["--b"], not concatenated
+# $M = {args: [--b]}
 ```
 
 Use [`!concat`](concat.md) for lists.
@@ -66,6 +73,7 @@ Use [`!concat`](concat.md) for lists.
 ### Optional merge of optional maps
 
 ```yaml
+# $Values = {requests: {cpu: "1"}}
 !bind
 $Res?: !merge
   - !ref $Values.requests?
@@ -73,6 +81,7 @@ $Res?: !merge
 ---
 !emit
 resources?: !ref $Res?
+# resources: {cpu: "1"}
 ```
 
 Both missing → no `$Res`. Only `requests` present → `$Res` is that mapping. Defaults plus an optional overlay stay on `$Name:` with `?? {}` (see Default probe).
@@ -84,17 +93,19 @@ Both missing → no `$Res`. Only `requests` present → `$Res` is that mapping. 
 <tr><td>
 
 ```yaml
+# $Values = {resources: {limits: {cpu: "1"}}}
 !emit
 resources: !merge
   - requests:
       cpu: "100m"
   - !ref $Values.resources
-# !merge is bind-only
+# error: !merge is bind-only
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {resources: {}}
 !bind
 $Res: !merge
   - requests:
@@ -103,59 +114,64 @@ $Res: !merge
 ---
 !emit
 resources: !ref $Res
-# merge in bind, then !ref
+# resources: {requests: {cpu: "100m"}}
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 !bind
 $Args: !merge
   - args: ["--a"]
   - args: ["--b"]
-# sequences are replaced, not concatenated
+# $Args = {args: [--b]}
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {a: 1}
 !bind
 $Args: !concat
   - ["--a"]
   - ["--b"]
-# glue lists with !concat
+# $Args = [--a, --b]
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Res?: !merge
   - requests:
       cpu: "100m"
   - !ref $Values.resources?
-# literal child: result always exists; ?: cannot fire
+# error: literal child: ?: cannot fire
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Res: !merge
   - requests:
       cpu: "100m"
   - !ref "$Values.resources? ?? {}"
-# defaults stay: required bind, fill omit
+# $Res = {requests: {cpu: "100m"}}
 ```
 
 ```yaml
+# $Values = {}
 !bind
 $Res?: !merge
   - !ref $Values.requests?
   - !ref $Values.limits?
-# ?: only when every child can omit
+# no $Res
 ```
 
 </td></tr>
@@ -188,7 +204,9 @@ Keep defaults: `$Name:` + `?? {}` on the overlay.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {resources: {limits: {cpu: "1"}}}
 resources: {{ merge .Values.resources (dict "requests" (dict "cpu" "100m")) }}
+# resources: {limits: {cpu: "1"}, requests: {cpu: "100m"}}
 ```
 
 </td></tr>
@@ -208,7 +226,9 @@ Helm `merge` dest-first. Knarr later mapping wins. Helm prints the merge; knarr 
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {livenessProbe: {path: /healthz}}
 livenessProbe: {{ merge .Values.livenessProbe (dict "timeoutSeconds" 1) }}
+# livenessProbe: {path: /healthz, timeoutSeconds: 1}
 ```
 
 </td></tr>
@@ -228,7 +248,9 @@ Helm dest-first and missing probe is empty. Knarr later-wins and `!merge` is bin
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {a: 1}
 args: {{ merge (dict "args" (list "--a")) (dict "args" (list "--b")) }}
+# args: {args: [--b]}
 ```
 
 </td></tr>

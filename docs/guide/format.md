@@ -5,10 +5,12 @@ Format a string with **Go `fmt`** verbs (not Rust `{}`). Bind-only.
 ## Syntax
 
 ```yaml
+# $Env = prod; $App = api
 $Name: !format
   - "%s-%s"
   - !ref $Env
   - !ref $App
+# $Name = prod-api
 ```
 
 - Tagged **sequence**: first element is the format **string**; the rest are arguments in order.
@@ -24,21 +26,25 @@ $Name: !format
 ### Resource name
 
 ```yaml
+# $Values = {env: prod, name: api}
 $FullName: !format
   - "%s-%s"
   - !ref $Values.env
   - !ref $Values.name
 !emit
 name: !ref $FullName
+# name: prod-api
 ```
 
 ### Host:port
 
 ```yaml
+# $Values = {host: h}; $Port = 80
 $Addr: !format
   - "%s:%d"
   - !ref $Values.host
   - !ref $Port
+# $Addr = h:80
 ```
 
 `$Port` must be int (`!int` if values had a string).
@@ -46,9 +52,11 @@ $Addr: !format
 ### Quoted annotation (`%q`)
 
 ```yaml
+# $Values = {name: api}
 $Ann: !format
   - "app=%q"
   - !ref $Values.name
+# $Ann = app="api"
 ```
 
 Go quotes, not JSON (`!to-json-str`).
@@ -56,17 +64,21 @@ Go quotes, not JSON (`!to-json-str`).
 ### Zero-padded index
 
 ```yaml
+# $I = 3
 $WorkerId: !format
   - "w-%04d"
   - !ref $I
+# $WorkerId = w-0003
 ```
 
 ### CPU float
 
 ```yaml
+# $Values = {cpu: 0.5}
 $Cpu: !format
   - "%.1f"
   - !ref $Values.cpu
+# $Cpu = 0.5
 ```
 
 Operand must be **float**.
@@ -78,16 +90,18 @@ Operand must be **float**.
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !emit
 name: !format
   - "%s-svc"
   - !ref $Values.name
-# !format is bind-only
+# error: !format is bind-only
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Name: !format
   - "%s-svc"
@@ -95,70 +109,76 @@ $Name: !format
 ---
 !emit
 name: !ref $Name
-# format in bind, then !ref
+# name: api-svc
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Name: !expr "printf('%s-svc', $Values.name)"
-# no printf() in !expr; no !printf tag
+# error: no printf() in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Name: !format
   - "%s-svc"
   - !ref $Values.name
-# Go fmt is !format
+# $Name = api-svc
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {replicas: 3}
 !bind
 $Name: !format
   - "%s"
   - !ref $Values.replicas
-# %s with an int is an error
+# error: %s with an int
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {replicas: 3}
 !bind
 $Name: !format
   - "%d"
   - !ref $Values.replicas
-# use %d, or !str first
+# $Name = 3
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {env: prod, name: api}
 !bind
 $Name: !format
   - "%s-%s"
   - $Values.env
   - $Values.name
-# bare $X in the sequence is the string "$X"
+# $Name = $Values.env-$Values.name
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {env: prod, name: api}
 !bind
 $Name: !format
   - "%s-%s"
   - !ref $Values.env
   - !ref $Values.name
-# operands are !ref (or other tags), not bare identifiers
+# $Name = prod-api
 ```
 
 </td></tr>
@@ -190,13 +210,16 @@ $Fmt?: !format
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {env: prod, name: api}
 name: {{ printf "%s-%s" (required "env" .Values.env) (required "name" .Values.name) }}
+# name: prod-api
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {env: prod, name: api}
 !bind
 $FullName: !format
   - "%s-%s"
@@ -211,6 +234,7 @@ $fail: "env"
 ---
 !emit
 name: !ref $FullName
+# name: prod-api
 ```
 
 </td></tr>
@@ -225,7 +249,9 @@ Same result. `required` abort = `$fail`. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {host: h, port: 80}
 addr: {{ printf "%s:%d" .Values.host .Values.port }}
+# addr: h:80
 ```
 
 </td></tr>
@@ -245,13 +271,16 @@ Wrong operand type is `%!s` in Helm, an error in knarr. Bind-only `!format` is n
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {name: api}
 ann: {{ printf "app=%q" (required "name" .Values.name) }}
+# ann: app="api"
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Ann: !format
   - "app=%q"
@@ -264,6 +293,7 @@ $fail: "name"
 ---
 !emit
 ann: !ref $Ann
+# ann: app="api"
 ```
 
 </td></tr>
@@ -278,7 +308,9 @@ Same result. `required` abort = `$fail`. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $i = 3
 name: {{ printf "w-%04d" $i }}
+# name: w-0003
 ```
 
 </td></tr>

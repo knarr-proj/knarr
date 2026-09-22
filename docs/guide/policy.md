@@ -5,13 +5,17 @@ Schema mode for **`!$Type`** only. It does **not** change missing `!ref` without
 ## Syntax
 
 ```yaml
+# $Values = {}
 !policy strict
+# policy: strict
 ```
 
 or
 
 ```yaml
+# $Values = {}
 !policy soft
+# policy: soft
 ```
 
 - Optional **first** document of the (flattened) input.
@@ -34,6 +38,7 @@ Wrong scalar types are **always** an error, even in `soft`.
 ### Strict chart values
 
 ```yaml
+# $Values = {name: api}
 !policy strict
 ---
 !typedef
@@ -44,6 +49,7 @@ $ValuesType:
 !bind
 $Values: !$ValuesType
   name: api
+# $Values = {name: api, replicas: 1}
 ```
 
 `replicas` becomes `1`. Omitting `name` is an error.
@@ -51,6 +57,7 @@ $Values: !$ValuesType
 ### Soft extras for unknown keys
 
 ```yaml
+# $Values = {name: api, experimentalFlag: true}
 !policy soft
 ---
 !typedef
@@ -61,6 +68,7 @@ $ValuesType:
 $Values: !$ValuesType
   name: api
   experimentalFlag: true
+# $Values = {name: api, experimentalFlag: true}
 ```
 
 `experimentalFlag` is kept.
@@ -72,59 +80,65 @@ $Values: !$ValuesType
 <tr><td>
 
 ```yaml
+# $Values = {}
 !policy soft
 ---
 !emit
 image: !ref $Values.image
-# missing image still errors; soft does not change !ref
+# error: missing image; soft does not change !ref
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !emit
 image?: !ref $Values.image?
-# missing path needs ?.; policy applies only to !$Type
+# no image
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Values:
   name: api
 ---
 !policy strict
-# !policy must be the first document
+# error: !policy must be the first document
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !policy strict
 ---
 !typedef
 $ValuesType:
   name: string
-# first document (after !import flatten)
+# error: !policy with zero typed binds
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !policy strict
 ---
 !bind
 $Values:
   name: api
-# policy without !$Type does nothing useful
+# error: policy without !$Type
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !policy strict
 ---
 !typedef
@@ -134,7 +148,7 @@ $ValuesType:
 !bind
 $Values: !$ValuesType
   name: api
-# either drop !policy or type a bind
+# $Values = {name: api}
 ```
 
 </td></tr>
@@ -172,13 +186,16 @@ Helm JSON schema is a sidecar file. Knarr `!policy` is not that file.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {name: api}
 name: {{ required "name" .Values.name }}
+# name: api
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {name: api}
 !validation
 $rules:
   - !is-not-empty $Values.name?
@@ -186,6 +203,7 @@ $fail: "name"
 ---
 !emit
 name: !ref $Values.name
+# name: api
 ```
 
 </td></tr>
@@ -200,9 +218,11 @@ Same result. `required` abort = `$fail`. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```yaml
+# $Values = {name: api, extra: true}
 # extra keys in values.yaml are kept
 name: api
 extra: true
+# name: api / extra: true
 ```
 
 </td></tr>

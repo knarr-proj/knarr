@@ -5,6 +5,7 @@ Emit **N YAML documents** — one per int in a [`!range`](range.md). For a colle
 ## Syntax
 
 ```yaml
+# $Values = {completions: 2, jobs: true}
 !emit-range
 $from: 0
 $until: !ref $Values.completions
@@ -14,6 +15,7 @@ $when: !is-not-empty $Values.jobs?  # optional pack gate
 $yield:
   kind: Job
   name: !str $I
+# kind: Job / name: "1"
 ```
 
 | Key | Meaning |
@@ -102,18 +104,20 @@ $yield:
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 !range
 $from: 0
 $until: 2
 $as: $I
 $yield:
   kind: Job
-# !range is bind, not a document
+# error: !range is bind, not a document
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {a: 1}
 !emit-range
 $from: 0
 $until: 2
@@ -121,23 +125,26 @@ $as: $I
 $yield:
   kind: Job
   name: !str $I
+# kind: Job / name: "0" / name: "1"
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 !emit-range
 $over: !ref $Idx
 $as: $I
 $yield:
   kind: Job
-# no $over — that is !emit-foreach
+# error: no $over — that is !emit-foreach
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {a: 1}
 !emit-range
 $from: 0
 $until: 2
@@ -145,6 +152,7 @@ $as: $I
 $yield:
   kind: Job
   name: !str $I
+# kind: Job / name: "0" / name: "1"
 ```
 
 </td></tr>
@@ -165,17 +173,20 @@ $yield:
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {completions: 2}
 {{- range until .Values.completions }}
 ---
 kind: Job
 name: {{ . }}
 {{- end }}
+# kind: Job / name: 0 / name: 1
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {completions: 2}
 !emit-range
 $from: 0
 $until: !ref $Values.completions
@@ -183,6 +194,7 @@ $as: $I
 $yield:
   kind: Job
   name: !str $I
+# kind: Job / name: "0" / name: "1"
 ```
 
 </td></tr>

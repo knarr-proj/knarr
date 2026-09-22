@@ -5,7 +5,9 @@ Base64-decode to a **string**. Invalid alphabet or non-UTF-8 is an error.
 ## Syntax
 
 ```yaml
+# $Values = {certB64: Q0VSVA==}
 $Pem: !b64dec $Values.certB64
+# $Pem = "CERT"
 ```
 
 ## Examples
@@ -13,24 +15,30 @@ $Pem: !b64dec $Values.certB64
 ### Decode into a ConfigMap (plain)
 
 ```yaml
+# $Values = {caB64: Q0E=}
 !bind
 $Ca: !b64dec $Values.caB64
 ---
 !emit
 ca.crt: !ref $Ca
+# ca.crt: CA
 ```
 
 ### Round-trip check in bind
 
 ```yaml
+# $Values = {wrapped: aGk=}
 $Raw: !b64dec $Values.wrapped
 $Again: !b64enc $Raw
+# $Again = aGk=
 ```
 
 ### Optional
 
 ```yaml
+# $Values = {}
 token?: !b64dec $Values.tokenB64?
+# no token
 ```
 
 ## Common mistakes
@@ -40,34 +48,38 @@ token?: !b64dec $Values.tokenB64?
 <tr><td>
 
 ```yaml
+# $Values = {wrapped: aGk=}
 !bind
 $Raw: !expr "b64dec($Values.wrapped)"
-# no b64dec() in !expr
+# error: no b64dec() in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {wrapped: aGk=}
 !bind
 $Raw: !b64dec $Values.wrapped
-# decode with !b64dec
+# $Raw = "hi"
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {tokenUrlB64: "a-_"}
 !emit
 token: !b64dec $Values.tokenUrlB64
-# URL-safe alphabet (- _) or missing padding fails the render
+# error: URL-safe alphabet or missing padding
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {tokenB64: dG9r}
 !emit
 token: !b64dec $Values.tokenB64
-# RFC 4648 standard alphabet (+ /) with padding
+# token: tok
 ```
 
 </td></tr>
@@ -85,13 +97,16 @@ token: !b64dec $Values.tokenB64
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {caB64: Q0E=}
 ca.crt: {{ required "ca" .Values.caB64 | b64dec }}
+# ca.crt: CA
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {caB64: Q0E=}
 !bind
 $Ca: !b64dec $Values.caB64
 ---
@@ -102,6 +117,7 @@ $fail: "ca"
 ---
 !emit
 ca.crt: !ref $Ca
+# ca.crt: CA
 ```
 
 </td></tr>
@@ -116,7 +132,9 @@ Same result. `required` abort = `$fail`. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {tokenB64: dG9r}
 token: {{ .Values.tokenB64 | b64dec }}
+# token: tok
 ```
 
 </td></tr>
@@ -136,19 +154,23 @@ Missing value is empty in Helm. Knarr `?:` omits the key.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {wrapped: aGk=}
 token: {{ b64enc (b64dec .Values.wrapped) }}
+# token: aGk=
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {wrapped: aGk=}
 !bind
 $Raw: !b64dec $Values.wrapped
 $Again: !b64enc $Raw
 ---
 !emit
 token: !ref $Again
+# token: aGk=
 ```
 
 </td></tr>

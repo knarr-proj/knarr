@@ -186,23 +186,24 @@ $Rel: prod
 <tr><td>
 
 ```yaml
+# $Values = {tls: {host: a}}
 !bind
 $Tls?: !ref $Values.tls?
 ---
 !emit
 host: !ref $Tls.host
-# optional bind is $Tls?, not $Tls
+# error: optional bind is $Tls?, not $Tls
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {tls: {host: a}}
 !bind
 $Tls?: !ref $Values.tls?
 ---
 !emit
-host?: !ref $Tls?.host
-# pair $Tls? with ?: on the output key
+host?: !ref $Tls?.host  # host: a
 ```
 
 </td></tr>
@@ -222,14 +223,16 @@ Values are named in `!bind`. There is no sidecar `values.yaml` plus `{{ $x := }}
 <tr><th>Helm</th><td>
 
 ```gotemplate
-# values: env=prod name=api
+# $Values = {env: prod, name: api}
 name: {{ printf "%s-%s" (required "env" .Values.env) (required "name" .Values.name) }}
+# name: prod-api
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {env: prod, name: api}
 !bind
 $Values:
   name: api
@@ -246,7 +249,7 @@ $rules:
 $fail: "env"
 ---
 !emit
-name: !ref $FullName
+name: !ref $FullName  # name: prod-api
 ```
 
 </td></tr>
@@ -261,13 +264,16 @@ Same result `prod-api`. `required` abort = `$fail`. Fail text differs. Two `requ
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {replicas: 3}
 replicas: {{ required "replicas" .Values.replicas }}
+# replicas: 3
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {replicas: 3}
 !bind
 $Values:
   replicas: 3
@@ -278,7 +284,7 @@ $rules:
 $fail: "replicas"
 ---
 !emit
-replicas: !ref $Values.replicas
+replicas: !ref $Values.replicas  # replicas: 3
 ```
 
 </td></tr>
@@ -293,19 +299,23 @@ Same result when the key is present. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {tls: {cert: x}}
 {{- $tls := .Values.tls -}}
 tls: {{ toYaml $tls | nindent 4 }}
+# tls: {cert: x}
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {tls: {cert: x}}
 !bind
 $Tls?: !ref $Values.tls?
 ---
 !emit
 tls?: !ref $Tls?
+# tls: {cert: x}
 ```
 
 </td></tr>
@@ -320,7 +330,9 @@ Same presence: Helm `tls: null` ≡ no `tls`. `nindent` is Helm text indent.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Release = {Name: prod}
 name: {{ .Release.Name }}
+# name: prod
 ```
 
 </td></tr>

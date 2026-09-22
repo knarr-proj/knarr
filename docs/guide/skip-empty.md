@@ -28,7 +28,9 @@ Tagged scalar `RefScalar`. Missing **without** `?` on that field is a path error
 ### Helm `if` on a field
 
 ```yaml
+# $Values = {tls: false}
 tls?: !skip-empty $Values.tls?
+# no tls
 ```
 
 `false` / `""` / `0` / `[]` / `{}` / omit → no `tls`. A non-empty map or string stays.
@@ -36,8 +38,10 @@ tls?: !skip-empty $Values.tls?
 ### Optional bind
 
 ```yaml
+# $Values = {tls: false}
 !bind
 $Tls?: !skip-empty $Values.tls?
+# no $Tls
 ```
 
 Empty `tls` omits the bind. Elsewhere write `$Tls?`.
@@ -45,9 +49,11 @@ Empty `tls` omits the bind. Elsewhere write `$Tls?`.
 ### Inside `!match` on a `?:` key
 
 ```yaml
+# $Values = {name: api, image: img}
 name?: !match
   $if: !is-not-empty $Values.name?
   $then: !skip-empty $Values.image?
+# name: img
 ```
 
 Go `and x y`: if `x` is not empty, then `y` (omit `y` when empty). `$then` of `!emit?` cannot use this tag (body is a mapping).
@@ -55,7 +61,9 @@ Go `and x y`: if `x` is not empty, then `y` (omit `y` when empty). `$then` of `!
 ### Skip a foreach item
 
 ```yaml
+# $Worker = {sidecar: {}}
 $yield?: !skip-empty $Worker.sidecar?
+# no $yield
 ```
 
 Empty `sidecar` skips the iteration (the key is `$yield?:`).
@@ -67,93 +75,108 @@ Empty `sidecar` skips the iteration (the key is `$yield?:`).
 <tr><td>
 
 ```yaml
+# $Values = {tls: false}
 !emit
 tls: !skip-empty $Values.tls?
-# key does not allow omit
+# error: key does not allow omit
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {tls: false}
 !emit
 tls?: !skip-empty $Values.tls?
+# no tls
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {tls: {host: a}}
 !emit?
 $when: !skip-empty $Values.tls?
 $then:
   kind: Secret
-# $when is bool, not skip-empty
+# error: $when is bool, not skip-empty
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {tls: {host: a}}
 !emit?
 $when: !is-not-empty $Values.tls?
 $then:
   kind: Secret
+# kind: Secret
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !emit
 name: !match
   $if: !is-not-empty $Values.name?
   $then: !skip-empty $Values.image?
-# required key: omit $then is a pair error
+# error: required key: omit $then is a pair error
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !emit
 name?: !match
   $if: !is-not-empty $Values.name?
   $then: !skip-empty $Values.image?
+# no name
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {a: ""}
 !emit
 name: !pick
   - !skip-empty $Values.a?
   - app
-# !pick is omit only, not empty
+# error: !skip-empty is not a !pick child
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {a: ""}
 !emit
 name: !match
   $if: !is-empty $Values.a?
   $then: app
   $else: !ref $Values.a
+# name: app
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {init: []}
 !emit
 initContainers?: !is-empty $Values.init?
-# bool in the field
+# error: bool in the field
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {init: []}
 !emit
 initContainers?: !skip-empty $Values.init?
+# no initContainers
 ```
 
 </td></tr>
@@ -187,18 +210,22 @@ tls?: !skip-empty $Values.tls?
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {tls: {host: a}}
 {{- if .Values.tls }}
 tls:
 {{ toYaml .Values.tls | nindent 2 }}
 {{- end }}
+# tls: {host: a}
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {tls: {host: a}}
 !emit
 tls?: !skip-empty $Values.tls?
+# tls: {host: a}
 ```
 
 </td></tr>
@@ -213,18 +240,22 @@ Same result. Helm `if` on the field ≡ `?:` + `!skip-empty`. `toYaml` / `ninden
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {init: [{name: c}]}
 {{- if .Values.init }}
 initContainers:
 {{ toYaml .Values.init | nindent 2 }}
 {{- end }}
+# initContainers: [{name: c}]
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {init: [{name: c}]}
 !emit
 initContainers?: !skip-empty $Values.init?
+# initContainers: [{name: c}]
 ```
 
 </td></tr>

@@ -26,11 +26,13 @@ Tagged scalar `RefScalar`. Result is bool — not omit (so `$Name?: !is-empty` i
 ### Skip TLS Secret if no tls
 
 ```yaml
+# $Values = {}
 !emit?
 $when: !is-empty $Values.tls?
 $then:
   kind: ConfigMap
   name: no-tls
+# kind: ConfigMap
 ```
 
 Usually you want the opposite: [`!is-not-empty`](is-not-empty.md) to emit when TLS exists.
@@ -38,16 +40,20 @@ Usually you want the opposite: [`!is-not-empty`](is-not-empty.md) to emit when T
 ### Validation: field must be empty
 
 ```yaml
+# $Values = {}
 !validation
 $rules:
   - !is-empty $Values.deprecated?
 $fail: "remove deprecated"
+# stdout empty
 ```
 
 ### Filter empty hostnames
 
 ```yaml
+# $E = {optionalNote: ""}
 $filter: !is-empty $E.optionalNote?
+# true
 ```
 
 ### Do not put `!is-empty` on a field
@@ -55,7 +61,9 @@ $filter: !is-empty $E.optionalNote?
 `[]` stays in output. `!is-empty` is a bool. To drop an empty list, use [`!skip-empty`](skip-empty.md):
 
 ```yaml
+# $Values = {init: []}
 initContainers?: !skip-empty $Values.init?
+# no initContainers
 ```
 
 ## Common mistakes
@@ -65,126 +73,139 @@ initContainers?: !skip-empty $Values.init?
 <tr><td>
 
 ```yaml
+# $Values = {tls: false}
 !emit?
 $when: !expr "empty($Values.tls)"
 $then:
   kind: ConfigMap
-# no empty() in !expr
+# error: no empty() in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {tls: false}
 !emit?
 $when: !is-empty $Values.tls?
 $then:
   kind: ConfigMap
   name: no-tls
-# emptiness is the !is-empty tag
+# kind: ConfigMap
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {sidecars: [x]}
 !emit?
 $when: !nempty $Values.sidecars?
 $then:
   kind: ConfigMap
-# !nempty is not a tag
+# error: !nempty is not a tag
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {sidecars: [x]}
 !emit?
 $when: !is-not-empty $Values.sidecars?
 $then:
   kind: ConfigMap
   name: sidecars
-# use !is-not-empty
+# kind: ConfigMap
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {init: []}
 !emit
 initContainers?: !is-empty $Values.init?
-# !is-empty is bool, not omit of []
+# error: !is-empty is bool, not omit of []
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {init: []}
 !emit
 initContainers?: !skip-empty $Values.init?
-# skip missing and []
+# no initContainers
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {tls: {host: a}}
 !emit?
 $when: !not !is-empty $Values.tls?
 $then:
   kind: ConfigMap
-# !not does not wrap !is-empty
+# error: !not does not wrap !is-empty
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {tls: {host: a}}
 !emit?
 $when: !is-not-empty $Values.tls?
 $then:
   kind: ConfigMap
   name: tls
-# use !is-not-empty or !expr
+# kind: ConfigMap
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !emit?
 $when: !is-empty $Values.tls
 $then:
   kind: ConfigMap
-# missing tls without ? on the field is an error, not empty
+# error: missing tls without ?
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !emit?
 $when: !is-empty $Values.tls?
 $then:
   kind: ConfigMap
   name: no-tls
-# ? turns a missing path into omit, which !is-empty treats as true
+# kind: ConfigMap
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {tls: false}
 !emit?
 $when: !empty $Values.tls?
 $then:
   kind: ConfigMap
-# !empty is not a tag
+# error: !empty is not a tag
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {tls: false}
 !emit?
 $when: !is-empty $Values.tls?
 $then:
   kind: ConfigMap
   name: no-tls
+# kind: ConfigMap
 ```
 
 </td></tr>
@@ -214,19 +235,23 @@ $when: !is-empty $Values.tls?
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {}
 {{- if empty .Values.tls }}
 kind: ConfigMap
 {{- end }}
+# kind: ConfigMap
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {}
 !emit?
 $when: !is-empty $Values.tls?
 $then:
   kind: ConfigMap
+# kind: ConfigMap
 ```
 
 </td></tr>
@@ -241,10 +266,12 @@ Same result. `$then` is the whole document. Helm `empty` ≡ `!is-empty`.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {deprecated: ""}
 deprecated: {{ .Values.deprecated }}
 {{- if empty .Values.deprecated }}
 {{- fail "remove deprecated" }}
 {{- end }}
+# error: remove deprecated
 ```
 
 </td></tr>
@@ -264,18 +291,21 @@ Helm prints `deprecated:` then may `fail`. Knarr `!validation` does not print th
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {env: [{name: N, optionalNote: ""}]}
 env:
 {{- range .Values.env }}
 {{- if empty .optionalNote }}
   - name: {{ .name }}
 {{- end }}
 {{- end }}
+# env: [{name: N}]
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {env: [{name: N, optionalNote: ""}]}
 !emit
 env?: !foreach
   $over: !ref $Values.env?
@@ -283,6 +313,7 @@ env?: !foreach
   $filter: !is-empty $E.optionalNote?
   $yield?:
     name: !ref $E.name
+# env: [{name: N}]
 ```
 
 </td></tr>

@@ -7,7 +7,9 @@ Same as `!sha256` of `!to-json-str` (Go JSON canon).
 ## Syntax
 
 ```yaml
+# $Values = {config: {a: 1}}
 checksum/config: !sha256-json $Values.config
+# checksum/config: 015abd7f…
 ```
 
 Tagged scalar. Mapping/seq allowed (hashed as JSON). Omit → omit.
@@ -17,16 +19,20 @@ Tagged scalar. Mapping/seq allowed (hashed as JSON). Omit → omit.
 ### Roll pods when config changes
 
 ```yaml
+# $Values = {config: {a: 1}}
 !emit
 checksum/config: !sha256-json $Values.config
+# checksum/config: 015abd7f…
 ```
 
 ### Same via two binds
 
 ```yaml
+# $Values = {config: {a: 1}}
 $Json: !to-json-str $Values.config
 $Sum: !sha256
   $of: !ref $Json
+# $Sum = 015abd7f…
 ```
 
 Must equal `!sha256-json`.
@@ -34,7 +40,9 @@ Must equal `!sha256-json`.
 ### Secret data object
 
 ```yaml
+# $Values = {secretData: {k: v}}
 checksum/secret: !sha256-json $Values.secretData
+# checksum/secret: 666c1aa0…
 ```
 
 ## Common mistakes
@@ -44,38 +52,42 @@ checksum/secret: !sha256-json $Values.secretData
 <tr><td>
 
 ```yaml
+# $Values = {config: {a: 1}}
 !bind
 $Yaml: !to-json-str $Values.config
 $Sum: !sha256
   $of: !ref $Values.config
-# hashing a mapping (or YAML text) does not match toJson checksums
+# error: hashing a mapping does not match toJson checksums
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {config: {a: 1}}
 !emit
 checksum/config: !sha256-json $Values.config
-# JSON checksum is !sha256-json; YAML hash is v2
+# checksum/config: 015abd7f…
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {config: {a: 1}}
 !bind
 $Pretty: !expr $Values.config
 $Sum: !sha256
   $of: !ref $Pretty
-# unsorted pretty JSON will not match Helm toJson | sha256sum
+# error: unsorted pretty JSON will not match Helm toJson | sha256sum
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {config: {a: 1}}
 !emit
 checksum/config: !sha256-json $Values.config
-# frozen Go JSON canon: sorted keys, HTML-escape
+# checksum/config: 015abd7f…
 ```
 
 </td></tr>
@@ -94,13 +106,16 @@ checksum/config: !sha256-json $Values.config
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {config: {a: 1}}
 checksum/config: {{ toJson (required "config" .Values.config) | sha256sum }}
+# checksum/config: 015abd7f…
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {config: {a: 1}}
 !bind
 $Sum: !sha256-json $Values.config
 ---
@@ -111,6 +126,7 @@ $fail: "config"
 ---
 !emit
 checksum/config: !ref $Sum
+# checksum/config: 015abd7f…
 ```
 
 </td></tr>
@@ -125,13 +141,16 @@ Same digest. `required` abort = `$fail`. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {config: {a: 1}}
 checksum/config: {{ toJson .Values.config | sha256sum }}
+# checksum/config: 015abd7f…
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {config: {a: 1}}
 !bind
 $Json: !to-json-str $Values.config
 $Sum: !sha256
@@ -139,6 +158,7 @@ $Sum: !sha256
 ---
 !emit
 checksum/config: !ref $Sum
+# checksum/config: 015abd7f…
 ```
 
 </td></tr>
@@ -153,13 +173,16 @@ Same digest as `toJson | sha256sum` when `config` is present.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {secretData: {k: v}}
 checksum/secret: {{ toJson (required "secret" .Values.secretData) | sha256sum }}
+# checksum/secret: 666c1aa0…
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {secretData: {k: v}}
 !bind
 $Sum: !sha256-json $Values.secretData
 ---
@@ -170,6 +193,7 @@ $fail: "secret"
 ---
 !emit
 checksum/secret: !ref $Sum
+# checksum/secret: 666c1aa0…
 ```
 
 </td></tr>

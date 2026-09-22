@@ -5,10 +5,12 @@ A **check document**. It never emits a manifest. Run after all binds, before emi
 ## Syntax
 
 ```yaml
+# $Values = {name: api}
 !validation
 $rules:
   - !is-not-empty $Values.name?
 $fail: "set Values.name"
+# stdout empty
 ```
 
 XOR: **either** `$fail` **or** `$warning`, not both, not neither.
@@ -27,10 +29,12 @@ Use [`!is-not-empty`](is-not-empty.md) for “required string”, not `!is-empty
 ### Required name
 
 ```yaml
+# $Values = {name: api}
 !validation
 $rules:
   - !is-not-empty $Values.name?
 $fail: "set Values.name"
+# stdout empty
 ```
 
 ### Forbid a legacy flag
@@ -38,6 +42,7 @@ $fail: "set Values.name"
 Rules are **must-true**. When the flag should be absent:
 
 ```yaml
+# $Values = {}
 !bind
 $Legacy: !ref $Values.legacy? ?? false
 ---
@@ -45,11 +50,13 @@ $Legacy: !ref $Values.legacy? ?? false
 $rules:
   - !not $Legacy
 $fail: "remove Values.legacy"
+# stdout empty
 ```
 
 ### Warning, still render
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Msg: !format
   - "using default image for %s"
@@ -59,6 +66,7 @@ $Msg: !format
 $rules:
   - !ref $Values.image?
 $warning: !ref $Msg
+# stdout empty
 ```
 
 If `image` is omit/false, warn and continue. (Presence of a non-empty string is truthy for this rule.)
@@ -74,64 +82,70 @@ Multiple `!validation` documents run in file order. `$warning` documents can all
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !validation
 $rules:
   - !expr "required($Values.name)"
 $fail: "set name"
-# no required() in !expr
+# error: no required() in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !validation
 $rules:
   - !is-not-empty $Values.name?
 $fail: "set name"
-# required is !is-not-empty on $rules
+# stdout empty
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !validation
 $rules:
   - !is-not-empty $Values.name?
 $fail: "set name"
 $warning: "missing name"
-# $fail and $warning cannot both be set
+# error: $fail and $warning cannot both be set
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !validation
 $rules:
   - !is-not-empty $Values.name?
 $fail: "set name"
-# pick $fail or $warning
+# stdout empty
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !validation
 $rules:
   - !is-empty $Values.name?
 $fail: "set name"
-# !is-empty as a rule means the value must be empty
+# error: !is-empty as a rule means the value must be empty
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !validation
 $rules:
   - !is-not-empty $Values.name?
 $fail: "set name"
-# required values use !is-not-empty
+# stdout empty
 ```
 
 </td></tr>
@@ -150,13 +164,16 @@ $fail: "set name"
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {name: api}
 name: {{ required "set name" .Values.name }}
+# name: api
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {name: api}
 !validation
 $rules:
   - !is-not-empty $Values.name?
@@ -164,6 +181,7 @@ $fail: "set name"
 ---
 !emit
 name: !ref $Values.name
+# name: api
 ```
 
 </td></tr>
@@ -178,10 +196,12 @@ Same result. Failed `required` = `$fail` (no stdout). Success prints `name:`. Fa
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {legacy: true}
 legacy: {{ .Values.legacy }}
 {{- if .Values.legacy }}
 {{- fail "remove legacy" }}
 {{- end }}
+# error: remove legacy
 ```
 
 </td></tr>
@@ -201,10 +221,12 @@ Helm prints `legacy:` then may `fail` on truthiness. Knarr `!validation` does no
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {image: ""}
 image: {{ .Values.image }}
 {{- if not .Values.image }}
 {{- /* warn */}}
 {{- end }}
+# image:
 ```
 
 </td></tr>

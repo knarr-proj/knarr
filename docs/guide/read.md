@@ -5,8 +5,10 @@ Load **one** YAML 1.2 document as a **value** (data, not knarr). Typical: `value
 ## Syntax
 
 ```yaml
+# values.yaml = {a: 1} / config/app.yaml = {x: 1}
 $Values: !read values.yaml
 $config: !read config/app.yaml
+# $Values = {a: 1} / $config = {x: 1}
 ```
 
 - Tagged scalar path, relative to the file that contains the tag. `..` and absolute paths allowed. No URI.
@@ -22,18 +24,22 @@ $config: !read config/app.yaml
 ### Chart values
 
 ```yaml
+# values.yaml = {name: api}
 !bind
 $Values: !read values.yaml
+# $Values = {name: api}
 ```
 
 ### ConfigMap from a file
 
 ```yaml
+# files/app.yaml = {a: 1}
 !bind
 $AppCfg: !read files/app.yaml
 ---
 !emit
 app.yaml: !to-json-str $AppCfg
+# app.yaml: {"a":1}
 ```
 
 (If you need the YAML text as a string, that is v2 `!to-yaml-str`; for JSON checksums use [`!to-json-str`](to-json-str.md).)
@@ -41,7 +47,9 @@ app.yaml: !to-json-str $AppCfg
 ### Probe spec snippet
 
 ```yaml
+# probes/http.yaml = {httpGet: {path: /}}
 livenessProbe: !read probes/http.yaml
+# livenessProbe: {httpGet: {path: /}}
 ```
 
 inside `!bind`, then `!ref` on the Deployment.
@@ -57,55 +65,61 @@ inside `!bind`, then `!ref` on the Deployment.
 <tr><td>
 
 ```yaml
+# probes/http.knarr = knarr tags
 !bind
 $Probe: !read probes/http.knarr
-# the read file must be plain YAML data, not knarr tags
+# error: the read file must be plain YAML data
 ```
 
 </td><td>
 
 ```yaml
+# probes/http.yaml = {httpGet: {path: /}}
 !bind
 $Probe: !read probes/http.yaml
 ---
 !emit
 livenessProbe: !ref $Probe
-# data files use !read; program files use !import
+# livenessProbe: {httpGet: {path: /}}
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# many.yaml = two documents
 !bind
 $All: !read many.yaml
-# multi-document YAML is an error
+# error: multi-document YAML
 ```
 
 </td><td>
 
 ```yaml
+# a.yaml = {a: 1} / b.yaml = {b: 2}
 !bind
 $A: !read a.yaml
 $B: !read b.yaml
-# one document per !read, or split files
+# $A = {a: 1} / $B = {b: 2}
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# values.yaml = {name: api}
 !bind
 $Values: !import values.yaml
-# !import splices knarr documents, not a value
+# error: !import splices knarr documents, not a value
 ```
 
 </td><td>
 
 ```yaml
+# values.yaml = {name: api}
 !bind
 $Values: !read values.yaml
-# load a YAML tree with !read
+# $Values = {name: api}
 ```
 
 </td></tr>
@@ -124,7 +138,9 @@ $Values: !read values.yaml
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# values.yaml = {name: api}
 values: {{ .Files.Get "values.yaml" | fromYaml }}
+# values: {name: api}
 ```
 
 </td></tr>
@@ -144,7 +160,9 @@ Helm embeds `Files.Get | fromYaml` in a field. Knarr `!read` is a bind tree, not
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# files/app.yaml = "a: 1\n"
 app.yaml: {{ .Files.Get "files/app.yaml" }}
+# app.yaml: a: 1
 ```
 
 </td></tr>
@@ -164,18 +182,22 @@ Helm `Get` is raw text. Knarr `!read` YAML-parses the file.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# probes/http.yaml = {httpGet: {path: /}}
 livenessProbe: {{ .Files.Get "probes/http.yaml" | fromYaml }}
+# livenessProbe: {httpGet: {path: /}}
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# probes/http.yaml = {httpGet: {path: /}}
 !bind
 $Probe: !read probes/http.yaml
 ---
 !emit
 livenessProbe: !ref $Probe
+# livenessProbe: {httpGet: {path: /}}
 ```
 
 </td></tr>
@@ -190,7 +212,9 @@ Same behavior.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# overrides.json = {"n":1}
 extra: {{ .Files.Get "overrides.json" | fromJson }}
+# extra: {n: 1.0}
 ```
 
 </td></tr>

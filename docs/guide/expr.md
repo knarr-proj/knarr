@@ -5,7 +5,9 @@ A formula: operators, dyn-index, or `$Name` inside a list/map literal. **No func
 ## Syntax
 
 ```yaml
+# $Values = {service: {enabled: true}, replicas: 2}
 $Show: !expr "$Values.service.enabled && $Values.replicas > 1"
+# true
 ```
 
 Tagged **scalar** only (not `{ }` / `[ ]` as the tag body). Quotes are **YAML 1.2**: `[` `{` `,` `: ` need quotes anywhere in the scalar, not only at line start. `/` and `||` / `?? false` do not.
@@ -33,7 +35,8 @@ $ShowSvc: !expr "$Values.service.enabled && $Values.replicas > 1"
 ### replicas + 1
 
 ```yaml
-replicas: !expr "$Values.replicas + 1"
+# $Values = {replicas: 2}
+replicas: !expr "$Values.replicas + 1"  # replicas: 3
 ```
 
 ### Default if a value is missing
@@ -43,12 +46,13 @@ replicas: !expr "$Values.replicas + 1"
 `replicas: !expr "$Values.n? + 1"` is the same pair error as `replicas: !ref $Values.n?`. Use `replicas?:` or `?? 1`. Do not forbid `?.` just because there is no `??`.
 
 ```yaml
-$sum: !expr "$Values.a? + $Values.b? ?? 0"
-$when: !expr "$Values.ingress?.enabled || $Values.mesh?.enabled ?? false"
-$when: !expr "$Values.a? || $Values.b? || $Values.c? ?? false"
+# $Values = {a: 1}
+$sum: !expr "$Values.a? + $Values.b? ?? 0"  # 1
+$when: !expr "$Values.ingress?.enabled || $Values.mesh?.enabled ?? false"  # false
+$when: !expr "$Values.a? || $Values.b? || $Values.c? ?? false"  # true
 $A: !ref $Values.a? ?? 0
 $B: !ref $Values.b? ?? 1
-$sum: !expr "$A + $B"
+$sum: !expr "$A + $B"  # 1
 ```
 
 A path with no operator and `??` is an error. Write [`!ref`](ref.md). `??` on [`!not`](not.md) is an error: default the path with `!ref`, then negate.
@@ -58,8 +62,10 @@ A path with no operator and `??` is an error. Write [`!ref`](ref.md). `??` on [`
 A map or list in `!expr` must mention `$Name` (or sit next to an operator). A constant list is YAML.
 
 ```yaml
+# $Values = {name: api, env: prod}
 $Labels: !expr "{'app': $Values.name, 'env': $Values.env}"
 $Ports: [80, 443]
+# $Labels: {app: api, env: prod} / $Ports: [80, 443]
 ```
 
 Keys in map literals must be quoted strings.
@@ -67,13 +73,16 @@ Keys in map literals must be quoted strings.
 ### Image by worker name
 
 ```yaml
-image: !expr "$Values.images[$Worker.name]"
+# $Values = {images: {api: img}}
+image: !expr "$Values.images[$Worker.name]"  # image: img
 ```
 
 ### Int + float (CPU)
 
 ```yaml
+# $Values = {replicas: 2}
 $Limit: !expr "$Values.replicas + 0.5"
+# 2.5
 ```
 
 Result is float. `0.1 + 0.2` is IEEE, not decimal `0.3`. An operator counts as computation even without `$`.
@@ -85,218 +94,240 @@ Result is float. `0.1 + 0.2` is IEEE, not decimal `0.3`. An operator counts as c
 <tr><td>
 
 ```yaml
+# $Values = {workers: [a]}
 !bind
 $n: !expr "len($Values.workers)"
-# no len() in !expr
+# error: no len() in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {workers: [a]}
 !bind
 $n: !len $Values.workers
-# length is the !len tag
+# 1
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !emit
 name: !expr "$Values.fullnameOverride? || $Values.name? ?? 'app'"
-# || is bool, not a name coalesce; string → type error
+# error: || is bool, not a name coalesce
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !emit
 name: !pick
   - !ref $Values.fullnameOverride?
   - !ref $Values.name?
   - app
-# two candidates: !ref … ?? ; three+: !pick
+# name: api
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !emit
 replicas: !expr "$Values.n? + 1"
-# omit on a required key is a pair error (same as !ref)
+# error: omit on a required key
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !emit
-replicas?: !expr "$Values.n? + 1"
-replicas: !expr "$Values.n? + 1 ?? 1"
-# ?: omits; ?? keeps a number
+replicas?: !expr "$Values.n? + 1"  # no replicas
+replicas: !expr "$Values.n? + 1 ?? 1"  # replicas: 1
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Ports: !expr "$Values.ports? ?? [80, 443]"
-# no computation: use !ref
+# error: no computation: use !ref
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Ports: !ref "$Values.ports? ?? [80, 443]"
-# path + default is !ref
+# $Ports: [80, 443]
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 !bind
 $sum: !expr "($Values.a? ?? 0) + ($Values.b? ?? 1)"
-# ?? is not inside the formula
+# error: ?? is not inside the formula
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {a: 1}
 !bind
 $A: !ref $Values.a? ?? 0
 $B: !ref $Values.b? ?? 1
 $sum: !expr "$A + $B"
-# one ?? per !ref; then add
+# $sum: 1
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 !emit
 $when: !expr "true"
-# no computation: use YAML
+# error: no computation: use YAML
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {a: 1}
 !emit
 $when: true
-# a constant bool is YAML
+# true
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {kind: Deployment, x: true}
 !bind
 $Kind: !expr $Values.kind: Deployment
 $Ports: !expr $Values.x || $Values.y ?? [80]
-# : space, [ ] , need YAML quotes anywhere
+# error: : space, [ ] , need YAML quotes
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {kind: Deployment, x: true}
 !bind
 $Kind: !expr '$Values.kind == "Deployment"'
 $Show: !expr $Values.x || $Values.y
 $Ports: !expr "$Values.x || $Values.y ?? [80]"
-# quotes = YAML 1.2, not line start
+# $Kind: true / $Show: true / $Ports: true
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 !bind
 $Ports: !expr "[80, 443]"
-# constant list is YAML
+# error: constant list is YAML
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {a: 1}
 !bind
 $Ports: [80, 443]
-# no $ and no operator → YAML
+# $Ports: [80, 443]
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $name: !expr "$Values.name + '-svc'"
-# + is not string concat
+# error: + is not string concat
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Name: !format
   - "%s-svc"
   - !ref $Values.name
-# string format is bind-only !format
+# $Name: api-svc
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $On = true
 !bind
 $x: !expr "$On ? 1 : 0"
-# no ternary in !expr
+# error: no ternary in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $On = true
 !emit
 replicas: !match
   $if: !ref $On
   $then: 1
   $else: 0
-# branch on a value with !match
+# replicas: 1
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $bad: !expr "{app: $Values.name}"
-# unquoted key app: is not valid in !expr
+# error: unquoted key app: is not valid in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Labels: !expr "{'app': $Values.name}"
-# object keys in !expr are quoted
+# $Labels: {app: api}
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {replicas: 2}
 !emit
 replicas: !expr "Values.replicas"
-# identifiers in !expr need $
+# error: identifiers in !expr need $
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {replicas: 2}
 !emit
-replicas: !ref $Values.replicas
-# a path with no operator is !ref
+replicas: !ref $Values.replicas  # replicas: 2
 ```
 
 </td></tr>
@@ -332,21 +363,25 @@ $sum: !expr "$Values.a? + $Values.b? ?? 0"   # 0
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {service: {enabled: true}, replicas: 2}
 {{- if and .Values.service.enabled (gt .Values.replicas 1) }}
 kind: Service
 {{- end }}
+# kind: Service
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {service: {enabled: true}, replicas: 2}
 !emit?
 $when: !and
   - !is-not-empty $Values.service?.enabled?
   - !expr "$Values.replicas? > 1 ?? false"
 $then:
   kind: Service
+# kind: Service
 ```
 
 </td></tr>
@@ -361,20 +396,23 @@ Same result when `replicas` is int/float. Helm `gt` ≡ `>`. Missing `replicas` 
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {replicas: 2}
 replicas: {{ add (required "replicas" .Values.replicas) 1 }}
+# replicas: 3
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {replicas: 2}
 !validation
 $rules:
   - !is-not-empty $Values.replicas?
 $fail: "replicas"
 ---
 !emit
-replicas: !expr "$Values.replicas + 1"
+replicas: !expr "$Values.replicas + 1"  # replicas: 3
 ```
 
 </td></tr>
@@ -389,21 +427,25 @@ Same result. `required` abort = `$fail`. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {ingress: {enabled: true}, mesh: {enabled: false}}
 {{- if or .Values.ingress.enabled .Values.mesh.enabled }}
 kind: Ingress
 {{- end }}
+# kind: Ingress
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {ingress: {enabled: true}, mesh: {enabled: false}}
 !emit?
 $when: !or
   - !is-not-empty $Values.ingress?.enabled?
   - !is-not-empty $Values.mesh?.enabled?
 $then:
   kind: Ingress
+# kind: Ingress
 ```
 
 </td></tr>
@@ -418,20 +460,23 @@ Same result. Helm `if` ≡ `!is-not-empty`. Short-circuit bools that are already
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {images: {api: img}}
 image: {{ required "image" (index .Values.images .name) }}
+# image: img
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {images: {api: img}}
 !validation
 $rules:
   - !is-not-empty $Values.images?
 $fail: "image"
 ---
 !emit
-image: !expr "$Values.images[$Worker.name]"
+image: !expr "$Values.images[$Worker.name]"  # image: img
 ```
 
 </td></tr>
@@ -446,13 +491,16 @@ Same result when the map exists. `required` abort = `$fail`. A missing key in a 
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {name: api}
 name: {{ required "name" .Values.name }}-svc
+# name: api-svc
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {name: api}
 !validation
 $rules:
   - !is-not-empty $Values.name?
@@ -464,7 +512,7 @@ $Name: !format
   - !ref $Values.name
 ---
 !emit
-name: !ref $Name
+name: !ref $Name  # name: api-svc
 ```
 
 </td></tr>
@@ -479,7 +527,9 @@ Same result. Knarr `+` is not string concat — `!format` in bind.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {name: api}
 name: {{ .Values.name }}-svc
+# name: api-svc
 ```
 
 </td></tr>

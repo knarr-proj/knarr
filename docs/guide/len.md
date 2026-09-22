@@ -5,9 +5,11 @@ Length as **int**: sequence length, mapping key count, or string **UTF-8 byte** 
 ## Syntax
 
 ```yaml
+# $Values = {workers: [a, b]}
 $N: !len $Values.workers
 replicas: !len $Values.workers
 $N?: !len $Values.workers?
+# $N = 2 / replicas: 2
 ```
 
 Not a bool: `$when: !len` is an error. Use [`!is-not-empty`](is-not-empty.md).
@@ -17,15 +19,19 @@ Not a bool: `$when: !len` is an error. Use [`!is-not-empty`](is-not-empty.md).
 ### replicas = number of workers
 
 ```yaml
+# $Values = {workers: [{name: w1}, {name: w2}]}
 replicas: !len $Values.workers
+# replicas: 2
 ```
 
 ### Last list element
 
 ```yaml
+# $Values = {workers: [{image: nginx}]}
 $N: !len $Values.workers
 $I: !expr "$N - 1"
 image: !expr "$Values.workers[$I].image"
+# image: nginx
 ```
 
 Empty list → index error (no `[-1]`).
@@ -33,18 +39,22 @@ Empty list → index error (no `[-1]`).
 ### Optional length
 
 ```yaml
+# $Values = {}
 $N?: !len $Values.workers?
 !emit
 replicas?: !ref $N?
+# no replicas
 ```
 
 ### Labels count in an annotation
 
 ```yaml
+# $Values = {labels: {app: a, env: p}}
 $N: !len $Values.labels
 $Ann: !format
   - "%d-labels"
   - !ref $N
+# $Ann = "2-labels"
 ```
 
 ## Common mistakes
@@ -54,73 +64,81 @@ $Ann: !format
 <tr><td>
 
 ```yaml
+# $Values = {workers: [a]}
 !bind
 $n: !expr "len($Values.workers)"
-# no len() in !expr
+# error: no len() in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {workers: [a]}
 !bind
 $n: !len $Values.workers
-# length is the !len tag
+# $n = 1
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {workers: [a]}
 !emit?
 $when: !len $Values.workers
 $then:
   kind: ConfigMap
-# !len is an int, not a bool
+# error: !len is an int, not a bool
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {workers: [a]}
 !emit?
 $when: !is-not-empty $Values.workers?
 $then:
   kind: ConfigMap
   name: workers
-# $when needs a bool: !is-not-empty, or !len then !expr "$N > 0"
+# kind: ConfigMap / name: workers
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {label: ж}
 !bind
 $N: !len $Values.label
-# "ж" is 2 bytes, not 1 rune
+# error: "ж" is 2 bytes, not 1 rune
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {label: ж}
 !bind
 $N: !len $Values.label
-# !len of a string is UTF-8 byte length
+# $N = 2
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $N: !len $Values.workers?
-# omit !len without ?: on the key is an error
+# error: omit !len without ?: on the key
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $N?: !len $Values.workers?
-# pair omit: $N?: with ?.
+# no $N
 ```
 
 </td></tr>
@@ -139,13 +157,16 @@ $N?: !len $Values.workers?
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {workers: [a, b]}
 replicas: {{ len (required "workers" .Values.workers) }}
+# replicas: 2
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {workers: [a, b]}
 !validation
 $rules:
   - !is-not-empty $Values.workers?
@@ -153,6 +174,7 @@ $fail: "workers"
 ---
 !emit
 replicas: !len $Values.workers
+# replicas: 2
 ```
 
 </td></tr>
@@ -167,7 +189,9 @@ Same result. `required` abort = `$fail`. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {workers: [{image: nginx}]}
 image: {{ last .Values.workers }}
+# image: {image: nginx}
 ```
 
 </td></tr>
@@ -187,19 +211,23 @@ Helm `last` of a list of maps is the last map. This knarr snippet takes `.image`
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {workers: [a]}
 {{- if gt (len .Values.workers) 0 }}
 kind: ConfigMap
 {{- end }}
+# kind: ConfigMap
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {workers: [a]}
 !emit?
 $when: !is-not-empty $Values.workers?
 $then:
   kind: ConfigMap
+# kind: ConfigMap
 ```
 
 </td></tr>
@@ -214,13 +242,16 @@ Same result for a list. Helm `gt (len .) 0` ≡ `!is-not-empty`. `$then` is the 
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {labels: {app: a, env: p}}
 ann: {{ printf "%d-labels" (len .Values.labels) }}
+# ann: 2-labels
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {labels: {app: a, env: p}}
 !bind
 $N: !len $Values.labels
 $Ann: !format
@@ -229,6 +260,7 @@ $Ann: !format
 ---
 !emit
 ann: !ref $Ann
+# ann: 2-labels
 ```
 
 </td></tr>

@@ -5,6 +5,7 @@ Loop over an **int** sequence. Same slots as [`!foreach`](foreach.md): bind **or
 ## Syntax
 
 ```yaml
+# $Values = {a: 1}
 $Idx: !range
   $from: 0
   $to: 2              # inclusive  XOR  $until
@@ -13,16 +14,19 @@ $Idx: !range
   $when: true         # optional; false → empty result
   $filter: true       # optional
   $yield: !ref $I
+# $Idx = [0, 1, 2]
 ```
 
 Exclusive end:
 
 ```yaml
+# $Values = {a: 1}
 $Idx: !range
   $from: 0
   $until: 3           # indexes 0, 1, 2
   $as: $I
   $yield: !ref $I
+# $Idx = [0, 1, 2]
 ```
 
 - Result is **only** `$yield` (or `$yield?:`). No `$as` / no `$yield` is an error. Not `[0, 1, 2]` from bounds alone.
@@ -161,15 +165,17 @@ $Idx?: !range
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 $Idx: !range
   $from: 0
   $until: 3
-# no $as / $yield — not [0, 1, 2]
+# error: no $as / $yield
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {a: 1}
 $Idx: !range
   $from: 0
   $until: 3
@@ -182,34 +188,38 @@ $Idx: !range
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 $Idx: !range
   $until: 3
   $as: $I
   $yield: !ref $I
-# $from is required; missing is not 0
+# error: $from is required
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {a: 1}
 $Idx: !range
   $from: 0
   $until: 3
   $as: $I
   $yield: !ref $I
+# $Idx = [0, 1, 2]
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 env: !foreach
   $over: !range
     $from: 0
     $until: 3
     $as: $I
     $yield: !ref $I
-# !range cannot be $over
+# error: !range cannot be $over
 ```
 
 </td><td>
@@ -230,22 +240,25 @@ env: !range
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 $Idx?: !range
   $from: 0
   $until: 5
   $as: $I
   $yield: !ref $I
-# all bounds are values; ?: cannot fire
+# error: all bounds are values; ?: cannot fire
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 $Idx?: !range
   $from: 0
   $until: !ref $Values.replicas?
   $as: $I
   $yield: !ref $I
+# no $Idx
 ```
 
 </td></tr>
@@ -266,10 +279,12 @@ $Idx?: !range
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {a: 1}
 idx:
 {{- range until 3 }}
   - {{ . }}
 {{- end }}
+# idx: [0, 1, 2]
 ```
 
 </td></tr>
@@ -298,10 +313,12 @@ Same list `0,1,2`. Knarr writes `$from: 0` and `$yield`.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {a: 1}
 idx:
 {{- range untilStep 0 3 1 }}
   - {{ . }}
 {{- end }}
+# idx: [0, 1, 2]
 ```
 
 </td></tr>

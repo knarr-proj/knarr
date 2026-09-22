@@ -5,6 +5,7 @@ Declare a **schema** once, apply it to a bind (or to each `!foreach` element via
 ## Syntax
 
 ```yaml
+# $Values = {name: api, image: ghcr.io/acme/api:0.1.0}
 !typedef
 $ValuesType:
   name: string
@@ -16,6 +17,7 @@ $ValuesType:
 $Values: !$ValuesType
   name: api
   image: ghcr.io/acme/api:0.1.0
+# error: missing containerPort
 ```
 
 - `!typedef` is a document (after optional `!policy`).
@@ -38,6 +40,7 @@ Instance omits `replicas`; schema supplies `1`.
 ### Nested object
 
 ```yaml
+# $Values = {}
 !typedef
 $ValuesType:
   name: string
@@ -45,6 +48,7 @@ $ValuesType:
     requests:
       cpu: string
       memory: string
+# stdout empty
 ```
 
 Use strings for Kubernetes quantities (`"100m"`, `"128Mi"`).
@@ -52,12 +56,14 @@ Use strings for Kubernetes quantities (`"100m"`, `"128Mi"`).
 ### Typed loop element
 
 ```yaml
+# $Values = {sidecars: [{name: s, image: c}]}
 $Containers: !foreach
   $over: !ref $Values.sidecars
   $as: $S
   $yield: !$SidecarType
     name: !ref $S.name
     image: !ref $S.image
+# $Containers = [{name: s, image: c}]
 ```
 
 ### Schema from a file
@@ -71,56 +77,62 @@ Inside `!typedef`, a type body may be `!read types.yaml` (plain YAML schema, not
 <tr><td>
 
 ```yaml
+# $ValuesType = {name: string}
 !bind
 $Values:
   $type: !ref $ValuesType
-# $type is not how you apply a typedef
+# error: $type is not how you apply a typedef
 ```
 
 </td><td>
 
 ```yaml
+# $ValuesType = {name: string}
 !bind
 $Values: !$ValuesType
   name: api
-# apply with $Name: !$Type
+# $Values = {name: api}
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $ValuesType = {name: string}
 !bind
 $Values: !ValuesType
   name: api
-# the tag needs $: !$ValuesType
+# error: the tag needs $: !$ValuesType
 ```
 
 </td><td>
 
 ```yaml
+# $ValuesType = {name: string}
 !bind
 $Values: !$ValuesType
   name: api
-# !$Name is the apply tag
+# $Values = {name: api}
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# values.yaml = {name: api}
 !bind
 $Values: !$ValuesType !read values.yaml
-# two tags on one node is an error
+# error: two tags on one node
 ```
 
 </td><td>
 
 ```yaml
+# $ValuesType = {name: string}
 !bind
 $Values: !$ValuesType
   name: api
-# type a mapping you list, or !import a !bind document
+# $Values = {name: api}
 ```
 
 </td></tr>
@@ -139,8 +151,10 @@ Defaults live in `!typedef`. Apply with `$Name: !$Type`.
 <tr><th>Helm</th><td>
 
 ```yaml
+# $Values = {replicas: 1}
 # values.yaml
 replicas: 1
+# replicas: 1
 ```
 
 </td></tr>
@@ -160,9 +174,11 @@ Helm default is a key in `values.yaml`. Knarr `!typedef` default is not that fil
 <tr><th>Helm</th><td>
 
 ```yaml
+# $Values = {resources: {requests: {cpu: 100m}}}
 resources:
   requests:
     cpu: 100m
+# resources: {requests: {cpu: 100m}}
 ```
 
 </td></tr>
@@ -182,11 +198,13 @@ Impossible in v1.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {sidecars: [{name: s, image: c}]}
 containers:
 {{- range .Values.sidecars }}
   - name: {{ .name }}
     image: {{ .image }}
 {{- end }}
+# containers: [{name: s, image: c}]
 ```
 
 </td></tr>

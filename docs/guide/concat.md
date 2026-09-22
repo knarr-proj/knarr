@@ -5,9 +5,11 @@ Concatenate **sequences**. Bind-only. Result is a sequence.
 ## Syntax
 
 ```yaml
+# $Base = [--verbose]; $Values = {extraArgs: [--foo]}
 $Args: !concat
   - !ref $Base
   - !ref $Values.extraArgs
+# $Args = [--verbose, --foo]
 ```
 
 - Tagged sequence of children; each child evaluates to a **sequence**.
@@ -23,6 +25,7 @@ $Args: !concat
 ### Container args
 
 ```yaml
+# $Values = {extraArgs: [--foo]}
 !bind
 $Args: !concat
   - ["--verbose", "--alsologtostderr"]
@@ -30,27 +33,33 @@ $Args: !concat
 ---
 !emit
 args: !ref $Args
+# args: [--verbose, --alsologtostderr, --foo]
 ```
 
 ### Default extra list
 
 ```yaml
+# $Base = [--verbose]; $Values = {}
 $Args: !concat
   - !ref $Base
   - !ref "$Values.extraArgs? ?? []"
+# $Args = [--verbose]
 ```
 
 ### Merge two port lists
 
 ```yaml
+# $Values = {fixedPorts: [80], dynamicPorts: [443]}
 $Ports: !concat
   - !ref $Values.fixedPorts
   - !ref $Values.dynamicPorts
+# $Ports = [80, 443]
 ```
 
 ### Optional whole concat
 
 ```yaml
+# $Values = {}
 !bind
 $Args?: !concat
   - ["--verbose"]
@@ -58,6 +67,7 @@ $Args?: !concat
 ---
 !emit
 args?: !ref $Args?
+# no args
 ```
 
 Missing `extraArgs` → no `$Args` (the `"--verbose"` base is dropped too). Keep the base when extra is missing: `$Name:` + `?? []` on that child (see Default extra list).
@@ -69,16 +79,18 @@ Missing `extraArgs` → no `$Args` (the `"--verbose"` base is dropped too). Keep
 <tr><td>
 
 ```yaml
+# $Values = {extraArgs: [--foo]}
 !emit
 args: !concat
   - ["--verbose"]
   - !ref $Values.extraArgs
-# !concat is bind-only
+# error: !concat is bind-only
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {extraArgs: [--foo]}
 !bind
 $Args: !concat
   - ["--verbose"]
@@ -86,23 +98,25 @@ $Args: !concat
 ---
 !emit
 args: !ref $Args
-# concat in bind, then !ref
+# args: [--verbose, --foo]
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {extraArgs: [--foo]}
 !emit
 args:
     - --verbose
     - !ref $Values.extraArgs
-# a list child nests a list, it does not splice
+# args: [--verbose, [--foo]]
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {extraArgs: [--foo]}
 !bind
 $Args: !concat
   - ["--verbose"]
@@ -110,76 +124,83 @@ $Args: !concat
 ---
 !emit
 args: !ref $Args
-# splice sequences with !concat
+# args: [--verbose, --foo]
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Args: !concat
   - ["--verbose"]
   - !ref $Values.extraArgs?
-# required bind + omit child is a pair error
+# error: required bind + omit child
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Args?: !concat
   - ["--verbose"]
   - !ref $Values.extraArgs?
-# $Name?: omits the whole concat if extraArgs is missing
+# no $Args
 ```
 
 ```yaml
+# $Values = {}
 !bind
 $Args: !concat
   - ["--verbose"]
   - !ref "$Values.extraArgs? ?? []"
-# required bind: fill omit so every child is a list
+# $Args = [--verbose]
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Args?: !concat
   - ["--verbose"]
   - !ref "$Values.extraArgs? ?? []"
-# ?: + ?? [] : the bind cannot vanish
+# error: ?: + ?? []
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Args?: !concat
   - ["--verbose"]
   - !ref $Values.extraArgs?
-# omit child omits the bind
+# no $Args
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Fixed = [a]; $Extra = [b]
 !bind
 $Args: !expr "$Fixed + $Extra"
-# + never concatenates lists
+# error: + never concatenates lists
 ```
 
 </td><td>
 
 ```yaml
+# $Fixed = [a]; $Extra = [b]
 !bind
 $Args: !concat
   - !ref $Fixed
   - !ref $Extra
-# list concat is !concat
+# $Args = [a, b]
 ```
 
 </td></tr>
@@ -213,13 +234,16 @@ Keep the base: `$Name:` + `?? []` on that child.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {extraArgs: [--foo]}
 args: {{ concat (list "--verbose") (required "extraArgs" .Values.extraArgs) }}
+# args: [--verbose, --foo]
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {extraArgs: [--foo]}
 !bind
 $Args: !concat
   - ["--verbose"]
@@ -232,6 +256,7 @@ $fail: "extraArgs"
 ---
 !emit
 args: !ref $Args
+# args: [--verbose, --foo]
 ```
 
 </td></tr>
@@ -246,13 +271,16 @@ Same result. `required` abort = `$fail`. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {fixedPorts: [80], dynamicPorts: [443]}
 ports: {{ concat (required "fixed" .Values.fixedPorts) (required "dyn" .Values.dynamicPorts) }}
+# ports: [80, 443]
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {fixedPorts: [80], dynamicPorts: [443]}
 !bind
 $Ports: !concat
   - !ref $Values.fixedPorts
@@ -266,6 +294,7 @@ $fail: "fixed"
 ---
 !emit
 ports: !ref $Ports
+# ports: [80, 443]
 ```
 
 </td></tr>
@@ -280,17 +309,20 @@ Same result. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {}
 args:
   - --verbose
   {{- range .Values.extraArgs }}
   - {{ . }}
   {{- end }}
+# args: [--verbose]
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Args: !concat
   - ["--verbose"]
@@ -298,6 +330,7 @@ $Args: !concat
 ---
 !emit
 args: !ref $Args
+# args: [--verbose]
 ```
 
 </td></tr>

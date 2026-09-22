@@ -20,28 +20,34 @@ $Port: !int $Values.port
 ### containerPort from string values
 
 ```yaml
+# $Values = {port: "8080"}
 !bind
 $Port: !int $Values.port
 ---
 !emit
 containerPort: !ref $Port
+# containerPort: 8080
 ```
 
 ### `%d` needs int
 
 ```yaml
+# $Values = {port: "8080", env: prod}
 !bind
 $Port: !int $Values.port
 $Name: !format
   - "%s-%d"
   - !ref $Values.env
   - !ref $Port
+# $Name = prod-8080
 ```
 
 ### Optional
 
 ```yaml
+# $Values = {}
 $Port?: !int $Values.port?
+# no $Port
 ```
 
 ## Common mistakes
@@ -51,75 +57,83 @@ $Port?: !int $Values.port?
 <tr><td>
 
 ```yaml
+# $Values = {port: "8080"}
 !emit
 containerPort: !expr "int($Values.port)"
-# no int() in !expr
+# error: no int() in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {port: "8080"}
 !bind
 $Port: !int $Values.port
 ---
 !emit
 containerPort: !ref $Port
-# coerce with !int in bind, then !ref
+# containerPort: 8080
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {port: "8080"}
 !emit
 containerPort: !!int $Values.port
-# YAML core !!int is rejected
+# error: YAML core !!int is rejected
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {port: "8080"}
 !bind
 $Port: !int $Values.port
 ---
 !emit
 containerPort: !ref $Port
-# one knarr tag on a path
+# containerPort: 8080
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {port: "8080"}
 !bind
 $Port: !int !expr "$Values.port"
-# two tags on one node is an error
+# error: two tags on one node
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {port: "8080"}
 !bind
 $Port: !int $Values.port
-# !int takes a path (or a string/int scalar)
+# $Port = 8080
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {replicas: 3}
 !bind
 $N: !expr "$Values.replicas + \"1\""
-# + does not coerce a string
+# error: + does not coerce a string
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {replicas: 3}
 !bind
 $One: !int "1"
 $N: !expr "$Values.replicas + $One"
-# !int the string, then add
+# $N = 4
 ```
 
 </td></tr>
@@ -138,13 +152,16 @@ $N: !expr "$Values.replicas + $One"
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {port: "8080"}
 containerPort: {{ int (required "port" .Values.port) }}
+# containerPort: 8080
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {port: "8080"}
 !bind
 $Port: !int $Values.port
 ---
@@ -155,6 +172,7 @@ $fail: "port"
 ---
 !emit
 containerPort: !ref $Port
+# containerPort: 8080
 ```
 
 </td></tr>
@@ -169,7 +187,9 @@ Same result. `required` abort = `$fail`. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {port: "8080"}
 port: {{ atoi .Values.port }}
+# port: 8080
 ```
 
 </td></tr>
@@ -189,13 +209,16 @@ knarr `!int` of `"+1"` is an error. Bind-only snippet is not Helm stdout.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {env: prod, port: "8080"}
 name: {{ printf "%s-%d" .Values.env (int .Values.port) }}
+# name: prod-8080
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {env: prod, port: "8080"}
 !bind
 $Port: !int $Values.port
 $Name: !format
@@ -205,6 +228,7 @@ $Name: !format
 ---
 !emit
 name: !ref $Name
+# name: prod-8080
 ```
 
 </td></tr>
@@ -219,7 +243,9 @@ Same result when `env` and `port` are present.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {}
 n: {{ int 1.9 }}
+# n: 1
 ```
 
 </td></tr>

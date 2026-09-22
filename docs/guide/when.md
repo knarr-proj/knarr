@@ -5,11 +5,12 @@ Document-level condition. **`!emit?`**: `$when` + `$then`, no `$else` (false →
 ## Syntax (`!emit?`)
 
 ```yaml
+# $Values = {name: api}
 !emit?
 $when: <bool>
 $then:
   kind: Service
-  name: !ref $Values.name
+  name: !ref $Values.name  # name: api
 ```
 
 Predicate: `!ref`, `!not`, `!expr`, `!is-empty`, `!is-not-empty`, `!and`, `!or`, or YAML `true` / `false`. Not `!len` (that is int). Not `!expr "true"` — that is no computation.
@@ -21,6 +22,7 @@ No other keys next to `$when`. `when:` without `$` is an error.
 ## Syntax (`!emit-foreach`)
 
 ```yaml
+# $Values = {deployWorkers: true, workers: [{name: w1}]}
 !emit-foreach
 $when: !ref $Values.deployWorkers ?? false
 $over: !ref $Values.workers
@@ -28,6 +30,7 @@ $as: $Worker
 $yield:
   kind: Pod
   name: !ref $Worker.name
+# kind: Pod / name: w1
 ```
 
 False → **zero** documents; `$over` is not evaluated. `$as` is not visible in `$when`.
@@ -52,25 +55,31 @@ False → empty list (`$yield:`) or no key (`env?:` + `$yield?:`). `$over` is no
 ### Service if enabled
 
 ```yaml
+# $Values = {service: {enabled: true}}
 $when: !ref $Values.service.enabled
+# true
 ```
 
 ### Sidecars present
 
 ```yaml
+# $Values = {sidecars: [a]}
 !emit?
 $when: !is-not-empty $Values.sidecars?
 $then:
   kind: ConfigMap
   name: sidecars
+# kind: ConfigMap / name: sidecars
 ```
 
 ### Compound
 
 ```yaml
+# $Values = {service: {enabled: true}, replicas: 2}
 $when: !and
   - !ref $Values.service.enabled
   - !expr "$Values.replicas > 1"
+# true
 ```
 
 ## Common mistakes
@@ -80,89 +89,96 @@ $when: !and
 <tr><td>
 
 ```yaml
+# $Values = {ha: true}
 !emit
 replicas:
   $when: !ref $Values.ha
   $then: 3
   $else: 1
-# $when is not allowed on a field
+# error: $when is not allowed on a field
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {ha: true}
 !emit
 replicas: !match
   $if: !ref $Values.ha
   $then: 3
   $else: 1
-# field-level if is !match
+# replicas: 3
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {workers: [a]}
 !emit?
 $when: !len $Values.workers
 $then:
   kind: ConfigMap
-# !len is an int, not a bool
+# error: !len is an int, not a bool
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {workers: [a]}
 !emit?
 $when: !is-not-empty $Values.workers?
 $then:
   kind: ConfigMap
   name: workers
-# $when needs a bool: !is-not-empty, or !expr after !len
+# kind: ConfigMap / name: workers
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !emit?
 $when: !ref $Values.enabled?
 $then:
   kind: Service
-# omit is not a bool
+# error: omit is not a bool
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !emit?
 $when: !ref $Values.enabled? ?? false
 $then:
   kind: Service
   name: !ref $Values.name
-# missing enabled becomes false
+# stdout empty
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 !emit?
 $when: !expr "true"
 $then:
   kind: Service
-# no computation: use YAML
+# error: no computation: use YAML
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !emit?
 $when: true
 $then:
   kind: Service
-  name: !ref $Values.name
-# a constant bool is YAML
+  name: !ref $Values.name  # name: api
 ```
 
 </td></tr>
@@ -196,19 +212,23 @@ $then:
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {service: {enabled: true}}
 {{- if .Values.service.enabled }}
 kind: Service
 {{- end }}
+# kind: Service
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {service: {enabled: true}}
 !emit?
 $when: !is-not-empty $Values.service?.enabled?
 $then:
   kind: Service
+# kind: Service
 ```
 
 </td></tr>
@@ -223,19 +243,23 @@ Same result. Helm `if` ≡ `!is-not-empty`. Missing → omit → no document.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {sidecars: [a]}
 {{- if .Values.sidecars }}
 kind: ConfigMap
 {{- end }}
+# kind: ConfigMap
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {sidecars: [a]}
 !emit?
 $when: !is-not-empty $Values.sidecars?
 $then:
   kind: ConfigMap
+# kind: ConfigMap
 ```
 
 </td></tr>
@@ -250,21 +274,25 @@ Same result. Helm `if` ≡ `!is-not-empty`.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {service: {enabled: true}, replicas: 2}
 {{- if and .Values.service.enabled (gt .Values.replicas 1) }}
 kind: Service
 {{- end }}
+# kind: Service
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {service: {enabled: true}, replicas: 2}
 !emit?
 $when: !and
   - !is-not-empty $Values.service?.enabled?
   - !expr "$Values.replicas? > 1 ?? false"
 $then:
   kind: Service
+# kind: Service
 ```
 
 </td></tr>
@@ -279,6 +307,7 @@ Same result when `replicas` is int/float. Helm `if` ≡ `!is-not-empty`. Helm `g
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {deployWorkers: true, workers: [{name: w1}]}
 {{- if .Values.deployWorkers }}
 {{- range .Values.workers }}
 ---
@@ -286,12 +315,14 @@ kind: Pod
 name: {{ .name }}
 {{- end }}
 {{- end }}
+# kind: Pod / name: w1
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {deployWorkers: true, workers: [{name: w1}]}
 !emit-foreach
 $when: !is-not-empty $Values.deployWorkers?
 $over: !ref $Values.workers?
@@ -299,6 +330,7 @@ $as: $Worker
 $yield:
   kind: Pod
   name: !ref $Worker.name
+# kind: Pod / name: w1
 ```
 
 </td></tr>
@@ -313,7 +345,9 @@ Same YAML documents. Helm `if` ≡ `!is-not-empty`. Comparison Helm must include
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Release = {Name: prod}
 name: {{ .Release.Name }}
+# name: prod
 ```
 
 </td></tr>

@@ -7,6 +7,7 @@ Many resources: [`!emit-foreach`](emit-foreach.md).
 ## Syntax
 
 ```yaml
+# $Values = {deployEnv: true, env: [{name: N, value: x, enabled: true}]}
 field: !foreach
   $over: !ref $Values.env
   $as: $E
@@ -16,6 +17,7 @@ field: !foreach
   $yield:
     name: !ref $E.name
     value: !ref $E.value
+# field: [{name: N, value: x}]
 ```
 
 `$when` is an optional bool for the **whole** loop (same slot as [`!emit-foreach`](emit-foreach.md)). False → empty result; `$over` is not evaluated. `$as` / `$key` are not in `$when`. Omit `$when` is an error. `$when?:` is an error.
@@ -78,16 +80,19 @@ env?: !foreach
 ### Ports from ints
 
 ```yaml
+# $Values = {ports: [80]}
 ports: !foreach
   $over: !ref $Values.ports
   $as: $P
   $yield:
     containerPort: !ref $P
+# ports: [{containerPort: 80}]
 ```
 
 ### Map of labels → env vars
 
 ```yaml
+# $Values = {labels: {app: api}}
 env: !foreach
   $over: !ref $Values.labels
   $as: $V
@@ -95,53 +100,63 @@ env: !foreach
   $yield:
     name: !ref $K
     value: !ref $V
+# env: [{name: app, value: api}]
 ```
 
 ### Optional env block
 
 ```yaml
+# $Values = {}
 env?: !foreach
   $over: !ref $Values.env?
   $as: $E
   $yield:
     name: !ref $E.name
     value: !ref $E.value
+# no env
 ```
 
 Missing `env` → no key. `env: []` in values → `env: []` (`$yield:`). Nothing to print (empty `$over`, all filters false, all yields omit) → no key:
 
 ```yaml
+# $Values = {env: [{}]}
 env?: !foreach
   $over: !ref $Values.env
   $as: $E
   $yield?:
     name: !ref $E.name?
+# no env
 ```
 
 Missing filled to empty, then the same omit:
 
 ```yaml
+# $Values = {}
 env?: !foreach
   $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield?:
     name: !ref $E.name?
+# no env
 ```
 
 Always print a list (possibly empty):
 
 ```yaml
+# $Values = {}
 env: !foreach
   $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield:
     name: !ref $E.name
     value: !ref $E.value
+# env: []
 ```
 
 ### Optional bind list
 
 ```yaml
+# $Values = {}
 !bind
 $Items?: !foreach
   $over: !ref $Values.env?
@@ -152,23 +167,28 @@ $Items?: !foreach
 ---
 !emit
 env?: !ref $Items?
+# no env
 ```
 
 Missing `env` → no `$Items` → no key. `env: []` + `$yield:` → `$Items: []`. `$Items?:` + `$yield?:` + nothing to print → no `$Items`. `$Items?:` + `$yield?:` + `$over: … ?? []` is allowed. `$Items?:` + `$yield:` + `?? []` is a pair error. Always keep a list in the graph:
 
 ```yaml
+# $Values = {}
 !bind
 $Items: !foreach
   $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield:
     name: !ref $E.name
+# $Items: []
 ```
 
 ### Skip disabled sidecars
 
 ```yaml
+# $S = {}
 $yield?: !ref $S.container?
+# skip iteration
 ```
 
 ## Common mistakes
@@ -178,143 +198,156 @@ $yield?: !ref $S.container?
 <tr><td>
 
 ```yaml
+# $Values = {workers: [{name: w1}]}
 !foreach
 $over: !ref $Values.workers
 $as: $W
 $yield:
   kind: Pod
   name: !ref $W.name
-# !foreach is not a root document for many Pods
+# error: !foreach is not a root document
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {workers: [{name: w1}]}
 !emit-foreach
 $over: !ref $Values.workers
 $as: $W
 $yield:
   kind: Pod
   name: !ref $W.name
-# one document per item is !emit-foreach
+# kind: Pod / name: w1
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !emit
 containers: !foreach
   $over: !ref $Values.workers?
   $as: $W
   $yield:
     name: !ref $W.name
-# required key + omit-capable $over is a pair error
+# error: required key + omit-capable $over
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !emit
 containers: !foreach
   $over: !ref "$Values.workers? ?? []"
   $as: $W
   $yield:
     name: !ref $W.name
-# always a list; missing becomes []
+# containers: []
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !emit
 env?: !foreach
   $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield:
     name: !ref $E.name
-# ?: + ?? [] : key cannot vanish
+# error: ?: + ?? [] : key cannot vanish
 ```
 
 ```yaml
+# $Values = {env: []}
 !emit
 env?: !foreach
   $over: !ref $Values.env
   $as: $E
   $yield:
     name: !ref $E.name
-# ?: + required $over + $yield: : key cannot vanish
+# error: ?: + required $over + $yield:
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !emit
 env?: !foreach
   $over: !ref $Values.env?
   $as: $E
   $yield:
     name: !ref $E.name
-# missing env omits the key
+# no env
 ```
 
 ```yaml
+# $Values = {env: [{}]}
 !emit
 env?: !foreach
   $over: !ref $Values.env
   $as: $E
   $yield?:
     name: !ref $E.name?
-# required $over + $yield?: : nothing to print omits the key
+# no env
 ```
 
 ```yaml
+# $Values = {}
 !emit
 env?: !foreach
   $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield?:
     name: !ref $E.name?
-# ?? [] + $yield?: : missing becomes [] then the key omits
+# no env
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Items: !foreach
   $over: !ref $Values.env?
   $as: $E
   $yield: !ref $E
-# required bind + omit-capable $over is a pair error
+# error: required bind + omit-capable $over
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Items?: !foreach
   $over: !ref $Values.env?
   $as: $E
   $yield: !ref $E
-# $Name?: omits when env is missing
+# no $Items
 ```
 
 ```yaml
+# $Values = {}
 !bind
 $Items: !foreach
   $over: !ref "$Values.env? ?? []"
   $as: $E
   $yield: !ref $E
-# required bind: fill omit so $over is a list
+# $Items: []
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {env: [{name: N, value: x, plain: true}]}
 !emit
 env: !foreach
   $over: !ref $Values.env
@@ -325,12 +358,13 @@ env: !foreach
     $else:
       name: !ref $E.name
       value: !ref $E.value
-# one loop cannot mix string and mapping $yield
+# error: mixed string and mapping $yield
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {env: [{name: N, value: x}]}
 !emit
 env: !foreach
   $over: !ref $Values.env
@@ -338,7 +372,7 @@ env: !foreach
   $yield:
     name: !ref $E.name
     value: !ref $E.value
-# one YAML sort per loop
+# env: [{name: N, value: x}]
 ```
 
 </td></tr>
@@ -374,17 +408,20 @@ Drop other empty lists with [`!skip-empty`](skip-empty.md) on a `?:` key.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {env: [{name: N, value: x}]}
 env:
 {{- range .Values.env }}
   - name: {{ .name }}
     value: {{ .value | quote }}
 {{- end }}
+# env: [{name: N, value: x}]
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {env: [{name: N, value: x}]}
 !emit
 env?: !foreach
   $over: !ref $Values.env?
@@ -392,6 +429,7 @@ env?: !foreach
   $yield?:
     name: !ref $E.name
     value: !ref $E.value
+# env: [{name: N, value: x}]
 ```
 
 </td></tr>
@@ -406,22 +444,26 @@ Empty range: Helm `env: null` ≡ no `env`. `| quote` is text quotes.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {ports: [80]}
 ports:
 {{- range .Values.ports }}
   - containerPort: {{ . }}
 {{- end }}
+# ports: [{containerPort: 80}]
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {ports: [80]}
 !emit
 ports?: !foreach
   $over: !ref $Values.ports?
   $as: $P
   $yield?:
     containerPort: !ref $P
+# ports: [{containerPort: 80}]
 ```
 
 </td></tr>
@@ -436,17 +478,20 @@ Empty range: Helm `ports: null` ≡ no `ports`.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {labels: {app: api}}
 env:
 {{- range $k, $v := .Values.labels }}
   - name: {{ $k }}
     value: {{ $v | quote }}
 {{- end }}
+# env: [{name: app, value: api}]
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {labels: {app: api}}
 !emit
 env?: !foreach
   $over: !ref $Values.labels?
@@ -455,6 +500,7 @@ env?: !foreach
   $yield?:
     name: !ref $K
     value: !ref $V
+# env: [{name: app, value: api}]
 ```
 
 </td></tr>
@@ -469,6 +515,7 @@ Empty map: Helm `env: null` ≡ no `env`. `| quote` is text quotes.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {env: [{name: N, value: x, enabled: true}]}
 env:
 {{- range .Values.env }}
 {{- if .enabled }}
@@ -476,12 +523,14 @@ env:
     value: {{ .value | quote }}
 {{- end }}
 {{- end }}
+# env: [{name: N, value: x}]
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {env: [{name: N, value: x, enabled: true}]}
 !emit
 env?: !foreach
   $over: !ref $Values.env?
@@ -490,6 +539,7 @@ env?: !foreach
   $yield?:
     name: !ref $E.name
     value: !ref $E.value
+# env: [{name: N, value: x}]
 ```
 
 </td></tr>
@@ -504,6 +554,7 @@ All filtered out: Helm `env: null` ≡ no `env`. Helm `if` ≡ `!is-not-empty`. 
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {env: [{name: N, value: x}]}
 {{- if .Values.env }}
 env:
 {{- range .Values.env }}
@@ -511,12 +562,14 @@ env:
     value: {{ .value | quote }}
 {{- end }}
 {{- end }}
+# env: [{name: N, value: x}]
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {env: [{name: N, value: x}]}
 !emit
 env?: !foreach
   $over: !ref $Values.env?
@@ -524,6 +577,7 @@ env?: !foreach
   $yield?:
     name: !ref $E.name
     value: !ref $E.value
+# env: [{name: N, value: x}]
 ```
 
 </td></tr>

@@ -5,7 +5,9 @@ Coerce to **bool**.
 ## Syntax
 
 ```yaml
+# $Values = {enabled: "true"}
 enabled?: !bool $Values.enabled?
+# enabled: true
 ```
 
 - Already bool: unchanged.
@@ -17,6 +19,7 @@ enabled?: !bool $Values.enabled?
 ### Flag from string values
 
 ```yaml
+# $Values = {ha: "true", name: api}
 !bind
 $HA: !bool $Values.ha
 ---
@@ -25,20 +28,25 @@ $when: !ref $HA
 $then:
   kind: PodDisruptionBudget
   name: !ref $Values.name
+# kind: PodDisruptionBudget / name: api
 ```
 
 ### Optional
 
 ```yaml
+# $Values = {}
 $On?: !bool $Values.featureGate?
+# no $On
 ```
 
 ### Keep YAML bools as bools
 
 ```yaml
+# $Values = {service: {enabled: true}}
 $Values:
   service:
     enabled: true
+# $Values.service.enabled = true
 ```
 
 Already a bool — `!ref $Values.service.enabled` is enough; `!bool` is redundant.
@@ -46,6 +54,7 @@ Already a bool — `!ref $Values.service.enabled` is enough; `!bool` is redundan
 ### Ingress TLS from a string flag
 
 ```yaml
+# $Values = {ingress: {tls: "true", host: a.example, secretName: tls}}
 !bind
 $TlsOn: !bool $Values.ingress.tls
 ---
@@ -56,6 +65,7 @@ tls?: !match
     - hosts:
         - !ref $Values.ingress.host
       secretName: !ref $Values.ingress.secretName
+# tls: [{hosts: [a.example], secretName: tls}]
 ```
 
 ## Common mistakes
@@ -65,51 +75,57 @@ tls?: !match
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $HA: !bool "yes"
-# !bool does not accept yes / on / TRUE
+# error: !bool does not accept yes / on / TRUE
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $HA: !bool "true"
-# only a bool or lowercase true / false
+# $HA = true
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $On: !bool 1
-# int is an error; 1 is not true
+# error: int is not true
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $On: !bool "true"
-# use a real bool or the strings "true" / "false"
+# $On = true
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {ha: "true"}
 !bind
 $On: !expr "bool($Values.ha)"
-# no bool() in !expr
+# error: no bool() in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {ha: "true"}
 !bind
 $On: !bool $Values.ha
-# coerce with !bool
+# $On = true
 ```
 
 </td></tr>
@@ -128,19 +144,23 @@ $On: !bool $Values.ha
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {ha: "true"}
 {{- if eq .Values.ha "true" }}
 kind: PodDisruptionBudget
 {{- end }}
+# kind: PodDisruptionBudget
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {ha: "true"}
 !emit?
 $when: !expr "$Values.ha == 'true'"
 $then:
   kind: PodDisruptionBudget
+# kind: PodDisruptionBudget
 ```
 
 </td></tr>
@@ -155,13 +175,16 @@ Same result. `$then` is the whole document (`kind` only).
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {service: {enabled: true}}
 enabled: {{ required "enabled" .Values.service.enabled }}
+# enabled: true
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {service: {enabled: true}}
 !validation
 $rules:
   - !is-not-empty $Values.service.enabled?
@@ -169,6 +192,7 @@ $fail: "enabled"
 ---
 !emit
 enabled: !ref $Values.service.enabled
+# enabled: true
 ```
 
 </td></tr>
@@ -183,19 +207,23 @@ Same result. `required` abort = `$fail`. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {ingress: {tls: true}}
 {{- if .Values.ingress.tls }}
 kind: Ingress
 {{- end }}
+# kind: Ingress
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {ingress: {tls: true}}
 !emit?
 $when: !is-not-empty $Values.ingress?.tls?
 $then:
   kind: Ingress
+# kind: Ingress
 ```
 
 </td></tr>

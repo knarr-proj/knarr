@@ -5,7 +5,9 @@ Parse a JSON **string** into a knarr node.
 ## Syntax
 
 ```yaml
+# $Values = {extraJson: '{"replicas":3}'}
 $Extra: !from-json-str $Values.extraJson
+# $Extra = {replicas: 3}
 ```
 
 - Object → mapping, array → seq, bool/string as usual.
@@ -18,6 +20,7 @@ $Extra: !from-json-str $Values.extraJson
 ### Extra overlay from a string value
 
 ```yaml
+# $Values = {extraJson: '{"replicas":3}'}
 !bind
 $Values:
   extraJson: '{"replicas":3}'
@@ -25,6 +28,7 @@ $Extra: !from-json-str $Values.extraJson
 ---
 !emit
 replicas: !ref $Extra.replicas
+# replicas: 3
 ```
 
 ### Read JSON file as YAML
@@ -42,60 +46,66 @@ JSON `\u0026` becomes `&` in the string node.
 <tr><td>
 
 ```yaml
+# $Values = {extraJson: '{"replicas":3}'}
 !bind
 $Extra: !expr "fromJson($Values.extraJson)"
-# no fromJson() in !expr
+# error: no fromJson() in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {extraJson: '{"replicas":3}'}
 !bind
 $Extra: !from-json-str $Values.extraJson
 ---
 !emit
 replicas: !ref $Extra.replicas
-# parse a JSON string with !from-json-str
+# replicas: 3
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $N: !from-json-str '{"n":1}'
-# do not expect n to stay float64
+# error: do not expect n to stay float64
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $N: !from-json-str '{"n":1}'
-# bare JSON 1 becomes int (same as Go encoding/json)
+# $N = {n: 1}
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $X: !from-json-str '{"n":null}'
 ---
 !emit
 n: !ref $X.n
-# n is absent; required path errors
+# error: n is absent; required path
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $X: !from-json-str '{"n":null}'
 ---
 !emit
 n?: !ref $X.n?
-# JSON null on a key ≡ key absent
+# no n
 ```
 
 </td></tr>
@@ -114,13 +124,16 @@ n?: !ref $X.n?
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {extraJson: '{"replicas":3}'}
 replicas: {{ ( .Values.extraJson | fromJson ).replicas }}
+# replicas: 3
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {extraJson: '{"replicas":3}'}
 !bind
 $Values:
   extraJson: '{"replicas":3}'
@@ -128,6 +141,7 @@ $Extra: !from-json-str $Values.extraJson
 ---
 !emit
 replicas: !ref $Extra.replicas
+# replicas: 3
 ```
 
 </td></tr>
@@ -142,7 +156,9 @@ Same behavior.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# x.json = {"n":1}
 extra: {{ .Files.Get "x.json" | fromJson }}
+# extra: {n: 1.0}
 ```
 
 </td></tr>
@@ -162,7 +178,9 @@ Helm `fromJson` numbers are float64. Knarr `!read` YAML/JSON numbers without `.`
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {}
 n: {{ fromJson "{"n":1}" }}
+# n: {n: 1.0}
 ```
 
 </td></tr>

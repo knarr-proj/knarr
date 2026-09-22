@@ -32,47 +32,54 @@ Tagged scalar, `RefScalar`:
 ### Deployment name
 
 ```yaml
-name: !ref $Values.name
+# $Values = {name: api}
+name: !ref $Values.name  # name: api
 ```
 
 ### Nested database host
 
 ```yaml
-host: !ref $Values.env.database.host
+# $Values = {env: {database: {host: db}}}
+host: !ref $Values.env.database.host  # host: db
 ```
 
 ### First worker
 
 ```yaml
-name: !ref "$Workers[0].name"
+# $Workers = [{name: w1}]
+name: !ref "$Workers[0].name"  # name: w1
 ```
 
 ### Kubernetes label key
 
 ```yaml
-app: !ref "$Values.labels['app.kubernetes.io/name']"
+# $Values = {labels: {'app.kubernetes.io/name': api}}
+app: !ref "$Values.labels['app.kubernetes.io/name']"  # app: api
 ```
 
 ### Optional probe
 
 ```yaml
-livenessProbe?: !ref $Values.livenessProbe?
+# $Values = {}
+livenessProbe?: !ref $Values.livenessProbe?  # no livenessProbe
 ```
 
 ### Nested optional path
 
 ```yaml
+# $Values = {}
 # default — key stays
-host: !ref "$Values.env?.database?.host? ?? 'localhost'"
+host: !ref "$Values.env?.database?.host? ?? 'localhost'"  # host: localhost
 # omit
-host?: !ref $Values.env?.database?.host?
+host?: !ref $Values.env?.database?.host?  # no host
 ```
 
 ```yaml
+# $Values = {}
 # default — key stays
-cert: !ref "$Values.tls?.cert? ?? ''"
+cert: !ref "$Values.tls?.cert? ?? ''"  # cert: ""
 # omit
-cert?: !ref $Values.tls?.cert?
+cert?: !ref $Values.tls?.cert?  # no cert
 ```
 
 A missing step with `?` on that field is omit, not an error. `??` fills a default and keeps the key. Do not put `?:` on a key that uses `??`.
@@ -84,87 +91,92 @@ A missing step with `?` on that field is omit, not an error. `??` fills a defaul
 <tr><td>
 
 ```yaml
+# $Values = {replicas: 2}
 !emit
 replicas: !ref $Values.replicas + 1
-# !ref is a path; operators belong in !expr
+# error: operators belong in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {replicas: 2}
 !emit
-replicas: !expr "$Values.replicas + 1"
-# arithmetic is !expr
+replicas: !expr "$Values.replicas + 1"  # replicas: 3
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !emit
 host: !expr "$Values.tls?.host? ?? 'localhost'"
-# no computation: use !ref
+# error: no computation: use !ref
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !emit
-host: !ref "$Values.tls?.host? ?? 'localhost'"
-# path + default is !ref
+host: !ref "$Values.tls?.host? ?? 'localhost'"  # host: localhost
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {images: {api: img}}
 !emit
 image: !ref $Values.images[$Worker.name]
-# dynamic index is not a !ref path
+# error: dynamic index is not a !ref path
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {images: {api: img}}
 !emit
-image: !expr "$Values.images[$Worker.name]"
-# computed index is !expr
+image: !expr "$Values.images[$Worker.name]"  # image: img
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Workers = [{name: w1}]
 !emit
 name: !ref $Workers[0].name
 $Ports: !ref $Values.ports? ?? [80, 443]
-# [ ] , are YAML flow indicators anywhere, not only at line start
+# error: [ ] , need YAML quotes
 ```
 
 </td><td>
 
 ```yaml
+# $Workers = [{name: w1}]
 !emit
-name: !ref "$Workers[0].name"
+name: !ref "$Workers[0].name"  # name: w1
 $Ports: !ref "$Values.ports? ?? [80, 443]"
-# quote the YAML 1.2 scalar
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !emit
 name: !path $Values.name
-# !path was removed
+# error: !path was removed
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !emit
-name: !ref $Values.name
-# use !ref / !expr
+name: !ref $Values.name  # name: api
 ```
 
 </td></tr>
@@ -215,20 +227,23 @@ Do not put `?:` on a key that uses `??`. Optional mapping: every child is `?:` i
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {name: api}
 name: {{ required "name" .Values.name }}
+# name: api
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {name: api}
 !validation
 $rules:
   - !is-not-empty $Values.name?
 $fail: "name"
 ---
 !emit
-name: !ref $Values.name
+name: !ref $Values.name  # name: api
 ```
 
 </td></tr>
@@ -243,7 +258,9 @@ Same result. `required` abort = `$fail` (no stdout). Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {name: api}
 name: {{ .Values.name }}
+# name: api
 ```
 
 (missing `.Values.name` → `name:` empty)
@@ -265,7 +282,9 @@ Knarr never treats a missing required path as empty. Write `?.` and `?? ''` or o
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {env: {database: {host: db}}}
 host: {{ .Values.env.database.host }}
+# host: db
 ```
 
 </td></tr>
@@ -285,15 +304,18 @@ Helm missing intermediate → empty. Knarr without `?.` is an error. Required ne
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {}
 cert: {{ dig "tls" "cert" "" .Values }}
+# cert: ""
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {}
 !emit
-cert: !ref "$Values.tls?.cert? ?? ''"
+cert: !ref "$Values.tls?.cert? ?? ''"  # cert: ""
 ```
 
 </td></tr>
@@ -308,15 +330,18 @@ Same result: missing path → `cert:` empty string. `?:` is omit, not this pair.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {}
 host: {{ dig "env" "database" "host" "localhost" .Values }}
+# host: localhost
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {}
 !emit
-host: !ref "$Values.env?.database?.host? ?? 'localhost'"
+host: !ref "$Values.env?.database?.host? ?? 'localhost'"  # host: localhost
 ```
 
 </td></tr>
@@ -331,15 +356,18 @@ Same result.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {}
 tag: {{ dig "image" "tag" "latest" .Values }}
+# tag: latest
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {}
 !emit
-tag: !ref "$Values.image?.tag? ?? 'latest'"
+tag: !ref "$Values.image?.tag? ?? 'latest'"  # tag: latest
 ```
 
 </td></tr>
@@ -354,15 +382,18 @@ Same result.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {config: {}}
 secretName: {{ dig "server" "tls" "secretName" "" .Values.config }}
+# secretName: ""
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {config: {}}
 !emit
-secretName: !ref "$Values.config?.server?.tls?.secretName ?? ''"
+secretName: !ref "$Values.config?.server?.tls?.secretName ?? ''"  # secretName: ""
 ```
 
 </td></tr>
@@ -377,7 +408,9 @@ Same result.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {workers: [{name: w1}]}
 name: {{ index .Values.workers 0 "name" }}
+# name: w1
 ```
 
 </td></tr>
@@ -397,20 +430,23 @@ Helm missing `index` → empty. Knarr `[0]` without `?.` is an error.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {labels: {'app.kubernetes.io/name': api}}
 app: {{ required "label" (index .Values.labels "app.kubernetes.io/name") }}
+# app: api
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {labels: {'app.kubernetes.io/name': api}}
 !validation
 $rules:
   - !is-not-empty "$Values.labels['app.kubernetes.io/name']?"
 $fail: "label"
 ---
 !emit
-app: !ref "$Values.labels['app.kubernetes.io/name']"
+app: !ref "$Values.labels['app.kubernetes.io/name']"  # app: api
 ```
 
 </td></tr>
@@ -425,10 +461,12 @@ Same result. `required` abort = `$fail`. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {livenessProbe: {httpGet: {path: /}}}
 {{- with .Values.livenessProbe }}
 livenessProbe:
 {{ toYaml . | nindent 2 }}
 {{- end }}
+# livenessProbe: {httpGet: {path: /}}
 ```
 
 </td></tr>

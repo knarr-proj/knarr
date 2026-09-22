@@ -5,10 +5,12 @@ N-way **omit** default: first child that is present wins. An empty string does *
 ## Syntax
 
 ```yaml
+# $Values = {name: api}
 name: !pick
   - !ref $Values.name?
   - !ref $Values.fullnameOverride?
   - app
+# name: api
 ```
 
 - Tagged sequence, ≥2 elements (two is legal; the shorter 2-way is still `??`). No warning. A planned golden checks 2-way `!pick` and `??` print the same stdout.
@@ -23,19 +25,23 @@ name: !pick
 ### Resource name
 
 ```yaml
+# $Values = {name: api}
 name: !pick
   - !ref $Values.fullnameOverride?
   - !ref $Values.name?
   - knarr-app
+# name: api
 ```
 
 ### Image
 
 ```yaml
+# $Values = {}
 image: !pick
   - !ref $Values.image?.full
   - !ref $Values.image?.repository
   - ghcr.io/acme/app:latest
+# image: ghcr.io/acme/app:latest
 ```
 
 The last element must be a concrete fallback, not omit.
@@ -43,12 +49,12 @@ The last element must be a concrete fallback, not omit.
 ### Optional vs default port
 
 ```yaml
-# default — key stays
+# $Values = {}
 containerPort: !pick
   - !ref $Values.port?
-  - 8080
-# omit
+  - 8080                    # 8080
 containerPort?: !ref $Values.port?
+# no containerPort
 ```
 
 If `port` is `0`, you get `0` — not 8080. Zero is a value.
@@ -60,104 +66,114 @@ If `port` is `0`, you get `0` — not 8080. Zero is a value.
 <tr><td>
 
 ```yaml
+# $Values = {a: 1}
 !emit
 name: !pick
   - ""
   - app
-# "" is present, so the name is "" — not app
+# name: ""
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !emit
 name: !pick
   - !ref $Values.fullnameOverride?
   - app
-# only omit falls through; "", 0, and false win. Skip "" with !match if needed
+# name: app
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Res?: !pick
   - !ref $Values.name?
   - app
-# !pick always has a value; ?: cannot fire
+# error: !pick always has a value; ?: cannot fire
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Res: !pick
   - !ref $Values.name?
   - app
-# last child is concrete; the bind is required
+# $Res = api
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !emit
 name: !expr "$Values.fullnameOverride? || $Values.name? ?? 'app'"
-# || is bool, not coalesce; use !pick
+# error: || is bool, not coalesce
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !emit
 name: !pick
   - !ref $Values.fullnameOverride?
   - !ref $Values.name?
   - app
-# n-way omit default is !pick
+# name: api
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !emit
 name: !ref "$Values.fullname? ?? $Values.name? ?? 'app'"
-# ?? is one default on the whole scalar
+# error: ?? is one default on the whole scalar
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !emit
 name: !pick
   - !ref $Values.fullname?
   - !ref $Values.name?
   - app
-# n-way omit default is !pick
+# name: api
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !emit
 name: !pick
   - !ref $Values.fullname?
   - !ref $Values.name?
-# the last child must exist (not omit)
+# error: last child must exist (not omit)
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !emit
 name: !pick
   - !ref $Values.fullname?
   - !ref $Values.name?
   - app
-# last is a concrete fallback
+# name: app
 ```
 
 </td></tr>
@@ -199,13 +215,16 @@ name: !pick
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {name: api}
 name: {{ coalesce .Values.fullnameOverride .Values.name "app" }}
+# name: api
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {name: api}
 !emit
 name: !match
   $if: !is-not-empty $Values.fullnameOverride?
@@ -214,6 +233,7 @@ name: !match
     $if: !is-not-empty $Values.name?
     $then: !ref $Values.name
     $else: app
+# name: api
 ```
 
 </td></tr>
@@ -228,13 +248,16 @@ Same result. Helm `coalesce` ≡ nested `!match` + `!is-not-empty`. `!pick` skip
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {}
 image: {{ .Values.image.full | default .Values.image.repository | default "ghcr.io/acme/app:latest" }}
+# image: ghcr.io/acme/app:latest
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {}
 !emit
 image: !match
   $if: !is-empty $Values.image?.full?
@@ -243,6 +266,7 @@ image: !match
     $then: ghcr.io/acme/app:latest
     $else: !ref $Values.image.repository
   $else: !ref $Values.image.full
+# image: ghcr.io/acme/app:latest
 ```
 
 </td></tr>
@@ -257,18 +281,22 @@ Same result. Chained `| default` ≡ nested `!match` + `!is-empty`. `!pick` is o
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {}
 containerPort: {{ .Values.port | default 8080 }}
+# containerPort: 8080
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {}
 !emit
 containerPort: !match
   $if: !is-empty $Values.port?
   $then: 8080
   $else: !ref $Values.port
+# containerPort: 8080
 ```
 
 </td></tr>

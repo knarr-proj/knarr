@@ -5,9 +5,11 @@ Join a sequence of **strings** with a separator. Bind-only. Result is a string. 
 ## Syntax
 
 ```yaml
+# $Values = {hosts: [a, b]}
 $Csv: !join
   $sep: ","
   $over: !ref $Values.hosts
+# $Csv = a,b
 ```
 
 - Tagged **mapping**: `$sep` (non-empty string) + `$over` (sequence of **strings** only). Optional `$prefix` / `$suffix`: if the key is written, same as `$sep` (non-empty string; omit / `""` is an error). Missing key → no wrap on that side. Result is prefix + joined + suffix. A mapping / `?? {}` on `$over` is a sort error. Map keys or values: [`!foreach`](foreach.md) first, then join.
@@ -23,6 +25,7 @@ $Csv: !join
 ### comma-separated hosts
 
 ```yaml
+# $Values = {hosts: [a, b]}
 !bind
 $HostList: !join
   $sep: ","
@@ -30,11 +33,13 @@ $HostList: !join
 ---
 !emit
 hosts: !ref $HostList
+# hosts: a,b
 ```
 
 ### Kubernetes DNS names with dots
 
 ```yaml
+# $Values = {name: api}
 $Name: !join
   $sep: "."
   $over:
@@ -42,6 +47,7 @@ $Name: !join
     - svc
     - cluster
     - local
+# $Name = api.svc.cluster.local
 ```
 
 `$over` must be a sequence of strings — build it with `!foreach` in bind if needed.
@@ -49,12 +55,14 @@ $Name: !join
 ### Wrap after join
 
 ```yaml
+# $Values = {hosts: [a, b]}
 !bind
 $Csv: !join
   $sep: ","
   $prefix: "["
   $suffix: "]"
   $over: !ref $Values.hosts
+# $Csv = [a,b]
 ```
 
 `hosts: [a, b]` → `[a,b]`. `hosts: []` → `[]`. Omit `$over` on `$Name?:` still omits the bind (no wrap). Only `$prefix` or only `$suffix` is allowed. Do not write `$prefix: ""`.
@@ -62,6 +70,7 @@ $Csv: !join
 ### Optional hosts annotation
 
 ```yaml
+# $Values = {}
 !bind
 $HostList?: !join
   $sep: ","
@@ -71,11 +80,13 @@ $HostList?: !join
 metadata:
   annotations:
     hosts?: !ref $HostList?
+# no hosts
 ```
 
 Missing `hosts` → no `$HostList` → no annotation key. `hosts: []` in values → `hosts: ""`. Always print a string (possibly empty):
 
 ```yaml
+# $Values = {}
 !bind
 $HostList: !join
   $sep: ","
@@ -83,14 +94,17 @@ $HostList: !join
 ---
 !emit
 hosts: !ref $HostList
+# hosts: ""
 ```
 
 ### Image pull secrets annotation
 
 ```yaml
+# $Values = {pullSecrets: [x, y]}
 $Pull: !join
   $sep: ","
   $over: !ref $Values.pullSecrets
+# $Pull = x,y
 ```
 
 ## Common mistakes
@@ -100,16 +114,18 @@ $Pull: !join
 <tr><td>
 
 ```yaml
+# $Values = {hosts: [a]}
 !emit
 hosts: !join
   $sep: ","
   $over: !ref $Values.hosts
-# !join is bind-only
+# error: !join is bind-only
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {hosts: [a]}
 !bind
 $HostList: !join
   $sep: ","
@@ -117,102 +133,112 @@ $HostList: !join
 ---
 !emit
 hosts: !ref $HostList
-# join in bind, then !ref
+# hosts: a
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {hosts: [a]}
 !bind
 $HostList: !join
   over: !ref $Values.hosts
   sep: ","
-# keys need $: $over / $sep
+# error: keys need $: $over / $sep
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {hosts: [a]}
 !bind
 $HostList: !join
   $sep: ","
   $over: !ref $Values.hosts
-# $sep and $over are the join keys
+# $HostList = a
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $HostList: !join
   $sep: ","
   $over: !ref $Values.hosts?
-# required bind + omit-capable $over is a pair error
+# error: required bind + omit-capable $over
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $HostList?: !join
   $sep: ","
   $over: !ref $Values.hosts?
-# $Name?: omits when hosts is missing
+# no $HostList
 ```
 
 ```yaml
+# $Values = {}
 !bind
 $HostList: !join
   $sep: ","
   $over: !ref "$Values.hosts? ?? []"
-# required bind: fill omit so $over is a list
+# $HostList = ""
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $HostList?: !join
   $sep: ","
   $over: !ref "$Values.hosts? ?? []"
-# ?: + ?? [] : the bind cannot vanish
+# error: ?: + ?? []
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $HostList?: !join
   $sep: ","
   $over: !ref $Values.hosts?
-# omit $over omits the bind
+# no $HostList
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {labels: {app: x}}
 !bind
 $HostList: !join
   $sep: ","
   $over: !ref $Values.labels
-# mapping is not a sequence of strings
+# error: mapping is not a sequence of strings
 ```
 
 ```yaml
+# $Values = {}
 !bind
 $HostList: !join
   $sep: ","
   $over: !ref "$Values.hosts? ?? {}"
-# ?? {} is a mapping; join $over is a list
+# error: ?? {} is a mapping
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {labels: {app: x}}
 !bind
 $Keys: !foreach
   $over: !ref $Values.labels
@@ -222,31 +248,34 @@ $Keys: !foreach
 $HostList: !join
   $sep: ","
   $over: !ref $Keys
-# map keys: foreach first
+# $HostList = app
 ```
 
 ```yaml
+# $Values = {}
 !bind
 $HostList: !join
   $sep: ","
   $over: !ref "$Values.hosts? ?? []"
-# list default is ?? []
+# $HostList = ""
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {ports: [80]}
 !bind
 $Ports: !join
   $sep: ","
   $over: !ref $Values.ports
-# joining ints is an error
+# error: joining ints
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {ports: [80]}
 !bind
 $StrPorts: !foreach
   $over: !ref $Values.ports
@@ -255,31 +284,33 @@ $StrPorts: !foreach
 $Ports: !join
   $sep: ","
   $over: !ref $StrPorts
-# !str each element first
+# $Ports = "80"
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Name: !format
   - "%s-%s"
   - !ref $Values.name
   - svc
-# a single delimiter does not need !format
+# $Name = api-svc
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Name: !join
   $sep: "-"
   $over:
     - !ref $Values.name
     - svc
-# one delimiter — !join
+# $Name = api-svc
 ```
 
 </td></tr>
@@ -313,13 +344,16 @@ Do not write `$HostList?:` with `$over: … ?? []`.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {hosts: [a, b]}
 hosts: {{ join "," (required "hosts" .Values.hosts) }}
+# hosts: a,b
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {hosts: [a, b]}
 !bind
 $HostList: !join
   $sep: ","
@@ -332,6 +366,7 @@ $fail: "hosts"
 ---
 !emit
 hosts: !ref $HostList
+# hosts: a,b
 ```
 
 </td></tr>
@@ -346,13 +381,16 @@ Same result. `required` abort = `$fail`. Fail text differs.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {name: api}
 name: {{ required "name" .Values.name }}.svc.cluster.local
+# name: api.svc.cluster.local
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Name: !join
   $sep: "."
@@ -369,6 +407,7 @@ $fail: "name"
 ---
 !emit
 name: !ref $Name
+# name: api.svc.cluster.local
 ```
 
 </td></tr>
@@ -383,13 +422,16 @@ Same result. `required` abort = `$fail`.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {pullSecrets: [x, y]}
 pull: {{ join "," (required "pullSecrets" .Values.pullSecrets) }}
+# pull: x,y
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {pullSecrets: [x, y]}
 !bind
 $Pull: !join
   $sep: ","
@@ -402,6 +444,7 @@ $fail: "pullSecrets"
 ---
 !emit
 pull: !ref $Pull
+# pull: x,y
 ```
 
 </td></tr>

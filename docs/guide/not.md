@@ -5,8 +5,9 @@ Boolean negation of a **path**. Path only — no `??` on this tag.
 ## Syntax
 
 ```yaml
-$when: !not $Values.service.enabled
-$Hide: !not $ShowSvc
+# $Values = {service: {enabled: false}}; $ShowSvc = true
+$when: !not $Values.service.enabled    # true
+$Hide: !not $ShowSvc                   # false
 ```
 
 One tag, one scalar path. Does **not** wrap `!is-empty` / `!and` / `!or` (those have [`!is-not-empty`](is-not-empty.md) / De Morgan / `!expr`). `??` on `!not` is an error.
@@ -16,11 +17,13 @@ One tag, one scalar path. Does **not** wrap `!is-empty` / `!and` / `!or` (those 
 ### Invert a flag
 
 ```yaml
+# $Values = {service: {enabled: false}}
 !emit?
 $when: !not $Values.service.enabled
 $then:
   kind: ConfigMap
   name: no-svc
+# kind: ConfigMap
 ```
 
 ### Optional bool
@@ -28,11 +31,13 @@ $then:
 Default the path first, then negate:
 
 ```yaml
+# $Values = {}
 !bind
 $Debug: !ref $Values.debug? ?? false
 ---
 !emit
 $when: !not $Debug
+# true
 ```
 
 Missing debug → `false` → not → **true**. `!expr "!$Values.debug? ?? false"` defaults the **not-result**: missing debug → **false**.
@@ -40,7 +45,9 @@ Missing debug → `false` → not → **true**. `!expr "!$Values.debug? ?? false
 ### Hide workers
 
 ```yaml
+# $Worker = {disabled: false}
 $filter: !not $Worker.disabled
+# true
 ```
 
 ## Common mistakes
@@ -50,60 +57,66 @@ $filter: !not $Worker.disabled
 <tr><td>
 
 ```yaml
+# $On = true
 !emit?
 $when: !not !ref $On
 $then:
   kind: Service
-# two tags on one node; !not does not wrap !ref
+# error: !not does not wrap !ref
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {service: {enabled: false}, name: api}
 !emit?
 $when: !not $Values.service.enabled
 $then:
   kind: Service
   name: !ref $Values.name
-# !not takes a path scalar
+# kind: Service
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {tls: {host: a}}
 !emit?
 $when: !not !is-empty $Values.tls?
 $then:
   kind: ConfigMap
-# !not does not wrap !is-empty
+# error: !not does not wrap !is-empty
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {tls: {host: a}}
 !emit?
 $when: !is-not-empty $Values.tls?
 $then:
   kind: ConfigMap
   name: tls
-# use !is-not-empty or !expr
+# kind: ConfigMap
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !emit?
 $when: !not $Values.debug? ?? false
 $then:
   kind: Deployment
-# no ?? on !not
+# error: no ?? on !not
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {name: api}
 !bind
 $Debug: !ref $Values.debug? ?? false
 ---
@@ -112,7 +125,7 @@ $when: !not $Debug
 $then:
   kind: Deployment
   name: !ref $Values.name
-# default the path, then !not
+# kind: Deployment
 ```
 
 </td></tr>
@@ -147,19 +160,23 @@ $when: !not $Values.enabled?   # error: omit in bool slot
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {service: {enabled: false}}
 {{- if not .Values.service.enabled }}
 kind: Service
 {{- end }}
+# kind: Service
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {service: {enabled: false}}
 !emit?
 $when: !is-empty $Values.service?.enabled?
 $then:
   kind: Service
+# kind: Service
 ```
 
 </td></tr>
@@ -174,19 +191,23 @@ Same result. Helm `not` on empty ≡ `!is-empty`. `!not` still needs a bool path
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {}
 {{- if not .Values.debug }}
 kind: Deployment
 {{- end }}
+# kind: Deployment
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {}
 !emit?
 $when: !is-empty $Values.debug?
 $then:
   kind: Deployment
+# kind: Deployment
 ```
 
 </td></tr>
@@ -201,18 +222,21 @@ Same result. Helm `not` on empty ≡ `!is-empty`. `$then` is the whole document.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {workers: [{name: w, disabled: false}]}
 env:
 {{- range .Values.workers }}
 {{- if not .disabled }}
   - name: {{ .name }}
 {{- end }}
 {{- end }}
+# env: [{name: w}]
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {workers: [{name: w, disabled: false}]}
 !emit
 env?: !foreach
   $over: !ref $Values.workers?
@@ -220,6 +244,7 @@ env?: !foreach
   $filter: !is-empty $W.disabled?
   $yield?:
     name: !ref $W.name
+# env: [{name: w}]
 ```
 
 </td></tr>

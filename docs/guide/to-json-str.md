@@ -5,7 +5,9 @@ Serialize a knarr node to a JSON **string**. Canon is Go `encoding/json.Marshal`
 ## Syntax
 
 ```yaml
+# $Values = {config: {a: 1}}
 config.json: !to-json-str $Values.config
+# config.json: {"a":1}
 ```
 
 Tagged scalar `RefScalar`. Omit path → omit.
@@ -15,15 +17,19 @@ Tagged scalar `RefScalar`. Omit path → omit.
 ### ConfigMap JSON
 
 ```yaml
+# $Values = {runtime: {a: 1}}
 !emit
 runtime.json: !to-json-str $Values.runtime
+# runtime.json: {"a":1}
 ```
 
 ### Annotation + checksum
 
 ```yaml
+# $Values = {config: {a: 1}}
 checksum/config: !sha256-json $Values.config
 config.json: !to-json-str $Values.config
+# checksum/config: 015abd7f… / config.json: {"a":1}
 ```
 
 ### `&` in a note
@@ -41,51 +47,57 @@ JSON of knarr float matches Go `float64` marshal (`1.0` as float may print `1`).
 <tr><td>
 
 ```yaml
+# $Values = {config: {a: 1}}
 !bind
 $Json: !expr "toJson($Values.config)"
-# no toJson() in !expr
+# error: no toJson() in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {config: {a: 1}}
 !emit
 config.json: !to-json-str $Values.config
-# JSON text is the !to-json-str tag
+# config.json: {"a":1}
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {config: {a: 1}}
 !emit
 config.json: !to-json-str $Values.config
-# pretty JSON or first-seen key order would break checksums
+# error: pretty JSON or first-seen key order would break checksums
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {config: {a: 1}}
 !emit
 config.json: !to-json-str $Values.config
-# canon is compact, sorted keys, HTML-escape — same as Go json.Marshal
+# config.json: {"a":1}
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {config: {a: 1}}
 !bind
 $Yaml: !to-yaml-str $Values.config
-# !to-yaml-str is not v1
+# error: !to-yaml-str is not v1
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {config: {a: 1}}
 !emit
 config: !ref $Values.config
-# emit the mapping as YAML, or use !to-json-str for JSON text
+# config: {a: 1}
 ```
 
 </td></tr>
@@ -104,13 +116,16 @@ Canon is Go `json.Marshal`: compact, **sorted** keys, HTML-escape `& < >` — sa
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {config: {a: 1}}
 config.json: {{ toJson (required "config" .Values.config) }}
+# config.json: {"a":1}
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {config: {a: 1}}
 !validation
 $rules:
   - !is-not-empty $Values.config?
@@ -118,6 +133,7 @@ $fail: "config"
 ---
 !emit
 config.json: !to-json-str $Values.config
+# config.json: {"a":1}
 ```
 
 </td></tr>
@@ -145,16 +161,20 @@ Helm key is `checksum:`; knarr key is `checksum/config:`. Different document.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {}
 note.json: {{ toJson (dict "note" "a&b") }}
+# note.json: {"note":"a\u0026b"}
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {}
 !emit
 note.json: !to-json-str
   note: a&b
+# note.json: {"note":"a\u0026b"}
 ```
 
 </td></tr>

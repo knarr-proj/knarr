@@ -5,9 +5,11 @@ Split a **string** on a separator. Bind-only. Result is a sequence of strings.
 ## Syntax
 
 ```yaml
+# $Values = {hostCsv: "a,b"}
 $Parts: !split
   $sep: ","
   $of: !ref $Values.hostCsv
+# $Parts = [a, b]
 ```
 
 - `$sep` non-empty string; `$of` string (`""` → `[]`). Not `$over` (that key is a collection: [`!join`](join.md) / [`!foreach`](foreach.md)).
@@ -22,6 +24,7 @@ $Parts: !split
 ### CSV hosts → list
 
 ```yaml
+# $Values = {hostCsv: "a,b"}
 !bind
 $Hosts: !split
   $sep: ","
@@ -35,14 +38,17 @@ hostAliases: !foreach
     ip: "127.0.0.1"
     hostnames:
       - !ref $H
+# hostAliases: [{ip: "127.0.0.1", hostnames: [a]}, {ip: "127.0.0.1", hostnames: [b]}]
 ```
 
 ### Image repo / tag
 
 ```yaml
+# $Values = {image: "repo:tag"}
 $Bits: !split
   $sep: ":"
   $of: !ref $Values.image
+# $Bits = [repo, tag]
 ```
 
 Then index with `!expr` / `!len` (no `[-1]`).
@@ -50,14 +56,17 @@ Then index with `!expr` / `!len` (no `[-1]`).
 ### Newline lists
 
 ```yaml
+# $Values = {allowlist: "a\nb"}
 $Lines: !split
   $sep: "\n"
   $of: !ref $Values.allowlist
+# $Lines = [a, b]
 ```
 
 ### Optional CSV
 
 ```yaml
+# $Values = {}
 !bind
 $Hosts?: !split
   $sep: ","
@@ -70,15 +79,18 @@ hostAliases?: !foreach
   $yield:
     hostnames:
       - !ref $H
+# no hostAliases
 ```
 
 Missing `hostCsv` → no `$Hosts` → no key. `hostCsv: ""` → `$Hosts: []`. Always keep a list:
 
 ```yaml
+# $Values = {}
 !bind
 $Hosts: !split
   $sep: ","
   $of: !ref "$Values.hostCsv? ?? ''"
+# $Hosts = []
 ```
 
 ## Common mistakes
@@ -88,111 +100,122 @@ $Hosts: !split
 <tr><td>
 
 ```yaml
+# $Values = {hostCsv: "a,b"}
 !bind
 $Hosts: !split
   $sep: ""
   $of: !ref $Values.hostCsv
-# empty $sep is an error
+# error: empty $sep
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {hostCsv: "a,b"}
 !bind
 $Hosts: !split
   $sep: ","
   $of: !ref $Values.hostCsv
-# $sep must be a non-empty string
+# $Hosts = [a, b]
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {hostCsv: "a,b"}
 !bind
 $Hosts: !split
   $sep: ","
   $over: !ref $Values.hostCsv
-# $over is a collection; split input is $of
+# error: $over is a collection; split input is $of
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {hostCsv: "a,b"}
 !bind
 $Hosts: !split
   $sep: ","
   $of: !ref $Values.hostCsv
-# string operand is $of
+# $Hosts = [a, b]
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Hosts: !split
   $sep: ","
   $of: !ref $Values.hostCsv?
-# required bind + omit-capable $of is a pair error
+# error: required bind + omit-capable $of
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Hosts?: !split
   $sep: ","
   $of: !ref $Values.hostCsv?
-# $Name?: omits when hostCsv is missing
+# no $Hosts
 ```
 
 ```yaml
+# $Values = {}
 !bind
 $Hosts: !split
   $sep: ","
   $of: !ref "$Values.hostCsv? ?? ''"
-# required bind: fill omit so $of is a string
+# $Hosts = []
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Hosts?: !split
   $sep: ","
   $of: !ref "$Values.hostCsv? ?? ''"
-# ?: + ?? '' : the bind cannot vanish
+# error: ?: + ?? ''
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {}
 !bind
 $Hosts?: !split
   $sep: ","
   $of: !ref $Values.hostCsv?
-# omit $of omits the bind
+# no $Hosts
 ```
 
 </td></tr>
 <tr><td>
 
 ```yaml
+# $Values = {hostCsv: "a,b"}
 !bind
 $Hosts: !expr "split(',', $Values.hostCsv)"
-# no split() in !expr
+# error: no split() in !expr
 ```
 
 </td><td>
 
 ```yaml
+# $Values = {hostCsv: "a,b"}
 !bind
 $Hosts: !split
   $sep: ","
   $of: !ref $Values.hostCsv
-# split is the !split tag
+# $Hosts = [a, b]
 ```
 
 </td></tr>
@@ -223,13 +246,16 @@ $Hosts?: !split
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {hostCsv: "a,b"}
 hosts: {{ splitList "," .Values.hostCsv }}
+# hosts: [a, b]
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {hostCsv: "a,b"}
 !bind
 $Hosts: !split
   $sep: ","
@@ -237,6 +263,7 @@ $Hosts: !split
 ---
 !emit
 hosts: !ref $Hosts
+# hosts: [a, b]
 ```
 
 </td></tr>
@@ -251,7 +278,9 @@ Same list when `hostCsv` is present.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {image: "repo:tag"}
 bits: {{ split ":" .Values.image }}
+# bits: {_0: repo, _1: tag}
 ```
 
 </td></tr>
@@ -271,13 +300,16 @@ Helm `split` returns a dict `_0`, `_1`. Knarr `!split` returns a list.
 <tr><th>Helm</th><td>
 
 ```gotemplate
+# $Values = {allowlist: "a\nb"}
 lines: {{ splitList "\n" .Values.allowlist }}
+# lines: [a, b]
 ```
 
 </td></tr>
 <tr><th>Knarr</th><td>
 
 ```yaml
+# $Values = {allowlist: "a\nb"}
 !bind
 $Lines: !split
   $sep: "\n"
@@ -285,6 +317,7 @@ $Lines: !split
 ---
 !emit
 lines: !ref $Lines
+# lines: [a, b]
 ```
 
 </td></tr>
